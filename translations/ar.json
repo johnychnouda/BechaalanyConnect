@@ -1,0 +1,34 @@
+{
+  "common": {
+    "hello": "مرحبا",
+    "enLanguage": "EN",
+    "arLanguage": "AR",
+    "viewMore": "عرض الكل",
+    "appName": "بيشالاني كونكت",
+    "back": "رجوع",
+    "comingSoon": "قريباً"
+  },
+  "header": {
+    "categories": "التصنيفات",
+    "aboutUs": "عننا",
+    "contactUs": "تواصل معنا",
+    "createAccount": "إنشاء حساب",
+    "profile": "الحساب"
+  },
+  "footer": {
+    "copyright": "©{year} بيشالاني كونكت جميع الحقوق محفوظة"
+  },
+  "homePage": {
+    "viewCategories": "عرض التصنيفات",
+    "welcomeTo": "مرحبا بك في",
+    "welcomeToDescription": "حيث تلتقي السرعة والموثوقية لتقديم أفضل الحلول الرقمية.",
+    "joinWhatsapp": "انضم إلى مجموعة واتساب الخاصة بنا للبقاء على اطلاع مع العروض الأخرى على موقعنا!",
+    "whatsappChannel": "قناة واتساب",
+    "categories": "التصنيفات",
+    "latestProducts": "آخر المنتجات",
+    "featuredProducts": "المنتجات المتميزة"
+  },
+  "categories": {
+    "homepage": "الرئيسية"
+  }
+}

@@ -1,0 +1,178 @@
+import React from 'react';
+
+interface TransactionFilterProps {
+  onDateChange?: (from: string, to: string) => void;
+  onFilterChange?: (filter: string) => void;
+}
+
+const TransactionFilter: React.FC<TransactionFilterProps> = ({
+  onDateChange,
+  onFilterChange,
+}) => {
+  const [fromDate, setFromDate] = React.useState('');
+  const [toDate, setToDate] = React.useState('');
+  const [activeFilter, setActiveFilter] = React.useState('all');
+
+  const handleFilterClick = (filter: string) => {
+    setActiveFilter(filter);
+    onFilterChange?.(filter);
+  };
+
+  const handleSearch = () => {
+    onDateChange?.(fromDate, toDate);
+  };
+
+  const ArrowIcon = ({ isReversed = false }: { isReversed?: boolean }) => (
+    <svg 
+      width="19" 
+      height="19" 
+      viewBox="0 0 19 19" 
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg"
+      className={isReversed ? 'transform rotate-180' : ''}
+    >
+      <circle cx="9.50006" cy="9.50006" r="9.50006" fill={isReversed ? "#5FD568" : "#E73828"}/>
+      <g clipPath="url(#clip0_43_2650)">
+        <g filter="url(#filter0_d_43_2650)">
+          <path 
+            fillRule="evenodd" 
+            clipRule="evenodd" 
+            d="M9.22023 4.46989C9.29445 4.39576 9.39506 4.35413 9.49995 4.35413C9.60485 4.35413 9.70546 4.39576 9.77968 4.46989L13.4741 8.1575C13.512 8.19399 13.5421 8.23766 13.5629 8.28594C13.5837 8.33422 13.5946 8.38616 13.5951 8.43872C13.5956 8.49128 13.5856 8.54341 13.5657 8.59206C13.5458 8.64072 13.5165 8.68493 13.4793 8.72211C13.4422 8.75929 13.398 8.78871 13.3493 8.80863C13.3007 8.82856 13.2486 8.8386 13.196 8.83817C13.1435 8.83774 13.0915 8.82684 13.0432 8.80612C12.9949 8.7854 12.9512 8.75526 12.9147 8.71747L9.89632 5.7049L9.90212 14.2497C9.90226 14.3547 9.86069 14.4554 9.78656 14.5297C9.71242 14.6041 9.6118 14.6459 9.50681 14.646C9.40183 14.6462 9.30109 14.6046 9.22676 14.5305C9.15243 14.4563 9.11059 14.3557 9.11045 14.2507L9.10517 5.70384L6.08521 8.718C6.04868 8.75579 6.00498 8.78592 5.95668 8.80665C5.90838 8.82737 5.85643 8.83826 5.80387 8.8387C5.75131 8.83913 5.6992 8.82909 5.65056 8.80916C5.60192 8.78923 5.55774 8.75982 5.52059 8.72264C5.48344 8.68545 5.45407 8.64125 5.43419 8.59259C5.41431 8.54393 5.40432 8.49181 5.4048 8.43925C5.40528 8.38669 5.41623 8.33475 5.43699 8.28647C5.45776 8.23819 5.48794 8.19452 5.52576 8.15802L9.22023 4.46989Z" 
+            fill="white"
+          />
+        </g>
+      </g>
+      <defs>
+        <filter id="filter0_d_43_2650" x="1.40479" y="4.35413" width="16.1904" height="18.2919" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+          <feFlood floodOpacity="0" result="BackgroundImageFix"/>
+          <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+          <feOffset dy="4"/>
+          <feGaussianBlur stdDeviation="2"/>
+          <feComposite in2="hardAlpha" operator="out"/>
+          <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
+          <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_43_2650"/>
+          <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_43_2650" result="shape"/>
+        </filter>
+        <clipPath id="clip0_43_2650">
+          <rect width="12.6667" height="12.6667" fill="white" transform="translate(3.1665 3.16687)"/>
+        </clipPath>
+      </defs>
+    </svg>
+  );
+
+  return (
+    <div className="box-border flex flex-col items-start p-0 pb-6 gap-[25px] w-[878px] h-[150px] border-b border-[rgba(0,0,0,0.1)]">
+      {/* Date Filter Section */}
+      <div className="flex flex-row items-end p-0 gap-[25px] w-[878px] h-[66px]">
+        {/* From Date */}
+        <div className="flex flex-col items-start p-0 gap-1 w-[377px] h-[66px]">
+          <span className="w-[377px] h-[19px] font-['Roboto'] font-semibold text-base leading-[19px] text-[#070707]">
+            From
+          </span>
+          <input
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="box-border flex flex-row items-center p-3 px-6 gap-[10px] w-[377px] h-[43px] border border-[#070707] rounded-[50.5px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707]"
+          />
+        </div>
+
+        {/* To Date */}
+        <div className="flex flex-col items-start p-0 gap-1 w-[377px] h-[66px]">
+          <span className="w-[377px] h-[19px] font-['Roboto'] font-semibold text-base leading-[19px] text-[#070707]">
+            Till
+          </span>
+          <input
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="box-border flex flex-row items-center p-3 px-6 gap-[10px] w-[377px] h-[43px] border border-[#070707] rounded-[50.5px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707]"
+          />
+        </div>
+
+        {/* Search Button */}
+        <button
+          onClick={handleSearch}
+          className="flex flex-row justify-center items-center p-2 px-6 gap-[10px] w-[74px] h-[43px] bg-[#E73828] rounded-[50.5px] font-['Roboto'] font-bold text-xs leading-[14px] uppercase text-white border border-[#E73828] transition-colors duration-200 hover:bg-white hover:text-[#E73828] hover:border-[#E73828] focus:outline-none focus:ring-2 focus:ring-[#E73828]"
+        >
+          Search
+        </button>
+      </div>
+
+      {/* Transaction Type Filters */}
+      <div className="flex flex-row items-start p-0 gap-4 w-[576px] h-[35px]">
+        {/* All Transfers */}
+        <button
+          onClick={() => handleFilterClick('all')}
+          className={`flex flex-row items-center p-2 px-3 gap-[10px] w-[103px] h-[35px] rounded-[50.5px] bg-[rgba(7,7,7,0.2)]`}
+        >
+          <span className="font-['Roboto'] font-normal text-sm leading-4 text-[#070707]">
+            All Transfers
+          </span>
+        </button>
+
+        {/* Purchased */}
+        <button
+          onClick={() => handleFilterClick('purchased')}
+          className={`flex flex-row items-center p-2 px-3 gap-[10px] w-[114px] h-[35px] rounded-[50.5px] ${
+            activeFilter === 'purchased'
+              ? 'bg-[rgba(7,7,7,0.2)]'
+              : 'border border-[#070707]'
+          }`}
+        >
+          <ArrowIcon />
+          <span className="font-['Roboto'] font-normal text-sm leading-4 text-[#070707]">
+            Purchased
+          </span>
+        </button>
+
+        {/* Transfer */}
+        <button
+          onClick={() => handleFilterClick('transfer')}
+          className={`flex flex-row items-center p-2 px-3 gap-[10px] w-[99px] h-[35px] rounded-[50.5px] ${
+            activeFilter === 'transfer'
+              ? 'bg-[rgba(7,7,7,0.2)]'
+              : 'border border-[#070707]'
+          }`}
+        >
+          <ArrowIcon />
+          <span className="font-['Roboto'] font-normal text-sm leading-4 text-[#070707]">
+            Transfer
+          </span>
+        </button>
+
+        {/* Received */}
+        <button
+          onClick={() => handleFilterClick('received')}
+          className={`flex flex-row items-center p-2 px-3 gap-[10px] w-[104px] h-[35px] rounded-[50.5px] ${
+            activeFilter === 'received'
+              ? 'bg-[rgba(7,7,7,0.2)]'
+              : 'border border-[#070707]'
+          }`}
+        >
+          <ArrowIcon isReversed />
+          <span className="font-['Roboto'] font-normal text-sm leading-4 text-[#070707]">
+            Received
+          </span>
+        </button>
+
+        {/* Refund */}
+        <button
+          onClick={() => handleFilterClick('refund')}
+          className={`flex flex-row items-center p-2 px-3 gap-[10px] w-[92px] h-[35px] rounded-[50.5px] ${
+            activeFilter === 'refund'
+              ? 'bg-[rgba(7,7,7,0.2)]'
+              : 'border border-[#070707]'
+          }`}
+        >
+          <ArrowIcon isReversed />
+          <span className="font-['Roboto'] font-normal text-sm leading-4 text-[#070707]">
+            Refund
+          </span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default TransactionFilter; 
