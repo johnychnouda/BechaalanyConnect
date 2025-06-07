@@ -5,12 +5,8 @@ import TransactionFilter from "@/components/general/TransactionFilter";
 import { useAuth } from '@/context/AuthContext';
 
 const transactions = [
-  { direction: 'up', title: "Transfer to John | Bank Account", date: "2025-03-14 18:37:07", status: 'Transfer' },
-  { direction: 'down', title: "Refund for Order #123 | PayPal", date: "2025-03-14 18:37:07", status: 'Refund' },
-  { direction: 'up', title: "Pubg Mobile | 600 UC | Game Purchase", date: "2025-03-14 18:37:07", status: 'Purchased' },
-  { direction: 'down', title: "Payment from Alice | Wallet", date: "2025-03-14 18:37:07", status: 'Received' },
-  { direction: 'up', title: "Transfer to Bob | Credit Card", date: "2025-03-14 18:37:07", status: 'Transfer' },
-  { direction: 'down', title: "Refund for Order #456 | Stripe", date: "2025-03-14 18:37:07", status: 'Refund' },
+  { direction: 'up', title: "Pubg Mobile | 600 UC", date: "2025-03-14 18:37:07", status: 'Purchased' },
+  { direction: 'down', title: "Payment", date: "2025-03-14 18:37:07", status: 'Received' },
   // ... more transactions ...
 ];
 
@@ -221,16 +217,21 @@ export default function AccountDashboard() {
                         </svg>
                       </div>
                       {/* Title and Date */}
-                      <div className="flex flex-col justify-center items-start p-0 gap-0 w-[220px] min-h-[37px]">
-                        <span className="font-['Roboto'] font-semibold text-base leading-[19px]">
-                          {tx.title.split(' | ').map((part, idx, arr) => (
-                            <React.Fragment key={idx}>
-                              <span className="text-[#070707]">{part}</span>
-                              {idx < arr.length - 1 && <span className="text-[#E73828]"> | </span>}
-                            </React.Fragment>
-                          ))}
-                        </span>
-                        <span className="font-['Roboto'] font-normal text-xs leading-[14px] text-[#8E8E8E] mt-1">
+                      <div className="flex flex-col justify-center items-start p-0 gap-1 w-[151px] h-[37px]">
+                        <div className="flex flex-row items-center p-0 gap-1 w-[151px] h-[19px]">
+                          <span className="w-[90px] h-[19px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707]">
+                            {tx.title.split(' | ')[0]}
+                          </span>
+                          {tx.title.includes(' | ') && (
+                            <>
+                              <span className="w-[1px] h-3 bg-[#E73828]"></span>
+                              <span className="w-[52px] h-[19px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707]">
+                                {tx.title.split(' | ')[1]}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                        <span className="w-[110px] h-[14px] font-['Roboto'] font-normal text-xs leading-[14px] text-[#8E8E8E]">
                           {tx.date}
                         </span>
                       </div>
