@@ -21,7 +21,7 @@ const BlurredPrice: React.FC<BlurredPriceProps> = ({ price, className = '', onCl
       className={`font-bold text-[18px] text-app-red cursor-pointer ${className}`}
       onClick={handleClick}
     >
-      <span className={isBlurred ? 'filter blur-[2px]' : ''}>
+      <span className={isBlurred ? 'filter blur-[4px]' : ''}>
         {price.toFixed(2)}
       </span>
       <span className="ml-1">$</span>

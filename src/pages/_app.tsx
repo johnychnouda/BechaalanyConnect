@@ -37,9 +37,7 @@ export default function App({
               timeZone="Asia/Beirut"
               messages={messages || {}}
               onError={(error) => {
-                if (error.code === 'MISSING_MESSAGE') {
-                  console.warn('Missing message:', error.message);
-                } else {
+                if (error.code !== 'MISSING_MESSAGE') {
                   console.error(error);
                 }
               }}

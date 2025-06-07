@@ -9,8 +9,6 @@ export async function getCategories(): Promise<Category[]> {
     { id: 5, title: "SOCIAL MEDIA SERVICES", image: "/socialmedia-image.png", category: null, showProducts: true, type: 'regular' },
     { id: 6, title: "TELECOM", image: "/telecom-image.png", category: null, showProducts: true, type: 'regular' },
     { id: 7, title: "LIVE CHAT", image: "/livechat-image.png", category: null, showProducts: true, type: 'regular' },
-    { id: 8, title: "DSL CARD", image: "/dslcard-image.png", category: null, showProducts: true, type: 'regular' },
-    { id: 9, title: "SPECIAL NUMBERS", image: "/specialnumbers-image.png", category: null, showProducts: true, type: 'regular' },
-    { id: 10, title: "BALANCE SECTION", image: "/balance-image.png", category: null, showProducts: true, type: 'regular' },
+    { id: 8, title: "DSL CARD", image: "/dslcard-image.png", category: null, showProducts: true, type: 'regular' }
   ];
 } 

@@ -18,10 +18,10 @@ export default function Home() {
     queryFn: getProducts,
   });
 
-  // Get featured products (first 5)
-  const featuredProducts = products.slice(0, 5);
-  // Get latest products (last 5)
-  const latestProducts = products.slice(-5);
+  // Get featured products (first 4)
+  const featuredProducts = products.slice(0, 4);
+  // Get latest products (last 4)
+  const latestProducts = products.slice(-4);
 
   return (
     <PageLayout className={`flex flex-col min-h-screen gap-16 pb-32`}>

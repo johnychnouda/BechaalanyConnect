@@ -4,8 +4,9 @@ export type Product = {
   id: number;
   title: string;
   image: string;
-  price: number;
+  price?: number;
   category: Category | null;
   categoryId: string;
   hasContent?: boolean;
+  type?: "latest" | "featured";
 };
