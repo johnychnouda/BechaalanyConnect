@@ -18,6 +18,7 @@ import { GlobalStateType } from "@/types/globalSettings.type";
 import NavigationMenu from "./navigation-menu";
 import ThemeSwitcher from "../general/theme-switcher";
 import { useAuth } from '@/context/AuthContext';
+import BlurredPrice from './BlurredPrice';
 
 export default function Header({ children }: PropsWithChildren) {
   const t = useTranslations("header");
@@ -50,24 +51,30 @@ export default function Header({ children }: PropsWithChildren) {
                 <ButtonLink href="/account-dashboard" className="transition-all duration-200 hover:bg-app-red p-2 rounded-full group">
                   <ProfileIcon className="text-app-red group-hover:text-white" />
                 </ButtonLink>
-                <span className="font-bold text-[18px] text-app-red">{user ? '50.00 $' : ''}</span>
+                {user && <BlurredPrice price={50.00} />}
               </>
             ) : (
               <>
+                <ButtonLink className="transition-all duration-200 hover:bg-app-red p-2 rounded-full group">
+                  <SearchIcon strokeWidth={3.5} width={28} height={28} className="text-app-red group-hover:text-white" />
+                </ButtonLink>
                 <ButtonLink
                   href="/auth/register"
                   className="text-white text-center bg-app-red py-2 px-6 rounded-full font-bold text-[16px] border-2 border-app-red transition-all duration-200 hover:bg-white hover:text-app-red"
                 >
                   CREATE ACCOUNT
                 </ButtonLink>
+                <ButtonLink
+                  href="/auth/login"
+                  className="text-app-red text-center bg-white py-2 px-6 rounded-full font-bold text-[16px] border-2 border-app-red transition-all duration-200 hover:bg-app-red hover:text-white"
+                >
+                  LOGIN
+                </ButtonLink>
                 <ButtonLink href="/auth/login" className="transition-all duration-200 hover:bg-app-red p-2 rounded-full group">
                   <ProfileIcon className="text-app-red group-hover:text-white" />
                 </ButtonLink>
               </>
             )}
-            <ButtonLink className="transition-all duration-200 hover:bg-app-red p-2 rounded-full group">
-              <SearchIcon strokeWidth={3.5} width={28} height={28} className="text-app-red group-hover:text-white" />
-            </ButtonLink>
           </div>
           <ButtonLink className="block lg:hidden" onClick={toggle}>
             {isOpen ? <CloseIcon /> : <BurgerIcon />}

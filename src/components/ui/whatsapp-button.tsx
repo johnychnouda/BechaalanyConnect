@@ -1,9 +1,9 @@
 import React from 'react';
 import styled from 'styled-components';
 
-const WhatsAppButton = (props: React.HTMLAttributes<HTMLDivElement>) => {
+const WhatsAppButton = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
   return (
-    <StyledWrapper {...props}>
+    <StyledWrapper className={className} {...props}>
       <button className="Btn">
         <div className="sign">
           <svg className="socialSvg whatsappSvg" viewBox="0 0 16 16">

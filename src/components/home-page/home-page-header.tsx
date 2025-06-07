@@ -56,7 +56,8 @@ export default function HomePageHeader() {
             alt="Small Image"
             className={`pointer-events-none ${isRTL ? "scale-x-[-1]" : ""}`}
             fill
-            objectFit="cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            style={{ objectFit: 'cover' }}
             quality={100}
           />
         </div>

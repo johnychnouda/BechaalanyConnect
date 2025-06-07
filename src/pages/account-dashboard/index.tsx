@@ -1,12 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import AccountSidebar from "@/components/ui/account-sidebar";
 import WhatsAppButton from "@/components/ui/whatsapp-button";
 import TransactionFilter from "@/components/general/TransactionFilter";
 import { useAuth } from '@/context/AuthContext';
 
 const transactions = [
-  { direction: 'up', title: "Pubg Mobile | 600 UC", date: "2025-03-14 18:37:07", status: 'Purchased' },
-  { direction: 'down', title: "Payment", date: "2025-03-14 18:37:07", status: 'Received' },
+  { direction: 'up', title: "Transfer to John | Bank Account", date: "2025-03-14 18:37:07", status: 'Transfer' },
+  { direction: 'down', title: "Refund for Order #123 | PayPal", date: "2025-03-14 18:37:07", status: 'Refund' },
+  { direction: 'up', title: "Pubg Mobile | 600 UC | Game Purchase", date: "2025-03-14 18:37:07", status: 'Purchased' },
+  { direction: 'down', title: "Payment from Alice | Wallet", date: "2025-03-14 18:37:07", status: 'Received' },
+  { direction: 'up', title: "Transfer to Bob | Credit Card", date: "2025-03-14 18:37:07", status: 'Transfer' },
+  { direction: 'down', title: "Refund for Order #456 | Stripe", date: "2025-03-14 18:37:07", status: 'Refund' },
   // ... more transactions ...
 ];
 
@@ -111,6 +115,13 @@ export default function AccountDashboard() {
     setActiveFilter(filter);
   };
 
+  const filteredTransactions = useMemo(() => {
+    if (activeFilter === 'all') {
+      return transactions;
+    }
+    return transactions.filter(tx => tx.status.toLowerCase() === activeFilter.toLowerCase());
+  }, [activeFilter]);
+
   return (
     <div className="flex justify-center items-start min-h-screen bg-[#F7F7F7] py-16">
       <div className="flex w-full max-w-[1400px] bg-white rounded-[32px] border border-[#E73828]/10 shadow-[0_4px_24px_0_rgba(0,0,0,0.04)]">
@@ -186,12 +197,12 @@ export default function AccountDashboard() {
               />
               {/* Transaction List */}
               <div className="flex flex-col items-start p-0 gap-3 w-[879px]">
-                {transactions.map((tx, i) => (
+                {filteredTransactions.map((tx, i) => (
                   <div key={i} className="flex flex-row justify-between items-center p-[12px_16px] gap-[10px] w-[879px] h-[61px] bg-[rgba(7,7,7,0.05)] rounded-[50.5px]">
                     {/* Left Section - Icon, Title, Date */}
                     <div className="flex flex-row items-center p-0 gap-4 w-[285.56px] h-[37px]">
                       {/* Icon Circle */}
-                      <div className="relative w-9 h-9">
+                      <div className="relative w-9 h-9 flex-shrink-0">
                         <div className={`absolute w-9 h-9 rounded-full ${tx.direction === 'up' ? 'bg-[#E73828]' : 'bg-[#5FD568]'}`}></div>
                         <svg 
                           width="24" 
@@ -210,21 +221,16 @@ export default function AccountDashboard() {
                         </svg>
                       </div>
                       {/* Title and Date */}
-                      <div className="flex flex-col justify-center items-start p-0 gap-1 w-[151px] h-[37px]">
-                        <div className="flex flex-row items-center p-0 gap-1 w-[151px] h-[19px]">
-                          <span className="w-[90px] h-[19px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707]">
-                            {tx.title.split(' | ')[0]}
-                          </span>
-                          {tx.title.includes(' | ') && (
-                            <>
-                              <span className="w-[1px] h-3 bg-[#E73828]"></span>
-                              <span className="w-[52px] h-[19px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707]">
-                                {tx.title.split(' | ')[1]}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                        <span className="w-[110px] h-[14px] font-['Roboto'] font-normal text-xs leading-[14px] text-[#8E8E8E]">
+                      <div className="flex flex-col justify-center items-start p-0 gap-0 w-[220px] min-h-[37px]">
+                        <span className="font-['Roboto'] font-semibold text-base leading-[19px]">
+                          {tx.title.split(' | ').map((part, idx, arr) => (
+                            <React.Fragment key={idx}>
+                              <span className="text-[#070707]">{part}</span>
+                              {idx < arr.length - 1 && <span className="text-[#E73828]"> | </span>}
+                            </React.Fragment>
+                          ))}
+                        </span>
+                        <span className="font-['Roboto'] font-normal text-xs leading-[14px] text-[#8E8E8E] mt-1">
                           {tx.date}
                         </span>
                       </div>

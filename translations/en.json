@@ -6,7 +6,10 @@
     "viewMore": "View More",
     "appName": "BECHAALANY CONNECT",
     "back": "Back",
-    "comingSoon": "Coming Soon"
+    "comingSoon": "Coming Soon",
+    "switchTheme": "Switch theme",
+    "lightTheme": "Light theme",
+    "darkTheme": "Dark theme"
   },
   "header": {
     "categories": "Categories",

@@ -2,11 +2,11 @@ import React from 'react';
 import styled from 'styled-components';
 import { useAppTheme } from '@/hooks/use-app-theme';
 
-const Switch = () => {
+const ThemeSwitcher = () => {
   const { theme, setTheme } = useAppTheme();
 
-  const handleThemeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTheme(e.target.checked ? 'dark' : 'light');
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
   return (
@@ -16,9 +16,9 @@ const Switch = () => {
           <input 
             role="switch" 
             type="checkbox" 
-            className="switch__input"
+            className="switch__input" 
             checked={theme === 'dark'}
-            onChange={handleThemeChange}
+            onChange={toggleTheme}
           />
           <svg aria-hidden="true" height="12px" width="12px" viewBox="0 0 12 12" className="switch__icon switch__icon--light">
             <g strokeLinecap="round" strokeWidth={1} stroke="#fff" fill="none">
@@ -42,6 +42,7 @@ const Switch = () => {
           </svg>
           <span className="switch__sr">Dark Mode</span>
         </label>
+        <div />
       </div>
     </StyledWrapper>
   );
@@ -67,11 +68,16 @@ const StyledWrapper = styled.div`
   }
 
   .container {
-    background-color: ${props => props.theme === 'dark' ? 'var(--fg)' : 'var(--bg)'};
+    background-color: var(--bg);
     display: flex;
     height: 100%;
     transition: background-color var(--trans-dur),
       color var(--trans-dur);
+  }
+
+  .container:has(.switch__input:checked) {
+    background-color: var(--fg);
+    color: var(--bg);
   }
 
   .switch {
@@ -203,4 +209,4 @@ const StyledWrapper = styled.div`
   }
 `;
 
-export default Switch; 
+export default ThemeSwitcher; 

@@ -35,7 +35,14 @@ export default function App({
             <NextIntlClientProvider
               locale={router.locale}
               timeZone="Asia/Beirut"
-              messages={messages}
+              messages={messages || {}}
+              onError={(error) => {
+                if (error.code === 'MISSING_MESSAGE') {
+                  console.warn('Missing message:', error.message);
+                } else {
+                  console.error(error);
+                }
+              }}
             >
               <main
                 className={`min-h-screen flex flex-col ${isRTL ? "rtl" : "ltr"}`}
