@@ -1,5 +1,6 @@
 import DashboardLayout from "@/components/ui/dashboard-layout";
 import React, { useState } from "react";
+import { formatDate } from "@/utils/date";
 
 const orders: Array<{
   id: number;
@@ -58,8 +59,8 @@ function OrderRow({ order }: { order: typeof orders[number] }) {
               </>
             )}
           </div>
-          <span className="w-[110px] h-[14px] font-['Roboto'] font-normal text-xs leading-[14px] text-[#8E8E8E]">
-            {order.date}
+          <span className="w-[150px] h-[14px] font-['Roboto'] font-normal text-xs leading-[14px] text-[#8E8E8E]">
+            {formatDate(order.date)}
           </span>
         </div>
       </div>

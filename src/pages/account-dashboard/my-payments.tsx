@@ -1,5 +1,6 @@
 import DashboardLayout from "@/components/ui/dashboard-layout";
 import React, { useState } from "react";
+import { formatDate } from "@/utils/date";
 
 const payments: Array<{
   id: number;
@@ -54,8 +55,8 @@ function PaymentRow({ payment, expanded, onToggle }: { payment: typeof payments[
       <div className="flex items-center px-6 py-4 cursor-pointer" onClick={onToggle}>
         <span className="mr-4">{meta.icon}</span>
         <span className="font-['Roboto'] font-normal text-[16px] text-[#070707]">{payment.title}</span>
-        <span className="ml-4 text-xs text-[#8E8E8E]">{payment.date}</span>
-        <span className="ml-auto">
+        <span className="ml-auto text-xs text-[#8E8E8E]">{formatDate(payment.date)}</span>
+        <span className="ml-4">
           <svg className={`transition-transform ${expanded ? 'rotate-180' : ''}`} width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5" stroke="#E73828" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </span>
       </div>
@@ -72,7 +73,7 @@ function PaymentRow({ payment, expanded, onToggle }: { payment: typeof payments[
             </div>
             <div className="flex flex-row justify-between items-center">
               <span className="text-[16px] text-[#070707] font-normal">Date</span>
-              <span className="text-[16px] text-[#8E8E8E] font-normal">{payment.date}</span>
+              <span className="text-[16px] text-[#8E8E8E] font-normal">{formatDate(payment.date)}</span>
             </div>
           </div>
           {payment.screenshot && (
@@ -88,7 +89,7 @@ function PaymentRow({ payment, expanded, onToggle }: { payment: typeof payments[
 }
 
 export default function MyPayments() {
-  const [expandedId, setExpandedId] = useState<number | null>(1);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>("all");
 
   const filterButtons = [

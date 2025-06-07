@@ -3,6 +3,7 @@ import AccountSidebar from "@/components/ui/account-sidebar";
 import WhatsAppButton from "@/components/ui/whatsapp-button";
 import TransactionFilter from "@/components/general/TransactionFilter";
 import { useAuth } from '@/context/AuthContext';
+import { formatDate } from "@/utils/date";
 
 const transactions = [
   { direction: 'up', title: "Pubg Mobile | 600 UC", date: "2025-03-14 18:37:07", status: 'Purchased' },
@@ -63,7 +64,7 @@ function PaymentRow({ payment, expanded, onToggle }: { payment: typeof payments[
       <div className="flex items-center px-6 py-3 cursor-pointer" onClick={onToggle}>
         <span className="mr-3">{meta.icon}</span>
         <span className="font-bold text-base text-[#070707]">{payment.title}</span>
-        <span className="ml-2 text-xs text-[#8E8E8E]">{payment.date}</span>
+        <span className="ml-2 text-xs text-[#8E8E8E]">{formatDate(payment.date)}</span>
         <span className="ml-auto">
           <svg className={`transition-transform ${expanded ? 'rotate-180' : ''}`} width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5" stroke="#E73828" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </span>
@@ -81,7 +82,7 @@ function PaymentRow({ payment, expanded, onToggle }: { payment: typeof payments[
             </div>
             <div className="flex items-center gap-8">
               <span className="text-base text-[#8E8E8E]">Date</span>
-              <span className="text-base text-[#070707] font-bold ml-auto">{payment.date}</span>
+              <span className="text-base text-[#070707] font-bold ml-auto">{formatDate(payment.date)}</span>
             </div>
           </div>
           {payment.screenshot && (
@@ -231,8 +232,8 @@ export default function AccountDashboard() {
                             </>
                           )}
                         </div>
-                        <span className="w-[110px] h-[14px] font-['Roboto'] font-normal text-xs leading-[14px] text-[#8E8E8E]">
-                          {tx.date}
+                        <span className="w-[150px] h-[14px] font-['Roboto'] font-normal text-xs leading-[14px] text-[#8E8E8E]">
+                          {formatDate(tx.date)}
                         </span>
                       </div>
                     </div>
