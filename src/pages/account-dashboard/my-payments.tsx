@@ -1,6 +1,7 @@
 import DashboardLayout from "@/components/ui/dashboard-layout";
 import React, { useState } from "react";
 import { formatDate } from "@/utils/date";
+import BackButton from "@/components/ui/back-button";
 
 const payments: Array<{
   id: number;
@@ -161,58 +162,36 @@ export default function MyPayments() {
 
   return (
     <DashboardLayout>
-      <div className="text-[#E73828] text-[36px] font-semibold font-['Roboto'] leading-[42px] uppercase mb-8 mt-0 tracking-tight">MY PAYMENTS</div>
-      <div className="flex flex-col items-start w-full pb-6 gap-[25px] border-b border-[rgba(0,0,0,0.1)] mb-8" style={{ boxSizing: 'border-box' }}>
-        <div className="w-full bg-white rounded-xl shadow-sm p-4 mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:gap-6">
-          <div className="flex flex-col w-full min-w-0">
-            <label className="text-sm font-semibold text-[#070707] mb-2">From</label>
-            <input
-              type="date"
-              className="border border-[#E0E0E0] rounded-[50.5px] px-4 py-2 w-full min-w-0 font-['Roboto'] text-base text-[#070707] h-[43px] focus:ring-2 focus:ring-[#E73828] focus:border-[#E73828] transition"
-              defaultValue="2024-11-10"
-            />
-          </div>
-          <div className="flex flex-col w-full min-w-0">
-            <label className="text-sm font-semibold text-[#070707] mb-2">Till</label>
-            <input
-              type="date"
-              className="border border-[#E0E0E0] rounded-[50.5px] px-4 py-2 w-full min-w-0 font-['Roboto'] text-base text-[#070707] h-[43px] focus:ring-2 focus:ring-[#E73828] focus:border-[#E73828] transition"
-              defaultValue="2025-11-10"
-            />
-          </div>
-          <div className="flex flex-col w-full lg:w-auto min-w-0">
-            <span className="opacity-0 select-none mb-2">Search</span>
-            <button
-              className="w-full lg:w-[74px] h-[43px] bg-[#E73828] text-white rounded-[50.5px] font-bold text-xs uppercase flex items-center justify-center border border-[#E73828] transition hover:bg-white hover:text-[#E73828] hover:border-[#E73828] focus:ring-2 focus:ring-[#E73828]"
-              style={{ letterSpacing: '0.5px' }}
-            >
-              SEARCH
-            </button>
+      <div className="flex flex-col gap-4">
+        <div className="w-fit">
+          <BackButton href="/account-dashboard" />
+        </div>
+        <div className="text-[#E73828] text-[36px] font-semibold font-['Roboto'] leading-[42px] uppercase mb-8 mt-0 tracking-tight">MY PAYMENTS</div>
+        <div className="flex flex-col items-start w-full pb-6 gap-[25px] border-b border-[rgba(0,0,0,0.1)] mb-8" style={{ boxSizing: 'border-box' }}>
+          <div className="flex flex-row items-start gap-4" style={{height:'35px'}}>
+            {filterButtons.map(btn => (
+              <button
+                key={btn.key}
+                className={`flex flex-row items-center rounded-[50.5px] px-[12px] py-[8px] font-['Roboto'] font-semibold text-[16px] h-[35px] justify-center items-center relative ${btn.className} ${btn.width}`}
+                onClick={() => setActiveFilter(btn.key)}
+                type="button"
+              >
+                {btn.icon}
+                <span className="w-full text-center">{btn.label}</span>
+              </button>
+            ))}
           </div>
         </div>
-        <div className="flex flex-row items-start gap-4" style={{height:'35px'}}>
-          {filterButtons.map(btn => (
-            <button
-              key={btn.key}
-              className={`flex flex-row items-center rounded-[50.5px] px-[12px] py-[8px] font-['Roboto'] font-semibold text-[16px] h-[35px] justify-center items-center relative ${btn.className} ${btn.width}`}
-              onClick={() => setActiveFilter(btn.key)}
-              type="button"
-            >
-              {btn.icon}
-              <span className="w-full text-center">{btn.label}</span>
-            </button>
+        <div className="flex flex-col gap-4 w-full">
+          {filteredPayments.map((payment) => (
+            <PaymentRow
+              key={payment.id}
+              payment={payment}
+              expanded={expandedId === payment.id}
+              onToggle={() => setExpandedId(expandedId === payment.id ? null : payment.id)}
+            />
           ))}
         </div>
-      </div>
-      <div className="flex flex-col gap-4 w-full">
-        {filteredPayments.map((payment) => (
-          <PaymentRow
-            key={payment.id}
-            payment={payment}
-            expanded={expandedId === payment.id}
-            onToggle={() => setExpandedId(expandedId === payment.id ? null : payment.id)}
-          />
-        ))}
       </div>
     </DashboardLayout>
   );

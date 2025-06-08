@@ -1,6 +1,7 @@
 import DashboardLayout from "@/components/ui/dashboard-layout";
 import React, { useState } from "react";
 import { formatDate } from "@/utils/date";
+import BackButton from "@/components/ui/back-button";
 
 const orders: Array<{
   id: number;
@@ -145,37 +146,13 @@ export default function MyOrders() {
 
   return (
     <DashboardLayout>
-      <div className="text-[#E73828] text-[36px] font-semibold font-['Roboto'] leading-[42px] uppercase mb-8 mt-0 tracking-tight">MY ORDERS</div>
-      <div className="flex flex-col items-start w-full pb-6 gap-[25px] border-b border-[rgba(0,0,0,0.1)] mb-8" style={{ boxSizing: 'border-box' }}>
-        <div className="w-full bg-white rounded-xl shadow-sm p-4 mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:gap-6">
-          <div className="flex flex-col w-full min-w-0">
-            <label className="text-sm font-semibold text-[#070707] mb-2">From</label>
-            <input
-              type="date"
-              className="border border-[#E0E0E0] rounded-[50.5px] px-4 py-2 w-full min-w-0 font-['Roboto'] text-base text-[#070707] h-[43px] focus:ring-2 focus:ring-[#E73828] focus:border-[#E73828] transition"
-              value={fromDate}
-              onChange={e => setFromDate(e.target.value)}
-            />
-          </div>
-          <div className="flex flex-col w-full min-w-0">
-            <label className="text-sm font-semibold text-[#070707] mb-2">Till</label>
-            <input
-              type="date"
-              className="border border-[#E0E0E0] rounded-[50.5px] px-4 py-2 w-full min-w-0 font-['Roboto'] text-base text-[#070707] h-[43px] focus:ring-2 focus:ring-[#E73828] focus:border-[#E73828] transition"
-              value={toDate}
-              onChange={e => setToDate(e.target.value)}
-            />
-          </div>
-          <div className="flex flex-col w-full lg:w-auto min-w-0">
-            <span className="opacity-0 select-none mb-2">Search</span>
-            <button
-              className="w-full lg:w-[74px] h-[43px] bg-[#E73828] text-white rounded-[50.5px] font-bold text-xs uppercase flex items-center justify-center border border-[#E73828] transition hover:bg-white hover:text-[#E73828] hover:border-[#E73828] focus:ring-2 focus:ring-[#E73828]"
-              style={{ letterSpacing: '0.5px' }}
-            >
-              SEARCH
-            </button>
-          </div>
+      <div className="flex flex-col gap-4">
+        <div className="w-fit">
+          <BackButton href="/account-dashboard" />
         </div>
+        <div className="text-[#E73828] text-[36px] font-semibold font-['Roboto'] leading-[42px] uppercase mb-8 mt-0 tracking-tight">MY ORDERS</div>
+      </div>
+      <div className="flex flex-col items-start w-full pb-6 gap-[25px] border-b border-[rgba(0,0,0,0.1)] mb-8" style={{ boxSizing: 'border-box' }}>
         <div className="flex flex-row items-start gap-4" style={{ height: '35px' }}>
           {filterButtons.map(btn => (
             <button

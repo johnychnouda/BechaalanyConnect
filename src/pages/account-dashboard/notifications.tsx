@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 import { useNotificationStore } from '@/store/notification.store';
+import { useAppTheme } from '@/hooks/use-app-theme';
 
 const NotificationsPage: React.FC = () => {
   const {
@@ -13,6 +14,8 @@ const NotificationsPage: React.FC = () => {
     clearAll,
     loadMore
   } = useNotificationStore();
+
+  const { theme } = useAppTheme();
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -67,7 +70,7 @@ const NotificationsPage: React.FC = () => {
   const hasNotifications = notifications.length > 0;
 
   return (
-    <PageWrapper>
+    <PageWrapper className={theme === 'dark' ? 'dark' : 'light'}>
       <MainContent>
         <HeaderContainer>
           <Header>NOTIFICATIONS</Header>
@@ -171,9 +174,13 @@ const NotificationsPage: React.FC = () => {
 
 const PageWrapper = styled.div`
   min-height: 100vh;
-  background: #fff;
+  background: var(--color-background-light);
   font-family: 'Roboto', Arial, sans-serif;
   padding: 0 16px;
+
+  &.dark {
+    background: var(--color-background-dark);
+  }
 
   @media (max-width: 768px) {
     padding: 0 12px;
@@ -240,19 +247,20 @@ const ActionButton = styled.button`
   display: flex;
   align-items: center;
   padding: 6px 12px;
-  background: #F8F8F8;
-  border: none;
+  background: var(--color-app-off-white);
+  border: 1px solid #E73828;
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.2s ease;
 
-  &:hover {
-    background: #E73828;
+  .dark & {
+    background: var(--color-app-black);
+    border: 1px solid #E73828;
   }
 
-  @media (max-width: 768px) {
-    width: 100%;
-    justify-content: center;
+  &:hover {
+    background: #E73828;
+    color: #fff;
   }
 `;
 
@@ -264,10 +272,14 @@ const ActionContent = styled.div`
 
 const ActionTitle = styled.span`
   font-family: 'Roboto';
-  font-size: 13px;
+  font-size: clamp(11px, 1.2vw, 13px);
   font-weight: 500;
-  color: #333;
+  color: var(--color-app-black);
   transition: color 0.2s ease;
+
+  .dark & {
+    color: var(--color-app-white);
+  }
 
   ${ActionButton}:hover & {
     color: white;
@@ -278,12 +290,12 @@ const ActionBadge = styled.span`
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 20px;
-  height: 20px;
+  min-width: clamp(16px, 1.5vw, 20px);
+  height: clamp(16px, 1.5vw, 20px);
   padding: 0 6px;
   background: #E73828;
   border-radius: 10px;
-  font-size: 11px;
+  font-size: clamp(9px, 1vw, 11px);
   font-weight: 500;
   color: white;
   transition: all 0.2s ease;
@@ -301,26 +313,41 @@ const FilterContainer = styled.div`
   gap: 24px;
   padding: 4px;
   flex-wrap: wrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 
   @media (max-width: 768px) {
     gap: 16px;
+    padding: 4px 0;
+    margin-bottom: 16px;
   }
 `;
 
 const FilterButton = styled.button<{ active: boolean }>`
   position: relative;
-  padding: 8px 0;
+  padding: 8px 16px;
   font-family: 'Roboto';
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
   background: transparent;
   border: none;
-  color: ${props => props.active ? '#E73828' : '#666'};
+  color: ${props => props.active ? '#E73828' : 'var(--color-app-black)'};
   display: flex;
   align-items: center;
   gap: 8px;
   transition: color 0.2s ease;
+  white-space: nowrap;
+
+  .dark & {
+    color: ${props => props.active ? '#E73828' : 'var(--color-app-white)'};
+  }
 
   &::after {
     content: '';
@@ -339,6 +366,7 @@ const FilterButton = styled.button<{ active: boolean }>`
 
   @media (max-width: 768px) {
     font-size: 14px;
+    padding: 8px 12px;
   }
 `;
 
@@ -353,6 +381,7 @@ const StatusDot = styled.div<{ status: string }>`
       default: return '#666';
     }
   }};
+  flex-shrink: 0;
 `;
 
 const ListArea = styled.div`
@@ -370,13 +399,16 @@ const NotificationGroup = styled.div`
 `;
 
 const DateHeader = styled.h2`
-  color: #070707;
-  font-size: 20px;
+  color: var(--color-app-black);
+  font-size: clamp(16px, 2vw, 20px);
   font-weight: 500;
   margin: 0 0 16px 20px;
 
+  .dark & {
+    color: var(--color-app-white);
+  }
+
   @media (max-width: 768px) {
-    font-size: 18px;
     margin: 0 0 12px 12px;
   }
 `;
@@ -392,19 +424,25 @@ const NotificationCard = styled.div<{ read: boolean }>`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 18px 24px;
   gap: 10px;
   width: 100%;
-  min-height: 61px;
-  background: ${props => props.read ? '#F8F8F8' : '#F3F3F3'};
+  min-height: 72px;
+  max-height: 72px;
+  background: ${props => props.read ? 'var(--color-app-off-white)' : '#F3F3F3'};
   border-radius: 50.5px;
   transition: all 0.2s;
+  box-sizing: border-box;
+
+  .dark & {
+    background: ${props => props.read ? 'var(--color-app-black)' : '#1a1a1a'};
+  }
 
   @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 12px;
-    border-radius: 20px;
+    padding: 14px 10px;
+    border-radius: 50.5px;
+    min-height: 64px;
+    max-height: 64px;
   }
 `;
 
@@ -429,11 +467,6 @@ const StatusIconContainer = styled.div`
   flex: none;
   order: 0;
   flex-grow: 0;
-
-  @media (max-width: 768px) {
-    width: 28px;
-    height: 28px;
-  }
 `;
 
 const StatusEllipse = styled.div<{ status: string }>`
@@ -517,35 +550,31 @@ const NotifTitle = styled.div`
   font-family: 'Roboto';
   font-style: normal;
   font-weight: 700;
-  font-size: 20px;
-  line-height: 24px;
+  font-size: clamp(14px, 2vw, 20px);
+  line-height: 1.2;
   color: #E73828;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   width: 100%;
-
-  @media (max-width: 768px) {
-    font-size: 16px;
-    line-height: 20px;
-  }
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 `;
 
 const NotifDesc = styled.div`
   font-family: 'Roboto';
   font-style: normal;
   font-weight: 400;
-  font-size: 16px;
-  line-height: 20px;
-  color: #070707;
-  white-space: nowrap;
+  font-size: clamp(12px, 1.5vw, 16px);
+  line-height: 1.2;
+  color: var(--color-app-black);
+  width: 100%;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: 100%;
+  white-space: normal;
 
-  @media (max-width: 768px) {
-    font-size: 14px;
-    line-height: 18px;
+  .dark & {
+    color: var(--color-app-white);
   }
 `;
 
@@ -553,16 +582,17 @@ const NotifDate = styled.div`
   font-family: 'Roboto';
   font-style: normal;
   font-weight: 500;
-  font-size: 16px;
-  line-height: 20px;
-  color: #070707;
+  font-size: clamp(12px, 1.5vw, 16px);
+  line-height: 1.2;
+  color: var(--color-app-black);
   text-align: right;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: 8px;
+  align-self: center;
 
-  @media (max-width: 768px) {
-    font-size: 14px;
-    line-height: 18px;
-    text-align: left;
-    margin-top: 8px;
+  .dark & {
+    color: var(--color-app-white);
   }
 `;
 
@@ -578,8 +608,13 @@ const LoadMoreButton = styled.button`
   cursor: pointer;
   transition: all 0.2s;
   background: transparent;
-  color: #070707;
-  border: 1px solid #070707;
+  color: var(--color-app-black);
+  border: 1px solid var(--color-app-black);
+
+  .dark & {
+    color: var(--color-app-white);
+    border-color: var(--color-app-white);
+  }
 
   &:hover {
     background: #E73828;
@@ -607,9 +642,13 @@ const EmptyState = styled.div`
     margin-bottom: 12px;
   }
   .empty-text {
-    color: #888;
+    color: var(--color-app-black);
     font-size: 1.1rem;
     font-weight: 500;
+
+    .dark & {
+      color: var(--color-app-white);
+    }
   }
 
   @media (max-width: 768px) {

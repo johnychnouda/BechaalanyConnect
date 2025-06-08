@@ -2,6 +2,14 @@ import React from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from '@/context/AuthContext';
+import {
+  HomeIcon,
+  CreditCardIcon,
+  WalletIcon,
+  ShoppingBagIcon,
+  Cog6ToothIcon,
+  ArrowRightOnRectangleIcon
+} from '@heroicons/react/24/outline';
 
 export default function AccountSidebar({ onClose }: { onClose?: () => void }) {
   const router = useRouter();
@@ -9,67 +17,84 @@ export default function AccountSidebar({ onClose }: { onClose?: () => void }) {
   const { logout } = useAuth();
 
   const links = [
-    { href: "/account-dashboard", label: "Dashboard" },
-    { href: "/account-dashboard/add-credits", label: "Add Credits" },
-    { href: "/account-dashboard/my-payments", label: "My Payments" },
-    { href: "/account-dashboard/my-orders", label: "My Orders" },
-    { href: "/account-dashboard/account-settings", label: "Account Settings" },
+    { 
+      href: "/account-dashboard", 
+      label: "Dashboard",
+      icon: HomeIcon
+    },
+    { 
+      href: "/account-dashboard/add-credits", 
+      label: "Add Credits",
+      icon: CreditCardIcon
+    },
+    { 
+      href: "/account-dashboard/my-payments", 
+      label: "My Payments",
+      icon: WalletIcon
+    },
+    { 
+      href: "/account-dashboard/my-orders", 
+      label: "My Orders",
+      icon: ShoppingBagIcon
+    },
+    { 
+      href: "/account-dashboard/account-settings", 
+      label: "Account Settings",
+      icon: Cog6ToothIcon
+    },
   ];
 
-  return (
-    <div className="flex flex-col items-start w-full h-full p-0">
+  const SidebarContent = () => (
+    <>
       {/* Title */}
-      <span className="font-['Roboto'] font-semibold text-[20px] leading-[24px] text-[#E73828] mb-4 ml-4 mt-2">My Account</span>
+      <div className="px-4 py-3">
+        <span className="font-['Roboto'] font-semibold text-[16px] leading-[20px] text-[#E73828]">My Account</span>
+      </div>
       {/* Links Container */}
-      <div className="flex flex-col items-start gap-0 w-full px-4">
+      <div className="flex flex-col items-start gap-0.5 w-full px-2">
         {links.map((link, index) => (
           <React.Fragment key={link.href}>
             <div className="flex flex-col items-start w-full">
-              <div className="flex flex-row items-center gap-[9px] w-full h-[28px]">
-                <Link
-                  href={link.href}
-                  className={`font-['Roboto'] text-[14px] leading-[16px] px-0 py-0 ${
-                    currentPath === link.href
-                      ? 'font-semibold text-[#E73828]'
-                      : 'font-semibold text-[#070707] hover:text-[#E73828]'
-                  }`}
-                >
+              <Link
+                href={link.href}
+                className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg transition-all duration-200 ${
+                  currentPath === link.href
+                    ? 'bg-[#E73828]/10 text-[#E73828]'
+                    : 'text-[#070707] hover:bg-[#E73828]/5 hover:text-[#E73828]'
+                }`}
+              >
+                <link.icon className="w-4 h-4" />
+                <span className="font-['Roboto'] text-[13px] leading-[16px] font-semibold">
                   {link.label}
-                </Link>
-              </div>
+                </span>
+              </Link>
             </div>
-            {/* Divider - Don't show after last item and not after Logout */}
-            {index < links.length - 1 && (
-              <div className="w-full h-[1px] bg-[#070707] opacity-20 my-1" />
-            )}
           </React.Fragment>
         ))}
         {/* Logout Section */}
-        <div className="mt-6 pt-4 border-t border-[#070707] w-full">
+        <div className="mt-4 pt-3 border-t border-[#070707]/20 w-full px-2">
           <button
             onClick={() => { logout(); router.push('/'); }}
-            className="group flex items-center gap-2 font-['Roboto'] font-semibold text-[14px] bg-[#E73828] text-white border border-[#E73828] rounded-full px-4 py-1.5 transition-all duration-200 hover:bg-white hover:text-[#E73828] hover:border-[#E73828] shadow-sm w-full"
+            className="group flex items-center justify-center gap-2 font-['Roboto'] font-semibold text-[13px] bg-[#E73828] text-white border border-[#E73828] rounded-lg px-3 py-2 transition-all duration-200 hover:bg-white hover:text-[#E73828] hover:border-[#E73828] shadow-sm w-full"
           >
-            <svg 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              xmlns="http://www.w3.org/2000/svg"
-              className="transform group-hover:translate-x-1 transition-transform duration-200 stroke-white group-hover:stroke-[#E73828]"
-            >
-              <path 
-                d="M17 16L21 12M21 12L17 8M21 12H9M9 21H7C5.93913 21 4.92172 20.5786 4.17157 19.8284C3.42143 19.0783 3 18.0609 3 17V7C3 5.93913 3.42143 4.92172 4.17157 4.17157C4.92172 3.42143 5.93913 3 7 3H9" 
-                stroke="currentColor"
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              />
-            </svg>
-            Logout
+            <ArrowRightOnRectangleIcon className="w-4 h-4" />
+            <span>Logout</span>
           </button>
         </div>
       </div>
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile/Tablet Version */}
+      <div className="flex flex-col items-start w-full h-full p-0 xl:hidden">
+        <SidebarContent />
+      </div>
+      {/* Desktop Version */}
+      <div className="hidden xl:flex flex-col items-start w-full h-full p-0">
+        <SidebarContent />
+      </div>
+    </>
   );
 } 

@@ -1,5 +1,6 @@
 import DashboardLayout from "@/components/ui/dashboard-layout";
 import React, { useState, useRef, useEffect } from "react";
+import BackButton from "@/components/ui/back-button";
 
 interface DropdownOption {
   value: string;
@@ -148,127 +149,132 @@ export default function AccountSettings() {
 
   return (
     <DashboardLayout>
-      <div className="text-[#E73828] text-[36px] font-semibold font-['Roboto'] leading-[42px] uppercase mb-8 mt-0 tracking-tight">ACCOUNT SETTINGS</div>
-      <div className="flex flex-col md:flex-row gap-12">
-        {/* Sidebar (left) is handled by DashboardLayout */}
-        <div className="flex-1 max-w-2xl">
-          {/* Account Info Form */}
-          <form onSubmit={handleInfoSubmit} className="mb-12">
-            <div className="text-[22px] font-semibold text-[#E73828] mb-6">Account Info</div>
-            <div className="mb-4">
-              <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Username</label>
-              <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] rounded-[50.5px]">
-                <input name="username" value={accountInfo.username} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" />
-              </div>
-            </div>
-            <div className="mb-4">
-              <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Email</label>
-              <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#E73828] rounded-[50.5px]">
-                <input name="email" value={accountInfo.email} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" type="email" />
-              </div>
-            </div>
-            {/* Phone Number */}
-            <div className="flex flex-col items-start gap-1 w-full">
-              <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Phone Number</label>
-              <div className="flex flex-row items-center p-[12px_24px] gap-2 w-full border border-[#070707] rounded-[50.5px]">
-                <span className="font-['Roboto'] font-normal text-[16px] text-[#070707] select-none">{countryCodes[accountInfo.country] || ''}</span>
-                <input
-                  name="phone"
-                  value={accountInfo.phone}
-                  onChange={handleInfoChange}
-                  className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none"
-                  placeholder="Phone Number"
-                  style={{ direction: 'ltr' }}
-                />
-              </div>
-            </div>
-            {/* Country */}
-            <div className="flex flex-col items-start gap-1 w-full">
-              <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Country</label>
-              <CustomDropdown
-                options={countryOptions}
-                value={accountInfo.country}
-                onChange={(value) => handleInfoChange({ target: { name: 'country', value } } as any)}
-                className="w-full"
-              />
-            </div>
-            {/* User Type */}
-            <div className="flex flex-col items-start gap-1 w-full">
-              <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">User Type</label>
-              <CustomDropdown
-                options={userTypeOptions}
-                value={accountInfo.userType}
-                onChange={(value) => handleInfoChange({ target: { name: 'userType', value } } as any)}
-                className="w-full"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Store Name</label>
-              <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] rounded-[50.5px]">
-                <input name="storeName" value={accountInfo.storeName} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" />
-              </div>
-            </div>
-            <div className="mb-8">
-              <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Store Location</label>
-              <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] rounded-[50.5px]">
-                <input name="storeLocation" value={accountInfo.storeLocation} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" />
-              </div>
-            </div>
-            <div className="flex flex-row items-center justify-between mb-8">
-              <span className="text-[#E73828] font-semibold">Account Security</span>
-              <button 
-                type="button" 
-                className="bg-[#E73828] text-white rounded-full px-6 py-2 font-bold hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200" 
-                onClick={() => setShowSecurity(true)}
-              >
-                CHANGE PASSWORD
-              </button>
-            </div>
-            <button 
-              type="submit" 
-              className="w-full bg-[#E73828] text-white rounded-full py-3 font-bold text-lg hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200"
-            >
-              SAVE
-            </button>
-          </form>
-          {showSecurity && (
-            <form onSubmit={handleSecuritySubmit} id="security-section">
-              <div className="text-[22px] font-semibold text-[#E73828] mb-6">Account Security</div>
+      <div className="flex flex-col gap-4">
+        <div className="w-fit">
+          <BackButton href="/account-dashboard" />
+        </div>
+        <div className="text-[#E73828] text-[36px] font-semibold font-['Roboto'] leading-[42px] uppercase mb-8 mt-0 tracking-tight">ACCOUNT SETTINGS</div>
+        <div className="flex flex-col md:flex-row gap-12">
+          {/* Sidebar (left) is handled by DashboardLayout */}
+          <div className="flex-1 max-w-2xl">
+            {/* Account Info Form */}
+            <form onSubmit={handleInfoSubmit} className="mb-12">
+              <div className="text-[22px] font-semibold text-[#E73828] mb-6">Account Info</div>
               <div className="mb-4">
-                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Old Password</label>
+                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Username</label>
                 <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] rounded-[50.5px]">
-                  <input name="oldPassword" value={security.oldPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" type="password" placeholder="Old Password" />
+                  <input name="username" value={accountInfo.username} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" />
                 </div>
               </div>
               <div className="mb-4">
-                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">New Password</label>
+                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Email</label>
+                <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#E73828] rounded-[50.5px]">
+                  <input name="email" value={accountInfo.email} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" type="email" />
+                </div>
+              </div>
+              {/* Phone Number */}
+              <div className="flex flex-col items-start gap-1 w-full">
+                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Phone Number</label>
+                <div className="flex flex-row items-center p-[12px_24px] gap-2 w-full border border-[#070707] rounded-[50.5px]">
+                  <span className="font-['Roboto'] font-normal text-[16px] text-[#070707] select-none">{countryCodes[accountInfo.country] || ''}</span>
+                  <input
+                    name="phone"
+                    value={accountInfo.phone}
+                    onChange={handleInfoChange}
+                    className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none"
+                    placeholder="Phone Number"
+                    style={{ direction: 'ltr' }}
+                  />
+                </div>
+              </div>
+              {/* Country */}
+              <div className="flex flex-col items-start gap-1 w-full">
+                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Country</label>
+                <CustomDropdown
+                  options={countryOptions}
+                  value={accountInfo.country}
+                  onChange={(value) => handleInfoChange({ target: { name: 'country', value } } as any)}
+                  className="w-full"
+                />
+              </div>
+              {/* User Type */}
+              <div className="flex flex-col items-start gap-1 w-full">
+                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">User Type</label>
+                <CustomDropdown
+                  options={userTypeOptions}
+                  value={accountInfo.userType}
+                  onChange={(value) => handleInfoChange({ target: { name: 'userType', value } } as any)}
+                  className="w-full"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Store Name</label>
                 <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] rounded-[50.5px]">
-                  <input name="newPassword" value={security.newPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" type="password" placeholder="New Password" />
+                  <input name="storeName" value={accountInfo.storeName} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" />
                 </div>
               </div>
               <div className="mb-8">
-                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Confirm New Password</label>
+                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Store Location</label>
                 <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] rounded-[50.5px]">
-                  <input name="confirmPassword" value={security.confirmPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" type="password" placeholder="Confirm New Password" />
+                  <input name="storeLocation" value={accountInfo.storeLocation} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" />
                 </div>
               </div>
-              <div className="flex flex-col md:flex-row gap-4">
-                <button 
-                  type="submit" 
-                  className="w-full bg-[#E73828] text-white rounded-full py-3 font-bold text-lg hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200"
-                >
-                  SAVE PASSWORD
-                </button>
+              <div className="flex flex-row items-center justify-between mb-8">
+                <span className="text-[#E73828] font-semibold">Account Security</span>
                 <button 
                   type="button" 
-                  className="w-full border-2 border-[#E73828] text-[#E73828] rounded-full py-3 font-bold text-lg hover:bg-[#E73828] hover:text-white transition-colors duration-200" 
-                  onClick={handleDiscard}
+                  className="bg-[#E73828] text-white rounded-full px-6 py-2 font-bold hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200" 
+                  onClick={() => setShowSecurity(true)}
                 >
-                  DISCARD CHANGES
+                  CHANGE PASSWORD
                 </button>
               </div>
+              <button 
+                type="submit" 
+                className="w-full bg-[#E73828] text-white rounded-full py-3 font-bold text-lg hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200"
+              >
+                SAVE
+              </button>
             </form>
-          )}
+            {showSecurity && (
+              <form onSubmit={handleSecuritySubmit} id="security-section">
+                <div className="text-[22px] font-semibold text-[#E73828] mb-6">Account Security</div>
+                <div className="mb-4">
+                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Old Password</label>
+                  <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] rounded-[50.5px]">
+                    <input name="oldPassword" value={security.oldPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" type="password" placeholder="Old Password" />
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">New Password</label>
+                  <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] rounded-[50.5px]">
+                    <input name="newPassword" value={security.newPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" type="password" placeholder="New Password" />
+                  </div>
+                </div>
+                <div className="mb-8">
+                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Confirm New Password</label>
+                  <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] rounded-[50.5px]">
+                    <input name="confirmPassword" value={security.confirmPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" type="password" placeholder="Confirm New Password" />
+                  </div>
+                </div>
+                <div className="flex flex-col md:flex-row gap-4">
+                  <button 
+                    type="submit" 
+                    className="w-full bg-[#E73828] text-white rounded-full py-3 font-bold text-lg hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200"
+                  >
+                    SAVE PASSWORD
+                  </button>
+                  <button 
+                    type="button" 
+                    className="w-full border-2 border-[#E73828] text-[#E73828] rounded-full py-3 font-bold text-lg hover:bg-[#E73828] hover:text-white transition-colors duration-200" 
+                    onClick={handleDiscard}
+                  >
+                    DISCARD CHANGES
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
         </div>
       </div>
     </DashboardLayout>

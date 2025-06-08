@@ -19,6 +19,7 @@ import Notification from './notification';
 import Link from "next/link";
 import { useRouter } from "next/router";
 import AccountSidebar from '@/components/ui/account-sidebar';
+import { useNotificationStore } from '@/store/notification.store';
 
 export default function Header({ children }: PropsWithChildren) {
   const t = useTranslations("header");
@@ -30,6 +31,7 @@ export default function Header({ children }: PropsWithChildren) {
   const { isAuthenticated, user } = useAuth();
   const router = useRouter();
   const isDashboard = router.pathname.startsWith('/account-dashboard');
+  const { count } = useNotificationStore();
 
   if (!isMounted) return null;
 
@@ -53,7 +55,7 @@ export default function Header({ children }: PropsWithChildren) {
         <div className="hidden lg:flex items-center gap-4">
           {isAuthenticated ? (
             <>
-              <Notification count={0} onClick={() => console.log('Open notifications')} />
+              <Notification count={count} onClick={() => console.log('Open notifications')} />
               {user && <BlurredPrice price={50.00} />}
               <ButtonLink href="/account-dashboard" className="transition-all duration-200 hover:bg-app-red p-2 rounded-full group">
                 <ProfileIcon className="text-app-red group-hover:text-white" />
@@ -82,19 +84,13 @@ export default function Header({ children }: PropsWithChildren) {
       </PageLayout>
 
       {/* Mobile/Tablet Navigation Banner */}
-      <div className="lg:hidden border-b border-gray-200">
+      <div className="lg:hidden">
         <div className="flex items-center justify-between py-3 px-2 sm:px-6 overflow-x-auto flex-nowrap" style={{maxWidth: '100vw'}}>
           <div className="flex items-center gap-1 sm:gap-4 flex-nowrap">
             <NavigationMenu className="flex-nowrap" />
           </div>
           <div className="flex items-center gap-1 sm:gap-2 flex-nowrap">
-            <div className="sc-hKDTPf lgeBKq">
-              <div className="notification" tabIndex={0} role="button" aria-label="Notifications">
-                <div className="bell-container">
-                  <div className="bell"></div>
-                </div>
-              </div>
-            </div>
+            <Notification count={count} onClick={() => router.push('/account-dashboard/notifications')} />
             <span className="font-bold text-[13px] sm:text-[16px] text-app-red cursor-pointer">
               <span className="filter blur-[4px]">50.00</span>
               <span className="ml-1">$</span>
