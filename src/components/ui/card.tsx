@@ -45,12 +45,14 @@ export default function Card({
           {/* View All Overlay */}
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-90 transition-opacity duration-300 ease-in-out">
             <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-            <span className="relative text-app-red text-lg font-bold underline z-10">View All</span>
+            <span className="relative text-app-red text-lg font-bold underline z-10">
+              {type === 'product' ? 'Buy Now' : 'View All'}
+            </span>
           </div>
         </div>
       </Link>
       {/* Title */}
-      <h3 className={clsx("text-center mt-2 text-[16px] font-semibold text-gray-800", titleClassName)}>
+      <h3 className={clsx("text-center mt-2 text-[16px] font-bold text-gray-800", titleClassName)}>
         {title}
       </h3>
     </div>

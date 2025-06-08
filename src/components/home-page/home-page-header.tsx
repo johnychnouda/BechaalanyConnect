@@ -6,6 +6,8 @@ import Image from "next/image";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useLanguage } from "@/hooks/use-language";
+import WhatsAppChannelButton from "../ui/whatsapp-channel-button";
+import CategoriesButton from "../ui/categories-button";
 
 export default function HomePageHeader() {
   const { isRTL } = useLanguage();
@@ -43,12 +45,7 @@ export default function HomePageHeader() {
               Where speed and reliability meet to deliver the best digital solutions.
             </p>
           </div>
-          <ButtonLink
-            href="/categories"
-            className="text-app-white bg-app-red py-2 px-6 text-center rounded-full font-bold text-[16px] hidden lg:block"
-          >
-            VIEW CATEGORIES
-          </ButtonLink>
+          <CategoriesButton href="/categories" className="hidden lg:block" />
         </div>
         <div className="flex relative self-end w-full h-full lg:w-2/3 lg:h-2/3">
           <Image
@@ -64,13 +61,7 @@ export default function HomePageHeader() {
       </section>
       <section className="flex flex-col justify-between items-center px-12 gap-4 text-center lg:flex-row">
         <p className="font-bold">Join Our WhatsApp Community to Stay Updated with the Latest Offers on Our Website!</p>
-        <IconButton
-          icon={<WhatsappWhiteIcon />}
-          href="https://wa.me/201010000000"
-          className="text-app-white bg-app-whatsapp-green p-2 px-6 text-center rounded-full font-bold text-[16px]"
-        >
-          WHATSAPP CHANNEL
-        </IconButton>
+        <WhatsAppChannelButton href="https://wa.me/201010000000" />
       </section>
     </div>
   );

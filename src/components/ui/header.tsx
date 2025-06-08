@@ -55,9 +55,6 @@ export default function Header({ children }: PropsWithChildren) {
               </>
             ) : (
               <>
-                <ButtonLink className="transition-all duration-200 hover:bg-app-red p-2 rounded-full group">
-                  <SearchIcon strokeWidth={3.5} width={28} height={28} className="text-app-red group-hover:text-white" />
-                </ButtonLink>
                 <ButtonLink
                   href="/auth/register"
                   className="text-white text-center bg-app-red py-2 px-6 rounded-full font-bold text-[16px] border-2 border-app-red transition-all duration-200 hover:bg-white hover:text-app-red"

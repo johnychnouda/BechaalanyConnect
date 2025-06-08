@@ -37,13 +37,11 @@ export default function Home() {
           items={featuredProducts}
           label="FEATURED PRODUCTS"
           renderItem={(item) => <Product key={item.id} product={item} />}
-          viewMoreHref="/products/featured"
         />
         <PageGrid
           items={latestProducts}
           label="LATEST PRODUCTS"
           renderItem={(item) => <Product key={item.id} product={item} />}
-          viewMoreHref="/products/latest"
         />
       </section>
     </PageLayout>
