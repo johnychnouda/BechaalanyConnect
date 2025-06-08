@@ -23,7 +23,7 @@ export default function BackButton({ href, className, label }: Props) {
     <button
       onClick={handleClick}
       className={clsx(
-        "flex items-center gap-2 px-4 py-2 rounded-[50.5px] bg-white text-[#070707] border border-[#E73828] hover:bg-[#E73828] hover:text-white active:bg-[#E73828] active:text-white focus:bg-[#E73828] focus:text-white focus-visible:bg-[#E73828] focus-visible:text-white transition-colors duration-200 cursor-pointer",
+        "flex items-center gap-1 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-[50.5px] bg-white text-[#070707] border border-[#E73828] hover:bg-[#E73828] hover:text-white active:bg-[#E73828] active:text-white focus:bg-[#E73828] focus:text-white focus-visible:bg-[#E73828] focus-visible:text-white transition-colors duration-200 cursor-pointer",
         className
       )}
       type="button"
@@ -36,11 +36,11 @@ export default function BackButton({ href, className, label }: Props) {
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="w-5 h-5"
+        className="w-3.5 h-3.5 sm:w-4 sm:h-4"
       >
         <path d="M19 12H5M12 19l-7-7 7-7" />
       </svg>
-      <span className="font-medium">{label || "Back"}</span>
+      <span className="font-medium text-xs sm:text-sm">{label || "Back"}</span>
     </button>
   );
 } 
