@@ -71,8 +71,8 @@ export default function Header({ children }: PropsWithChildren) {
             <>
               <ButtonLink
                 href="/auth/register"
-                className="flex items-center justify-center w-[100px] sm:w-[120px] md:w-[140px] mx-auto text-white text-center bg-app-red py-0.5 sm:py-1 px-1 sm:px-2 rounded-full font-bold text-[9px] sm:text-[11px] md:text-xs border-2 border-app-red transition-all duration-200 hover:bg-white hover:text-app-red whitespace-nowrap truncate"
-                style={{maxWidth: '100px'}}
+                className="flex items-center justify-center w-[100px] sm:w-[120px] md:w-[140px] mx-auto text-white text-center bg-app-red py-0.5 sm:py-1 px-1 sm:px-2 rounded-full font-bold text-[9px] sm:text-[11px] md:text-xs border-2 border-app-red transition-all duration-200 hover:bg-white hover:text-app-red whitespace-nowrap"
+                style={{minWidth: '100px'}}
               >
                 CREATE ACCOUNT
               </ButtonLink>
