@@ -51,10 +51,17 @@ export default function Card({
           </div>
         </div>
       </Link>
-      {/* Title */}
-      <h3 className={clsx("text-center mt-2 text-[16px] font-bold text-gray-800 dark:text-white", titleClassName)}>
-        {title}
-      </h3>
+      {/* Title and Price Container */}
+      <div className={clsx("w-full mt-2 px-2 flex items-center justify-between gap-2", type === 'product' ? "" : "justify-center")}>
+        <h3 className={clsx("text-[12px] sm:text-[14px] font-bold text-gray-800 dark:text-white truncate", titleClassName)}>
+          {title}
+        </h3>
+        {type === 'product' && (
+          <span className="text-[12px] sm:text-[14px] font-bold text-app-red whitespace-nowrap">
+            ${(Math.random() * 50 + 10).toFixed(2)}
+          </span>
+        )}
+      </div>
     </div>
   );
 } 

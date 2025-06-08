@@ -33,10 +33,10 @@ const CustomDropdown: React.FC<{
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
       <div
-        className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] rounded-[50.5px] cursor-pointer hover:border-[#E73828] transition-colors duration-200"
+        className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] cursor-pointer hover:border-[#E73828] transition-colors duration-200 bg-white dark:bg-[#232323]"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className="flex-1 font-['Roboto'] font-normal text-[16px] text-[#070707]">
+        <span className="flex-1 font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white">
           {selectedOption?.label || placeholder}
         </span>
         <span className="pointer-events-none">
@@ -52,21 +52,21 @@ const CustomDropdown: React.FC<{
         </span>
       </div>
       {isOpen && (
-        <div className="absolute z-10 w-full mt-2 bg-white border border-[#070707] rounded-[25px] shadow-sm max-h-60 overflow-auto">
+        <div className="absolute z-10 w-full mt-2 bg-white dark:bg-[#232323] border border-[#070707] dark:border-[#444] rounded-[25px] shadow-sm max-h-60 overflow-auto">
           {options.map((option) => (
             <div
               key={option.value}
               className={`px-6 py-3 cursor-pointer transition-colors duration-200 ${
                 option.value === value 
                   ? "bg-[#E73828] text-white" 
-                  : "hover:bg-[#E73828] hover:text-white"
-              }`}
+                  : "hover:bg-[#E73828] hover:text-white dark:hover:bg-[#E73828] dark:hover:text-white" 
+              } dark:text-white`}
               onClick={() => {
                 onChange(option.value);
                 setIsOpen(false);
               }}
             >
-              <span className="font-['Roboto'] font-normal text-[16px]">
+              <span className="font-['Roboto'] font-normal text-[16px] dark:text-white">
                 {option.label}
               </span>
             </div>
@@ -161,27 +161,27 @@ export default function AccountSettings() {
             <form onSubmit={handleInfoSubmit} className="mb-12">
               <div className="text-[22px] font-semibold text-[#E73828] mb-6">Account Info</div>
               <div className="mb-4">
-                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Username</label>
-                <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] rounded-[50.5px]">
-                  <input name="username" value={accountInfo.username} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" />
+                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Username</label>
+                <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
+                  <input name="username" value={accountInfo.username} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" />
                 </div>
               </div>
               <div className="mb-4">
-                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Email</label>
-                <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#E73828] rounded-[50.5px]">
-                  <input name="email" value={accountInfo.email} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" type="email" />
+                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Email</label>
+                <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#E73828] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
+                  <input name="email" value={accountInfo.email} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="email" />
                 </div>
               </div>
               {/* Phone Number */}
               <div className="flex flex-col items-start gap-1 w-full">
-                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Phone Number</label>
-                <div className="flex flex-row items-center p-[12px_24px] gap-2 w-full border border-[#070707] rounded-[50.5px]">
-                  <span className="font-['Roboto'] font-normal text-[16px] text-[#070707] select-none">{countryCodes[accountInfo.country] || ''}</span>
+                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Phone Number</label>
+                <div className="flex flex-row items-center p-[12px_24px] gap-2 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
+                  <span className="font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white select-none">{countryCodes[accountInfo.country] || ''}</span>
                   <input
                     name="phone"
                     value={accountInfo.phone}
                     onChange={handleInfoChange}
-                    className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none"
+                    className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none"
                     placeholder="Phone Number"
                     style={{ direction: 'ltr' }}
                   />
@@ -189,7 +189,7 @@ export default function AccountSettings() {
               </div>
               {/* Country */}
               <div className="flex flex-col items-start gap-1 w-full">
-                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Country</label>
+                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Country</label>
                 <CustomDropdown
                   options={countryOptions}
                   value={accountInfo.country}
@@ -199,7 +199,7 @@ export default function AccountSettings() {
               </div>
               {/* User Type */}
               <div className="flex flex-col items-start gap-1 w-full">
-                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">User Type</label>
+                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">User Type</label>
                 <CustomDropdown
                   options={userTypeOptions}
                   value={accountInfo.userType}
@@ -208,15 +208,15 @@ export default function AccountSettings() {
                 />
               </div>
               <div className="mb-4">
-                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Store Name</label>
-                <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] rounded-[50.5px]">
-                  <input name="storeName" value={accountInfo.storeName} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" />
+                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Store Name</label>
+                <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
+                  <input name="storeName" value={accountInfo.storeName} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" />
                 </div>
               </div>
               <div className="mb-8">
-                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Store Location</label>
-                <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] rounded-[50.5px]">
-                  <input name="storeLocation" value={accountInfo.storeLocation} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" />
+                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Store Location</label>
+                <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
+                  <input name="storeLocation" value={accountInfo.storeLocation} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" />
                 </div>
               </div>
               <div className="flex flex-row items-center justify-between mb-8">
@@ -240,21 +240,21 @@ export default function AccountSettings() {
               <form onSubmit={handleSecuritySubmit} id="security-section">
                 <div className="text-[22px] font-semibold text-[#E73828] mb-6">Account Security</div>
                 <div className="mb-4">
-                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Old Password</label>
-                  <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] rounded-[50.5px]">
-                    <input name="oldPassword" value={security.oldPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" type="password" placeholder="Old Password" />
+                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Old Password</label>
+                  <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
+                    <input name="oldPassword" value={security.oldPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="password" placeholder="Old Password" />
                   </div>
                 </div>
                 <div className="mb-4">
-                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">New Password</label>
-                  <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] rounded-[50.5px]">
-                    <input name="newPassword" value={security.newPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" type="password" placeholder="New Password" />
+                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">New Password</label>
+                  <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
+                    <input name="newPassword" value={security.newPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="password" placeholder="New Password" />
                   </div>
                 </div>
                 <div className="mb-8">
-                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707]">Confirm New Password</label>
-                  <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] rounded-[50.5px]">
-                    <input name="confirmPassword" value={security.confirmPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] bg-transparent border-none outline-none" type="password" placeholder="Confirm New Password" />
+                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Confirm New Password</label>
+                  <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
+                    <input name="confirmPassword" value={security.confirmPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="password" placeholder="Confirm New Password" />
                   </div>
                 </div>
                 <div className="flex flex-col md:flex-row gap-4">

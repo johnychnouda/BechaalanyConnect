@@ -10,7 +10,7 @@ const WhatsAppChannelButton: React.FC<WhatsAppChannelButtonProps> = ({ href, cla
   return (
     <a 
       href={href}
-      className={`cursor-pointer text-app-white bg-app-whatsapp-green p-2 px-6 text-center rounded-full font-bold text-[16px] flex items-center gap-2 transition-all duration-200 hover:bg-white hover:text-app-whatsapp-green border-2 border-transparent hover:border-app-whatsapp-green group ${className}`}
+      className={`cursor-pointer text-app-white bg-app-whatsapp-green p-2 px-6 text-center rounded-full font-bold text-[16px] flex items-center justify-center gap-2 transition-all duration-200 hover:bg-white hover:text-app-whatsapp-green border-2 border-transparent hover:border-app-whatsapp-green group ${className}`}
     >
       <div className="w-6 h-6 flex items-center justify-center">
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -51,36 +51,33 @@ export default function AccountSidebar({ onClose }: { onClose?: () => void }) {
         <span className="font-['Roboto'] font-semibold text-[16px] leading-[20px] text-[#E73828]">My Account</span>
       </div>
       {/* Links Container */}
-      <div className="flex flex-col items-start gap-0.5 w-full px-2">
+      <div className="flex flex-row xl:flex-col items-center w-full px-2 gap-2 xl:gap-2 whitespace-nowrap overflow-x-auto max-w-full scrollbar-thin scrollbar-thumb-[#E73828]/30 xl:whitespace-normal xl:overflow-visible xl:max-w-none">
         {links.map((link, index) => (
-          <React.Fragment key={link.href}>
-            <div className="flex flex-col items-start w-full">
-              <Link
-                href={link.href}
-                className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg transition-all duration-200 ${
-                  currentPath === link.href
-                    ? 'bg-[#E73828]/10 text-[#E73828] dark:text-white'
-                    : 'text-[#070707] hover:bg-[#E73828]/5 hover:text-[#E73828] dark:text-white'
-                }`}
-              >
-                <link.icon className="w-4 h-4 text-[#070707] dark:text-white" />
-                <span className="font-['Roboto'] text-[13px] leading-[16px] font-semibold">
-                  {link.label}
-                </span>
-              </Link>
-            </div>
-          </React.Fragment>
-        ))}
-        {/* Logout Section */}
-        <div className="mt-4 pt-3 border-t border-[#070707]/20 w-full px-2 pb-8 mb-0">
-          <button
-            onClick={() => { logout(); router.push('/'); }}
-            className="group flex items-center justify-center gap-2 font-['Roboto'] font-semibold text-[13px] bg-[#E73828] text-white border border-[#E73828] rounded-lg px-3 py-2 transition-all duration-200 hover:bg-white hover:text-[#E73828] hover:border-[#E73828] shadow-sm w-full"
+          <a
+            key={index}
+            href={link.href}
+            className={`flex items-center justify-center gap-1 px-2 py-2 rounded-lg transition-all duration-200 ${
+              currentPath === link.href
+                ? 'bg-[#E73828]/10 text-[#E73828] dark:text-white'
+                : 'text-[#070707] hover:bg-[#E73828]/5 hover:text-[#E73828] dark:text-white'
+            }`}
           >
-            <ArrowRightOnRectangleIcon className="w-4 h-4 text-white" />
-            <span>Logout</span>
-          </button>
-        </div>
+            <link.icon className="w-4 h-4 text-[#070707] dark:text-white" />
+            <span className="font-['Roboto'] text-[13px] leading-[16px] font-semibold">
+              {link.label}
+            </span>
+          </a>
+        ))}
+      </div>
+      {/* Logout Section */}
+      <div className="mt-4 pt-3 border-t border-[#070707]/20 w-full pb-8 mb-0 flex flex-col items-center">
+        <button
+          onClick={() => { logout(); router.push('/'); }}
+          className="group flex items-center justify-center gap-2 font-['Roboto'] font-semibold text-[13px] bg-[#E73828] text-white border border-[#E73828] rounded-lg px-4 py-2.5 transition-all duration-200 hover:bg-white hover:text-[#E73828] hover:border-[#E73828] shadow-sm"
+        >
+          <ArrowRightOnRectangleIcon className="w-4 h-4 text-white" />
+          <span>Logout</span>
+        </button>
       </div>
     </>
   );

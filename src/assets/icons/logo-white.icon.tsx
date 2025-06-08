@@ -1,4 +1,4 @@
-export function LogoWhiteIcon() {
+export function LogoWhiteIcon({ className }: { className?: string }) {
   return (
     <svg
       width="135"
@@ -6,6 +6,7 @@ export function LogoWhiteIcon() {
       viewBox="0 0 135 46"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      className={className}
     >
       <g filter="url(#filter0_d_464_1117)">
         <path

@@ -50,7 +50,7 @@ export default function NavigationMenu({ items = defaultItems, className, isMobi
   return (
     <div
       className={clsx(
-        "flex items-center gap-1 sm:gap-4 flex-nowrap",
+        "flex items-center gap-1 sm:gap-2 lg:gap-4 flex-nowrap",
         className
       )}
       style={{ minWidth: 0 }}
@@ -60,14 +60,21 @@ export default function NavigationMenu({ items = defaultItems, className, isMobi
           key={item.id}
           href={item.slug}
           className={clsx(
-            "cursor-pointer font-semibold text-[11px] sm:text-[14px] lg:text-[16px] hover:text-app-red flex items-center gap-0.5 sm:gap-2 whitespace-nowrap",
-            pathname === item.slug && "text-app-red"
+            "cursor-pointer font-semibold hover:text-app-red flex items-center gap-0.5 sm:gap-1.5 whitespace-nowrap",
+            pathname === item.slug && "text-app-red",
+            isMobile ? "text-[10px] sm:text-xs" : "text-[11px] sm:text-[14px] lg:text-[16px]"
           )}
         >
-          <div className="w-4 h-4 sm:w-6 sm:h-6 flex items-center justify-center">
+          <div className={clsx(
+            "flex items-center justify-center",
+            isMobile ? "w-3 h-3 sm:w-4 sm:h-4" : "w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6"
+          )}>
             {item.icon}
           </div>
-          <p className="font-semibold text-[11px] sm:text-[14px] lg:text-[16px]">{item.title}</p>
+          <p className={clsx(
+            "font-semibold",
+            isMobile ? "text-[10px] sm:text-xs" : "text-[11px] sm:text-[14px] lg:text-[16px]"
+          )}>{item.title}</p>
         </Link>
       ))}
     </div>

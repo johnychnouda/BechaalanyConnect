@@ -11,16 +11,16 @@ const ThemeSwitcher = () => {
 
   return (
     <StyledWrapper>
-      <div className="container">
+      <div className="container w-full h-full">
         <label className="switch">
-          <input 
-            role="switch" 
-            type="checkbox" 
-            className="switch__input" 
+          <input
+            role="switch"
+            type="checkbox"
+            className="switch__input"
             checked={theme === 'dark'}
             onChange={toggleTheme}
           />
-          <svg aria-hidden="true" height="12px" width="12px" viewBox="0 0 12 12" className="switch__icon switch__icon--light">
+          <svg aria-hidden="true" viewBox="0 0 12 12" className="switch__icon switch__icon--light w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 md:w-4.5 md:h-4.5">
             <g strokeLinecap="round" strokeWidth={1} stroke="#fff" fill="none">
               <circle r={2} cy={6} cx={6} />
               <g strokeDasharray="1.5 1.5">
@@ -35,10 +35,10 @@ const ThemeSwitcher = () => {
               </g>
             </g>
           </svg>
-          <svg aria-hidden="true" height="12px" width="12px" viewBox="0 0 12 12" className="switch__icon switch__icon--dark">
+          <svg aria-hidden="true" viewBox="0 0 12 12" className="switch__icon switch__icon--dark w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 md:w-4.5 md:h-4.5">
             <g transform="rotate(-45,6,6)" strokeLinejoin="round" strokeWidth={1} stroke="#fff" fill="none">
               <path d="m9,10c-2.209,0-4-1.791-4-4s1.791-4,4-4c.304,0,.598.041.883.105-.995-.992-2.367-1.605-3.883-1.605C2.962.5.5,2.962.5,6s2.462,5.5,5.5,5.5c1.516,0,2.888-.613,3.883-1.605-.285.064-.578.105-.883.105Z" />
-            </g>	
+            </g>  
           </svg>
           <span className="switch__sr">Dark Mode</span>
         </label>

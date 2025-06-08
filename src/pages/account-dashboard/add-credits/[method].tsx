@@ -69,7 +69,7 @@ export default function AddCreditMethod() {
         <form className="flex flex-col items-start p-0 gap-[24px] w-[578px]">
           {/* Number Row */}
           <div className="flex flex-row items-center p-0 gap-[12px] w-[578px] h-[44px]">
-            <label className="w-[106px] h-[19px] font-['Roboto'] font-semibold text-[16px] leading-[19px] text-[#070707]">{config.numberLabel}</label>
+            <label className="w-[106px] h-[19px] font-['Roboto'] font-semibold text-[16px] leading-[19px] text-[#070707] dark:text-white">{config.numberLabel}</label>
             <div className="flex flex-row justify-between items-center px-[24px] py-[12px] gap-[10px] w-[460px] h-[44px] border border-[rgba(7,7,7,0.2)] rounded-[50.5px] bg-white">
               <span className="w-[120px] h-[19px] font-['Roboto'] font-normal text-[16px] leading-[19px] text-[#070707]">{config.numberValue}</span>
               <button type="button" className="w-[20px] h-[20px] flex items-center justify-center" title="Copy" onClick={handleCopy}>
@@ -80,7 +80,7 @@ export default function AddCreditMethod() {
           {config.extra}
           {/* Value Row */}
           <div className="flex flex-col items-start p-0 gap-[4px] w-[578px] h-[66px]">
-            <label className="w-[41px] h-[19px] font-['Roboto'] font-semibold text-[16px] leading-[19px] text-[#070707]">{config.valueLabel}</label>
+            <label className="w-[41px] h-[19px] font-['Roboto'] font-semibold text-[16px] leading-[19px] text-[#070707] dark:text-white">{config.valueLabel}</label>
             <div className="flex flex-row items-center px-[24px] py-[12px] gap-[4px] w-[578px] h-[43px] border border-[#070707] rounded-[50.5px] bg-white">
               <input
                 type="text"
@@ -89,12 +89,12 @@ export default function AddCreditMethod() {
                 className="w-[18px] h-[19px] font-['Roboto'] font-normal text-[16px] leading-[19px] text-[#070707] bg-transparent border-none outline-none flex-1"
                 style={{minWidth: '0'}}
               />
-              <span className="w-[9px] h-[19px] font-['Roboto'] font-normal text-[16px] leading-[19px] text-[#070707]">$</span>
+              <span className="w-[9px] h-[19px] font-['Roboto'] font-normal text-[16px] leading-[19px] text-[#E73828]">$</span>
             </div>
           </div>
           {/* Value to be sent Row */}
           <div className="flex flex-row items-center p-0 gap-[12px] w-[578px] h-[43px]">
-            <label className="w-[116px] h-[19px] font-['Roboto'] font-semibold text-[16px] leading-[19px] text-[#070707]">{config.sendLabel}</label>
+            <label className="w-[116px] h-[19px] font-['Roboto'] font-semibold text-[16px] leading-[19px] text-[#070707] dark:text-white">{config.sendLabel}</label>
             <div className="flex flex-row items-center px-[24px] py-[12px] gap-[10px] w-[450px] h-[43px] border border-[rgba(7,7,7,0.2)] rounded-[50.5px] bg-white">
               <input
                 type="text"
@@ -103,12 +103,12 @@ export default function AddCreditMethod() {
                 className="w-[18px] h-[19px] font-['Roboto'] font-normal text-[16px] leading-[19px] text-[#070707] bg-transparent border-none outline-none flex-1"
                 style={{minWidth: '0'}}
               />
-              <span className="w-[9px] h-[19px] font-['Roboto'] font-normal text-[16px] leading-[19px] text-[#070707]">$</span>
+              <span className="w-[9px] h-[19px] font-['Roboto'] font-normal text-[16px] leading-[19px] text-[#E73828]">$</span>
             </div>
           </div>
           {/* Screenshot Row */}
           <div className="flex flex-col items-start p-0 gap-[4px] w-[578px] h-[67px]">
-            <label className="w-[82px] h-[19px] font-['Roboto'] font-semibold text-[16px] leading-[19px] text-[#070707]">Screenshot</label>
+            <label className="w-[82px] h-[19px] font-['Roboto'] font-semibold text-[16px] leading-[19px] text-[#070707] dark:text-white">Screenshot</label>
             <div className="flex flex-row justify-between items-center px-[24px] py-[12px] gap-[4px] w-[578px] h-[44px] border border-[#070707] rounded-[50.5px] bg-white">
               <input
                 type="text"

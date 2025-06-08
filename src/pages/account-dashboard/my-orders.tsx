@@ -48,13 +48,13 @@ function OrderRow({ order }: { order: typeof orders[number] }) {
         {/* Title and Date */}
         <div className="flex flex-col justify-center items-start p-0 gap-1 w-[151px] h-[37px]">
           <div className="flex flex-row items-center p-0 gap-1 w-[151px] h-[19px]">
-            <span className="w-[90px] h-[19px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707]">
+            <span className="w-[90px] h-[19px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white">
               {order.title.split(' | ')[0]}
             </span>
             {order.title.includes(' | ') && (
               <>
                 <span className="w-[1px] h-3 bg-[#E73828]"></span>
-                <span className="w-[52px] h-[19px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707]">
+                <span className="w-[52px] h-[19px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white">
                   {order.title.split(' | ')[1]}
                 </span>
               </>
@@ -67,7 +67,7 @@ function OrderRow({ order }: { order: typeof orders[number] }) {
       </div>
       {/* Right Section - Price */}
       <div className="flex flex-row justify-end items-center gap-2 w-[90px]">
-        <span className="w-[31px] h-[19px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] text-right">
+        <span className="w-[31px] h-[19px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white text-right">
           {order.value}
         </span>
       </div>
@@ -146,18 +146,18 @@ export default function MyOrders() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col gap-4">
-        <div className="w-fit">
+      <div className="flex flex-col gap-0 md:gap-0">
+        <div className="w-fit mb-6 md:mb-8">
           <BackButton href="/account-dashboard" />
         </div>
-        <div className="text-[#E73828] text-[36px] font-semibold font-['Roboto'] leading-[42px] uppercase mb-8 mt-0 tracking-tight">MY ORDERS</div>
+        <div className="text-[#E73828] text-[36px] font-semibold font-['Roboto'] leading-[42px] uppercase mt-0 tracking-tight">MY ORDERS</div>
       </div>
-      <div className="flex flex-col items-start w-full pb-6 gap-[25px] border-b border-[rgba(0,0,0,0.1)] mb-8" style={{ boxSizing: 'border-box' }}>
-        <div className="flex flex-row items-start gap-4" style={{ height: '35px' }}>
+      <div className="flex flex-col items-start w-full pb-1 md:pb-2 gap-[6px] md:gap-[10px] border-b border-[rgba(0,0,0,0.1)] mb-2 md:mb-3" style={{ boxSizing: 'border-box' }}>
+        <div className="flex flex-row gap-1 md:gap-2 lg:gap-4 items-center w-full min-w-0 overflow-x-auto" style={{ minHeight: '35px' }}>
           {filterButtons.map(btn => (
             <button
               key={btn.key}
-              className={`flex flex-row items-center rounded-[50.5px] px-[12px] py-[8px] font-['Roboto'] font-semibold text-[16px] h-[35px] justify-center items-center relative ${btn.className}`}
+              className={`flex-1 min-w-[120px] flex flex-row items-center rounded-[50.5px] px-2 md:px-3 py-1 md:py-2 font-['Roboto'] font-semibold text-[16px] h-[32px] md:h-[35px] justify-center items-center relative ${btn.className}`}
               onClick={() => setActiveFilter(btn.key)}
               type="button"
             >

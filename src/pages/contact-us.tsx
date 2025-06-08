@@ -47,9 +47,9 @@ export default function ContactUs() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
               {/* Left column - Form section */}
-              <div className="bg-white rounded-lg p-8 shadow-md">
+              <div className="bg-white dark:bg-[#232323] rounded-lg p-8 shadow-md dark:text-white">
                 <h2 className="text-3xl font-bold text-[#E93323] mb-4">GET IN TOUCH</h2>
-                <p className="mb-6 text-gray-700">
+                <p className="mb-6 text-gray-700 dark:text-white">
                   If you have a complaint, concern, or just want to share your thoughts,
                   please fill out the form below. Our team will get back to you as soon as 
                   possible.
@@ -60,7 +60,7 @@ export default function ContactUs() {
                     <input
                       type="text"
                       placeholder="Name"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E93323]"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E93323] bg-white dark:bg-[#181818] text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-400"
                       required
                     />
                   </div>
@@ -69,7 +69,7 @@ export default function ContactUs() {
                     <input
                       type="text"
                       placeholder="Phone Number/Email"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E93323]"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E93323] bg-white dark:bg-[#181818] text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-400"
                       required
                     />
                   </div>
@@ -77,11 +77,11 @@ export default function ContactUs() {
                   {/* Subject dropdown */}
                   <div className="relative">
                     <div 
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg flex justify-between items-center"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg flex justify-between items-center bg-white dark:bg-[#181818]"
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                       style={{ cursor: 'default', color: '#E93323' }}
                     >
-                      <span className={`${subject ? "text-black" : "text-gray-500"}`}>
+                      <span className={`${subject ? "text-black dark:text-white" : "text-gray-500 dark:text-gray-400"}`}>
                         {subject || "Subject"}
                       </span>
                       <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 transition-transform ${isDropdownOpen ? "transform rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -90,12 +90,11 @@ export default function ContactUs() {
                     </div>
                     
                     {isDropdownOpen && (
-                      <div className="absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
+                      <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-[#232323] border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-10">
                         {subjects.map((item, index) => (
                           <div 
                             key={index}
-                            className="px-4 py-2 hover:bg-gray-100"
-                            style={{ cursor: 'default', color: '#E93323' }}
+                            className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#181818] text-[#E93323] cursor-pointer"
                             onClick={() => {
                               setSubject(item);
                               setIsDropdownOpen(false);
@@ -112,7 +111,7 @@ export default function ContactUs() {
                     <textarea
                       placeholder="Message"
                       rows={6}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-[#E93323]"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-[#E93323] bg-white dark:bg-[#181818] text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-400"
                       required
                     ></textarea>
                   </div>
@@ -127,7 +126,7 @@ export default function ContactUs() {
               </div>
               
               {/* Right column - Contact details and image */}
-              <div className="bg-gray-100 rounded-lg p-8">
+              <div className="bg-gray-100 dark:bg-[#232323] rounded-lg p-8 dark:text-white">
                 <h2 className="text-3xl font-bold text-[#E93323] mb-6">CONTACT DETAILS</h2>
                 
                 <div className="mb-6">

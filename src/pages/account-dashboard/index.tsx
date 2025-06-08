@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { formatDate } from "@/utils/date";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppTheme } from "@/hooks/use-app-theme";
+import BackButton from "@/components/ui/back-button";
 
 const transactions = [
   { direction: 'up', title: "Pubg Mobile | 600 UC", date: "2025-03-14 18:37:07", status: 'Purchased' },
@@ -55,6 +56,9 @@ export default function AccountDashboard() {
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-6 md:gap-14">
+        <div className="w-fit mb-2">
+          <BackButton href="/" label="Home Page" />
+        </div>
         {/* Content */}
         {activeSection === "dashboard" &&
           <>
