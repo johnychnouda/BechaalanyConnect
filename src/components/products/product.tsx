@@ -17,7 +17,6 @@ export default function Product({ product }: Props) {
       image={product.image}
       type="product"
       href={href}
-      className={product.type === 'latest' || product.type === 'featured' ? 'w-[277px] h-[312px]' : ''}
     />
   );
 }

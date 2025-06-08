@@ -18,19 +18,19 @@ export default function TopBanner({ children }: PropsWithChildren) {
               +961 81 708 706
             </div>
           </div>
-        </div>
-        <div className="flex rtl:flex-row-reverse gap-[15px] items-center">
-          <ButtonLink>
-            <InstagramWhiteIcon />
-          </ButtonLink>
-          <ButtonLink>
-            <FacebookWhiteIcon />
-          </ButtonLink>
-          <ButtonLink>
-            <TiktokWhiteIcon />
-          </ButtonLink>
-          <div className="hidden lg:block">
-            <LanguageThemeSwitcher />
+          <div className="flex rtl:flex-row-reverse gap-[15px] items-center">
+            <ButtonLink>
+              <InstagramWhiteIcon />
+            </ButtonLink>
+            <ButtonLink>
+              <FacebookWhiteIcon />
+            </ButtonLink>
+            <ButtonLink>
+              <TiktokWhiteIcon />
+            </ButtonLink>
+            <div className="ml-2">
+              <LanguageThemeSwitcher />
+            </div>
           </div>
         </div>
       </section>
