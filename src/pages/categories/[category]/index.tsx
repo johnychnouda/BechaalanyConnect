@@ -124,15 +124,11 @@ export default function CategoryPage() {
           <h1 className="text-2xl font-bold mb-6">{currentCategory.title}</h1>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {subCategories.map((subCategory) => (
-              <div key={subCategory.id} className="flex flex-col items-center">
-                <SubCategoryCard 
-                  category={subCategory} 
-                  parentSlug={category as string} 
-                />
-                <div className="text-center mt-2">
-                  <h3 className="text-[16px] font-semibold text-gray-800">{subCategory.name}</h3>
-                </div>
-              </div>
+              <SubCategoryCard 
+                key={subCategory.id}
+                category={subCategory} 
+                parentSlug={category as string} 
+              />
             ))}
           </div>
         </div>

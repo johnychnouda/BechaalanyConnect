@@ -136,18 +136,14 @@ const SubCategoryPage: React.FC = () => {
       {products.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8">
           {products.map((product) => (
-            <div key={product.id} className="flex flex-col items-center">
-              <Card
-                id={product.id}
-                title={product.name}
-                image={product.image}
-                type="product"
-                href={`/categories/${categorySlug}/${subcategorySlug}/${product.id}`}
-              />
-              <div className="text-center mt-2">
-                <h3 className="text-[16px] font-semibold text-gray-800">{product.name}</h3>
-              </div>
-            </div>
+            <Card
+              key={product.id}
+              id={product.id}
+              title={product.name}
+              image={product.image}
+              type="product"
+              href={`/categories/${categorySlug}/${subcategorySlug}/${product.id}`}
+            />
           ))}
         </div>
       ) : (
