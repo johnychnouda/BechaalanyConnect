@@ -51,7 +51,7 @@ export default function DashboardFilterButton({
       onClick={onClick}
       className={clsx(
         'flex flex-row items-center p-2 px-3 gap-[10px] h-[35px] rounded-[50.5px]',
-        'font-["Roboto"] font-normal text-sm leading-4 text-[#070707]',
+        'font-["Roboto"] font-normal text-sm leading-4 text-[#070707] dark:text-white',
         isActive ? styles.active : styles.default,
         styles.hover,
         'transition-all duration-200',

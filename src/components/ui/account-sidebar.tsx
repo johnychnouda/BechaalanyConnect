@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from '@/context/AuthContext';
 
-export default function AccountSidebar() {
+export default function AccountSidebar({ onClose }: { onClose?: () => void }) {
   const router = useRouter();
   const currentPath = usePathname();
   const { logout } = useAuth();
@@ -19,16 +19,16 @@ export default function AccountSidebar() {
   return (
     <div className="flex flex-col items-start w-full h-full p-0">
       {/* Title */}
-      <span className="font-['Roboto'] font-semibold text-[24px] leading-[28px] text-[#E73828] mb-6 ml-6 mt-6">My Account</span>
+      <span className="font-['Roboto'] font-semibold text-[20px] leading-[24px] text-[#E73828] mb-4 ml-4 mt-2">My Account</span>
       {/* Links Container */}
-      <div className="flex flex-col items-start gap-0 w-full px-6">
+      <div className="flex flex-col items-start gap-0 w-full px-4">
         {links.map((link, index) => (
           <React.Fragment key={link.href}>
             <div className="flex flex-col items-start w-full">
-              <div className="flex flex-row items-center gap-[9px] w-full h-[32px]">
+              <div className="flex flex-row items-center gap-[9px] w-full h-[28px]">
                 <Link
                   href={link.href}
-                  className={`font-['Roboto'] text-[16px] leading-[19px] px-0 py-0 ${
+                  className={`font-['Roboto'] text-[14px] leading-[16px] px-0 py-0 ${
                     currentPath === link.href
                       ? 'font-semibold text-[#E73828]'
                       : 'font-semibold text-[#070707] hover:text-[#E73828]'
@@ -40,19 +40,19 @@ export default function AccountSidebar() {
             </div>
             {/* Divider - Don't show after last item and not after Logout */}
             {index < links.length - 1 && (
-              <div className="w-full h-[1px] bg-[#070707] opacity-20 my-2" />
+              <div className="w-full h-[1px] bg-[#070707] opacity-20 my-1" />
             )}
           </React.Fragment>
         ))}
         {/* Logout Section */}
-        <div className="mt-8 pt-6 border-t border-[#070707] w-full">
+        <div className="mt-6 pt-4 border-t border-[#070707] w-full">
           <button
             onClick={() => { logout(); router.push('/'); }}
-            className="group flex items-center gap-2 font-['Roboto'] font-semibold text-[16px] bg-[#E73828] text-white border border-[#E73828] rounded-full px-6 py-2 transition-all duration-200 hover:bg-white hover:text-[#E73828] hover:border-[#E73828] shadow-sm w-full"
+            className="group flex items-center gap-2 font-['Roboto'] font-semibold text-[14px] bg-[#E73828] text-white border border-[#E73828] rounded-full px-4 py-1.5 transition-all duration-200 hover:bg-white hover:text-[#E73828] hover:border-[#E73828] shadow-sm w-full"
           >
             <svg 
-              width="20" 
-              height="20" 
+              width="16" 
+              height="16" 
               viewBox="0 0 24 24" 
               fill="none" 
               xmlns="http://www.w3.org/2000/svg"
