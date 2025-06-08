@@ -50,7 +50,7 @@ const CategoriesPage = () => {
       <BackButton href="/" className="mb-4" />
 
       {/* Page Title */}
-      <h1 className="text-2xl font-bold mb-6">CATEGORIES</h1>
+      <h1 className="text-2xl font-bold mb-6 dark:text-[#E73828]">CATEGORIES</h1>
 
       {/* Categories Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

@@ -52,7 +52,7 @@ export default function Card({
         </div>
       </Link>
       {/* Title */}
-      <h3 className={clsx("text-center mt-2 text-[16px] font-bold text-gray-800", titleClassName)}>
+      <h3 className={clsx("text-center mt-2 text-[16px] font-bold text-gray-800 dark:text-white", titleClassName)}>
         {title}
       </h3>
     </div>

@@ -121,7 +121,7 @@ export default function CategoryPage() {
       <BackButton href="/categories" className="mb-4" />
       {hasContent ? (
         <div>
-          <h1 className="text-2xl font-bold mb-6">{currentCategory.title}</h1>
+          <h1 className="text-2xl font-bold mb-6 dark:text-[#E73828]">{currentCategory.title}</h1>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {subCategories.map((subCategory) => (
               <SubCategoryCard 

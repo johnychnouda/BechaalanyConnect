@@ -59,11 +59,11 @@ export default function AccountSidebar({ onClose }: { onClose?: () => void }) {
                 href={link.href}
                 className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg transition-all duration-200 ${
                   currentPath === link.href
-                    ? 'bg-[#E73828]/10 text-[#E73828]'
-                    : 'text-[#070707] hover:bg-[#E73828]/5 hover:text-[#E73828]'
+                    ? 'bg-[#E73828]/10 text-[#E73828] dark:text-white'
+                    : 'text-[#070707] hover:bg-[#E73828]/5 hover:text-[#E73828] dark:text-white'
                 }`}
               >
-                <link.icon className="w-4 h-4" />
+                <link.icon className="w-4 h-4 text-[#070707] dark:text-white" />
                 <span className="font-['Roboto'] text-[13px] leading-[16px] font-semibold">
                   {link.label}
                 </span>
@@ -72,12 +72,12 @@ export default function AccountSidebar({ onClose }: { onClose?: () => void }) {
           </React.Fragment>
         ))}
         {/* Logout Section */}
-        <div className="mt-4 pt-3 border-t border-[#070707]/20 w-full px-2">
+        <div className="mt-4 pt-3 border-t border-[#070707]/20 w-full px-2 pb-8 mb-0">
           <button
             onClick={() => { logout(); router.push('/'); }}
             className="group flex items-center justify-center gap-2 font-['Roboto'] font-semibold text-[13px] bg-[#E73828] text-white border border-[#E73828] rounded-lg px-3 py-2 transition-all duration-200 hover:bg-white hover:text-[#E73828] hover:border-[#E73828] shadow-sm w-full"
           >
-            <ArrowRightOnRectangleIcon className="w-4 h-4" />
+            <ArrowRightOnRectangleIcon className="w-4 h-4 text-white" />
             <span>Logout</span>
           </button>
         </div>
@@ -88,12 +88,14 @@ export default function AccountSidebar({ onClose }: { onClose?: () => void }) {
   return (
     <>
       {/* Mobile/Tablet Version */}
-      <div className="flex flex-col items-start w-full h-full p-0 xl:hidden">
+      <div className="flex flex-col items-start w-full h-full p-0 xl:hidden dark:bg-[rgba(255,255,255,0.12)] dark:rounded-2xl">
         <SidebarContent />
       </div>
       {/* Desktop Version */}
       <div className="hidden xl:flex flex-col items-start w-full h-full p-0">
-        <SidebarContent />
+        <div className="w-full">
+          <SidebarContent />
+        </div>
       </div>
     </>
   );

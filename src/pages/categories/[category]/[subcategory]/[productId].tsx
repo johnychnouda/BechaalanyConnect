@@ -185,7 +185,7 @@ const ProductPage: React.FC = () => {
         {/* Product Details */}
         <div className="md:w-1/2 flex flex-col gap-4 max-w-lg w-full">
           <h1 className="text-[32px] font-bold text-app-red leading-tight">{selectedAmount.amount}</h1>
-          <p className="text-gray-700 text-[15px] mb-2">{product.description}</p>
+          <p className="text-gray-700 text-[15px] mb-2 dark:text-white">{product.description}</p>
 
           {/* Amount Select */}
           <div className="mb-2">
@@ -271,10 +271,6 @@ const ProductPage: React.FC = () => {
                 type="product"
                 href="#"
               />
-              <div className="text-center mt-2">
-                <h3 className="text-[16px] font-semibold text-gray-800">{prod.amount}</h3>
-                <p className="text-[14px] text-app-red font-bold">${prod.price}</p>
-              </div>
             </div>
           ))}
         </div>

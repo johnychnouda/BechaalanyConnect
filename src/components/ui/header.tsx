@@ -39,11 +39,13 @@ export default function Header({ children }: PropsWithChildren) {
     <>
       {/* Main Header */}
       <PageLayout className="sticky top-0 py-3 px-4 lg:px-12 flex justify-between items-center w-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)] z-10 bg-background-light dark:bg-background-dark">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between w-full lg:justify-start lg:gap-4 lg:w-auto">
           <ButtonLink href="/">
             {theme === "dark" ? <LogoWhiteIcon /> : <LogoIcon />}
           </ButtonLink>
-          <ThemeSwitcher />
+          <div className="block ml-auto lg:ml-0">
+            <ThemeSwitcher />
+          </div>
         </div>
 
         {/* Desktop Navigation */}
