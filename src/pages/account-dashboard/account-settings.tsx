@@ -89,9 +89,6 @@ export default function AccountSettings() {
     storeLocation: "Jounieh Lebanon",
   });
 
-  // Focus states for dropdowns
-  const [focusedSelect, setFocusedSelect] = useState<string | null>(null);
-
   // Country code mapping
   const countryCodes: Record<string, string> = {
     LEBANON: "+961",
@@ -153,7 +150,9 @@ export default function AccountSettings() {
         <div className="w-fit">
           <BackButton href="/account-dashboard" />
         </div>
-        <div className="text-[#E73828] text-[36px] font-semibold font-['Roboto'] leading-[42px] uppercase mb-8 mt-0 tracking-tight">ACCOUNT SETTINGS</div>
+        <div className="text-[#E73828] font-semibold font-['Roboto'] uppercase mb-8 mt-0 tracking-tight whitespace-nowrap text-[22px] xs:text-[26px] sm:text-[30px] md:text-[36px] lg:text-[40px] xl:text-[42px] leading-tight text-center sm:text-left">
+          ACCOUNT SETTINGS
+        </div>
         <div className="flex flex-col md:flex-row gap-12">
           {/* Sidebar (left) is handled by DashboardLayout */}
           <div className="flex-1 max-w-2xl">
@@ -193,7 +192,11 @@ export default function AccountSettings() {
                 <CustomDropdown
                   options={countryOptions}
                   value={accountInfo.country}
-                  onChange={(value) => handleInfoChange({ target: { name: 'country', value } } as any)}
+                  onChange={(value) =>
+                    handleInfoChange({
+                      target: { name: 'country', value }
+                    } as React.ChangeEvent<HTMLInputElement>)
+                  }
                   className="w-full"
                 />
               </div>
@@ -203,7 +206,11 @@ export default function AccountSettings() {
                 <CustomDropdown
                   options={userTypeOptions}
                   value={accountInfo.userType}
-                  onChange={(value) => handleInfoChange({ target: { name: 'userType', value } } as any)}
+                  onChange={(value) =>
+                    handleInfoChange({
+                      target: { name: 'userType', value }
+                    } as React.ChangeEvent<HTMLInputElement>)
+                  }
                   className="w-full"
                 />
               </div>
@@ -219,22 +226,28 @@ export default function AccountSettings() {
                   <input name="storeLocation" value={accountInfo.storeLocation} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" />
                 </div>
               </div>
-              <div className="flex flex-row items-center justify-between mb-8">
-                <span className="text-[#E73828] font-semibold">Account Security</span>
+              <div className="flex flex-row items-center justify-between gap-2 flex-nowrap w-full overflow-x-auto mb-8" style={{ minWidth: 0 }}>
+                <span className="text-[#E73828] font-semibold whitespace-nowrap min-w-0">
+                  Account Security
+                </span>
                 <button 
                   type="button" 
-                  className="bg-[#E73828] text-white rounded-full px-6 py-2 font-bold hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200" 
+                  className="bg-[#E73828] text-white rounded-full px-6 py-2 font-bold whitespace-nowrap hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200 text-base min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0"
+                  style={{ flexShrink: 1, maxWidth: '200px' }}
                   onClick={() => setShowSecurity(true)}
                 >
                   CHANGE PASSWORD
                 </button>
               </div>
-              <button 
-                type="submit" 
-                className="w-full bg-[#E73828] text-white rounded-full py-3 font-bold text-lg hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200"
-              >
-                SAVE
-              </button>
+              <div className="flex flex-row flex-nowrap w-full gap-4 overflow-x-auto mb-4">
+                <button 
+                  type="submit" 
+                  className="bg-[#E73828] text-white rounded-full py-3 font-bold text-lg hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap"
+                  style={{ flexShrink: 1, maxWidth: '200px' }}
+                >
+                  SAVE
+                </button>
+              </div>
             </form>
             {showSecurity && (
               <form onSubmit={handleSecuritySubmit} id="security-section">
@@ -257,16 +270,18 @@ export default function AccountSettings() {
                     <input name="confirmPassword" value={security.confirmPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="password" placeholder="Confirm New Password" />
                   </div>
                 </div>
-                <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex flex-row flex-nowrap w-full gap-4 overflow-x-auto">
                   <button 
                     type="submit" 
-                    className="w-full bg-[#E73828] text-white rounded-full py-3 font-bold text-lg hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200"
+                    className="bg-[#E73828] text-white rounded-full py-3 font-bold text-lg hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap"
+                    style={{ flexShrink: 1, maxWidth: '200px' }}
                   >
                     SAVE PASSWORD
                   </button>
                   <button 
                     type="button" 
-                    className="w-full border-2 border-[#E73828] text-[#E73828] rounded-full py-3 font-bold text-lg hover:bg-[#E73828] hover:text-white transition-colors duration-200" 
+                    className="border-2 border-[#E73828] text-[#E73828] rounded-full py-3 font-bold text-lg hover:bg-[#E73828] hover:text-white transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap"
+                    style={{ flexShrink: 1, maxWidth: '200px' }}
                     onClick={handleDiscard}
                   >
                     DISCARD CHANGES

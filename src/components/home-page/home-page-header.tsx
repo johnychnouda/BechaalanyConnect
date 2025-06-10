@@ -1,6 +1,5 @@
 import React from "react";
 import WhatsAppChannelButton from "../ui/whatsapp-channel-button";
-import CategoriesButton from "../ui/categories-button";
 
 export default function HomePageHeader() {
   return (
@@ -27,7 +26,6 @@ export default function HomePageHeader() {
               solutions.
             </p>
           </div>
-          <CategoriesButton href="/categories" className="w-auto" />
         </div>
       </section>
       <section className="flex flex-col justify-between items-center px-4 sm:px-6 md:px-8 lg:px-12 py-4 gap-4 text-center lg:flex-row bg-white dark:bg-gray-900">

@@ -101,7 +101,6 @@ export default function MyPayments() {
         ? "bg-[#F3F3F3] border border-[#E0E0E0] text-[#070707]"
         : "bg-white border border-[#E0E0E0] text-[#070707]",
       icon: null,
-      width: "w-[160px]",
     },
     {
       key: "accepted",
@@ -117,7 +116,6 @@ export default function MyPayments() {
           </svg>
         </span>
       ),
-      width: "w-[140px]",
     },
     {
       key: "rejected",
@@ -134,7 +132,6 @@ export default function MyPayments() {
           </svg>
         </span>
       ),
-      width: "w-[140px]",
     },
     {
       key: "pending",
@@ -151,7 +148,6 @@ export default function MyPayments() {
           </svg>
         </span>
       ),
-      width: "w-[140px]",
     },
   ];
 
@@ -168,16 +164,21 @@ export default function MyPayments() {
         </div>
         <div className="text-[#E73828] text-[36px] font-semibold font-['Roboto'] leading-[42px] uppercase mb-8 mt-0 tracking-tight">MY PAYMENTS</div>
         <div className="flex flex-col items-start w-full pb-6 gap-[25px] border-b border-[rgba(0,0,0,0.1)] mb-8" style={{ boxSizing: 'border-box' }}>
-          <div className="flex flex-row items-start gap-4" style={{height:'35px'}}>
+          <div className="flex flex-row gap-2 w-full overflow-x-auto whitespace-nowrap" style={{height:'35px'}}>
             {filterButtons.map(btn => (
               <button
                 key={btn.key}
-                className={`flex flex-row items-center rounded-[50.5px] px-[12px] py-[8px] font-['Roboto'] font-semibold text-[16px] h-[35px] justify-center items-center relative ${btn.className} ${btn.width}`}
+                className={`flex items-center rounded-[50.5px] px-3 py-2 font-['Roboto'] font-semibold text-[15px] h-[35px] ${btn.className}`}
+                style={{ minWidth: '140px', maxWidth: '160px' }}
                 onClick={() => setActiveFilter(btn.key)}
                 type="button"
               >
-                {btn.icon}
-                <span className="w-full text-center">{btn.label}</span>
+                {btn.icon && (
+                  <span className="flex items-center justify-center mr-3" style={{ width: 19, height: 19, position: 'relative' }}>
+                    {btn.icon}
+                  </span>
+                )}
+                <span className="flex-1 text-center truncate">{btn.label}</span>
               </button>
             ))}
           </div>
