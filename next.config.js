@@ -15,7 +15,10 @@ const nextConfig = {
   experimental: {
     disableVercelToolbar: true,
   },
-}
 
+  env: {
+    NEXT_DISABLE_VERCEL_TOOLBAR: '1',
+  },
+}
 
 module.exports = nextConfig
