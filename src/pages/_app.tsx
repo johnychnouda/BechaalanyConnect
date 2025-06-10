@@ -26,7 +26,7 @@ export default function App({
   const isRTL = router.locale === "ar";
 
   return (
-    <ThemeProvider>
+    <ThemeProvider defaultTheme="light">
       <AuthProvider>
         <GlobalState.Provider value={{
           generalData,locale

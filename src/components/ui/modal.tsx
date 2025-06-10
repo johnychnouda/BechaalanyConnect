@@ -31,21 +31,28 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, className }) =
 
   return (
     <div
-      className={clsx("fixed inset-0 z-50 flex items-center justify-center min-h-screen bg-black/40", className, isOpen ? "pointer-events-auto" : "pointer-events-none")}
+      className={clsx(
+        "fixed inset-0 z-50 flex items-center justify-center min-h-screen bg-black/40 p-4",
+        className,
+        isOpen ? "pointer-events-auto" : "pointer-events-none"
+      )}
       aria-modal="true"
       role="dialog"
       tabIndex={-1}
       onClick={onClose}
     >
       <div
-        className={`relative w-full max-w-[400px] bg-white rounded-[20px] border border-[#E73828] p-8 flex flex-col items-center shadow-lg ${className}`}
+        className={clsx(
+          "relative w-full max-w-[400px] bg-white rounded-[20px] border border-[#E73828] p-4 sm:p-6 md:p-8 flex flex-col items-center shadow-lg overflow-y-auto max-h-[90vh]",
+          className
+        )}
         ref={modalRef}
         tabIndex={0}
         onClick={e => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
-          className="absolute top-4 right-4 text-[#E73828] text-xl hover:scale-110 transition-transform"
+          className="absolute top-2 right-2 sm:top-4 sm:right-4 text-[#E73828] text-xl hover:scale-110 transition-transform"
           aria-label="Close"
           onClick={onClose}
         >
@@ -57,4 +64,4 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, className }) =
   );
 };
 
-export default Modal; 
+export default Modal;

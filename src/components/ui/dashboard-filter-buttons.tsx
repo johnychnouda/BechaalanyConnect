@@ -59,8 +59,12 @@ export default function DashboardFilterButton({
       )}
       type="button"
     >
-      {icon}
-      <span>{label}</span>
+      {icon && (
+        <div className="flex items-center justify-center w-[19px] h-[19px]">
+          {icon}
+        </div>
+      )}
+      <span className="flex-1 text-center">{label}</span>
     </button>
   );
 }

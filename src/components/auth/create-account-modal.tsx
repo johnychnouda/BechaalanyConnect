@@ -211,168 +211,159 @@ export default function CreateAccountModal({
           setIsOpen(false);
         }}
       >
-        <h2 className="text-3xl font-extrabold text-[#E73828] text-center mb-1 tracking-tight">
-          CREATE ACCOUNT
-        </h2>
-        <p className="text-center text-black text-base mb-6">
-          Sign up to continue
-        </p>
-        {error && (
-          <div className="w-full mb-2 text-center text-red-600 text-sm font-semibold">
-            {error}
-          </div>
-        )}
-        <form
-          className="w-full flex flex-col gap-4"
-          onSubmit={handleSubmit}
-          autoComplete="off"
-        >
-          <input
-            type="text"
-            name="username"
-            placeholder="Username"
-            value={form.username}
-            onChange={handleChange}
-            required
-            className="w-full border border-[#E73828] rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
-          />
-          <CustomDropdown
-            options={COUNTRIES}
-            value={form.country}
-            onChange={(val) => setForm((prev) => ({ ...prev, country: val }))}
-            placeholder="Country"
-          />
-          <div className="flex items-center border border-[#E73828] rounded-full px-4 py-2 bg-transparent">
-            <span className="text-[#E73828] mr-2 min-w-[48px]">
-              {phonePrefix}
-            </span>
-            <input
-              type="tel"
-              name="phone"
-              placeholder="Phone Number"
-              value={form.phone}
-              onChange={handleChange}
-              required
-              className="flex-1 bg-transparent outline-none text-black placeholder:text-black"
-            />
-          </div>
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={handleChange}
-            required
-            className="w-full border border-[#E73828] rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
-          />
-          {/* Business-only fields */}
-          {form.isBusiness && (
-            <>
-              <CustomDropdown
-                options={USER_TYPES}
-                value={form.userType}
-                onChange={(val) =>
-                  setForm((prev) => ({ ...prev, userType: val }))
-                }
-                placeholder="User Type"
-              />
-              <input
-                type="text"
-                name="storeName"
-                placeholder="Store Name"
-                value={form.storeName}
-                onChange={handleChange}
-                required={form.isBusiness}
-                className="w-full border border-[#E73828] rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
-              />
-              <input
-                type="text"
-                name="location"
-                placeholder="Location"
-                value={form.location}
-                onChange={handleChange}
-                required={form.isBusiness}
-                className="w-full border border-[#E73828] rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
-              />
-            </>
-          )}
-          {/* Password field with show/hide icon */}
-          <div className="relative w-full group">
-            <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder="Password"
-              value={form.password}
-              onChange={handleChange}
-              required
-              className="w-full border border-[#E73828] rounded-full px-4 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black transition-all duration-200"
-            />
-            <button
-              type="button"
-              tabIndex={-1}
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-[#E73828]/10 transition-colors duration-200 focus:outline-none"
-              onClick={() => setShowPassword((v) => !v)}
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              <EyeIcon open={showPassword} />
-            </button>
-          </div>
-          {/* Confirm Password field with show/hide icon */}
-          <div className="relative w-full group">
-            <input
-              type={showConfirmPassword ? "text" : "password"}
-              name="confirmPassword"
-              placeholder="Confirm Passwords"
-              value={form.confirmPassword}
-              onChange={handleChange}
-              required
-              className="w-full border border-[#E73828] rounded-full px-4 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black transition-all duration-200"
-            />
-            <button
-              type="button"
-              tabIndex={-1}
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-[#E73828]/10 transition-colors duration-200 focus:outline-none"
-              onClick={() => setShowConfirmPassword((v) => !v)}
-              aria-label={
-                showConfirmPassword ? "Hide password" : "Show password"
-              }
-            >
-              <EyeIcon open={showConfirmPassword} />
-            </button>
-          </div>
-          <label className="flex items-center gap-2 text-black text-sm">
-            <input
-              type="checkbox"
-              name="isBusiness"
-              checked={form.isBusiness}
-              onChange={(e) => {
-                if (e.target instanceof HTMLInputElement) {
-                  setForm((prev) => ({
-                    ...prev,
-                    isBusiness: e.target.checked,
-                  }));
-                }
-              }}
-              className="accent-[#E73828] w-4 h-4 rounded"
-            />
-            Register as a Business User
-          </label>
-          <button
-            type="submit"
-            className="w-full bg-[#E73828] text-white font-bold py-3 rounded-full mt-2 hover:bg-white hover:text-[#E73828] border border-[#E73828] transition-colors duration-200 text-lg"
-          >
+        <div className="w-full max-w-[400px]">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#E73828] text-center mb-1 tracking-tight">
             CREATE ACCOUNT
-          </button>
-          <GoogleButton onClick={handleGoogleSignup} />
-        </form>
-        <div className="w-full text-center mt-4 text-black text-base">
-          Already have an account ?{" "}
-          <Link
-            href="/auth/signin"
-            className="text-[#E73828] font-bold hover:underline"
+          </h2>
+          <p className="text-center text-black text-sm sm:text-base mb-4 sm:mb-6">
+            Sign up to continue
+          </p>
+          {error && (
+            <div className="w-full mb-2 text-center text-red-600 text-xs sm:text-sm font-semibold">
+              {error}
+            </div>
+          )}
+          <form
+            className="w-full flex flex-col gap-3 sm:gap-4"
+            onSubmit={handleSubmit}
+            autoComplete="off"
           >
-            Login
-          </Link>
+            <input
+              type="text"
+              name="username"
+              placeholder="Username"
+              value={form.username}
+              onChange={handleChange}
+              required
+              className="w-full border border-[#E73828] rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+            />
+            <CustomDropdown
+              options={COUNTRIES}
+              value={form.country}
+              onChange={(val) => setForm((prev) => ({ ...prev, country: val }))}
+              placeholder="Country"
+            />
+            <div className="flex items-center border border-[#E73828] rounded-full px-4 py-2 bg-transparent">
+              <span className="text-[#E73828] mr-2 min-w-[48px] text-sm sm:text-base">
+                {phonePrefix}
+              </span>
+              <input
+                type="tel"
+                name="phone"
+                placeholder="Phone Number"
+                value={form.phone}
+                onChange={handleChange}
+                required
+                className="w-full focus:outline-none text-sm sm:text-base text-black bg-transparent placeholder:text-black"
+              />
+            </div>
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={form.email}
+              onChange={handleChange}
+              required
+              className="w-full border border-[#E73828] rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Password"
+                value={form.password}
+                onChange={handleChange}
+                required
+                className="w-full border border-[#E73828] rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+              />
+              <button
+                type="button"
+                className="absolute right-4 top-1/2 -translate-y-1/2"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                <EyeIcon open={showPassword} />
+              </button>
+            </div>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                placeholder="Confirm Password"
+                value={form.confirmPassword}
+                onChange={handleChange}
+                required
+                className="w-full border border-[#E73828] rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+              />
+              <button
+                type="button"
+                className="absolute right-4 top-1/2 -translate-y-1/2"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                <EyeIcon open={showConfirmPassword} />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 mt-2">
+              <input
+                type="checkbox"
+                id="isBusiness"
+                name="isBusiness"
+                checked={form.isBusiness}
+                onChange={handleChange}
+                className="w-4 h-4 accent-[#E73828]"
+              />
+              <label htmlFor="isBusiness" className="text-sm sm:text-base text-black">
+                Register as a Business User
+              </label>
+            </div>
+
+            {form.isBusiness && (
+              <div className="flex flex-col gap-3 sm:gap-4 mt-2">
+                <CustomDropdown
+                  options={USER_TYPES}
+                  value={form.userType}
+                  onChange={(val) => setForm((prev) => ({ ...prev, userType: val }))}
+                  placeholder="User Type"
+                />
+                <input
+                  type="text"
+                  name="storeName"
+                  placeholder="Store Name"
+                  value={form.storeName}
+                  onChange={handleChange}
+                  required={form.isBusiness}
+                  className="w-full border border-[#E73828] rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+                />
+                <input
+                  type="text"
+                  name="location"
+                  placeholder="Store Location"
+                  value={form.location}
+                  onChange={handleChange}
+                  required={form.isBusiness}
+                  className="w-full border border-[#E73828] rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+                />
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full bg-[#E73828] text-white rounded-full py-2 sm:py-3 text-sm sm:text-base font-bold mt-4 hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200"
+            >
+              CREATE ACCOUNT
+            </button>
+
+            <div className="relative w-full my-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              </div>
+            </div>
+
+            <GoogleButton onClick={handleGoogleSignup} />
+          </form>
         </div>
       </Modal>
       <VerifyEmailModal

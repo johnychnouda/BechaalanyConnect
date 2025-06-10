@@ -76,8 +76,6 @@ function OrderRow({ order }: { order: typeof orders[number] }) {
 }
 
 export default function MyOrders() {
-  const [fromDate, setFromDate] = useState("2024-11-10");
-  const [toDate, setToDate] = useState("2025-11-10");
   const [activeFilter, setActiveFilter] = useState<string>("all");
 
   const filterButtons = [
@@ -98,12 +96,12 @@ export default function MyOrders() {
           ? "bg-[#5FD568] border border-[#5FD568] text-white w-[140px]"
           : "bg-white border border-[#5FD568] text-[#5FD568] w-[140px]",
       icon: (
-        <span className="absolute left-[12px] flex items-center justify-center" style={{ width: 19, height: 19, top: '50%', transform: 'translateY(-50%)' }}>
-          <span style={{ background: '#5FD568', borderRadius: '50%', width: 19, height: 19, display: 'block', position: 'absolute', left: 0, top: 0 }}></span>
-          <svg width="12.67" height="12.67" viewBox="0 0 12.67 12.67" fill="none" style={{ position: 'absolute', left: 3.17, top: 3.17 }}>
+        <div className="relative w-[19px] h-[19px]">
+          <span className="absolute inset-0 bg-[#5FD568] rounded-full"></span>
+          <svg width="12.67" height="12.67" viewBox="0 0 12.67 12.67" fill="none" className="absolute left-[3.17px] top-[3.17px]">
             <path d="M3.5 7.5L6 10L10 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-        </span>
+        </div>
       ),
     },
     {
@@ -114,13 +112,13 @@ export default function MyOrders() {
           ? "bg-[#E73828] border border-[#E73828] text-white w-[140px]"
           : "bg-white border border-[#E73828] text-[#E73828] w-[140px]",
       icon: (
-        <span className="absolute left-[12px] flex items-center justify-center" style={{ width: 19, height: 19, top: '50%', transform: 'translateY(-50%)' }}>
-          <span style={{ background: '#E73828', borderRadius: '50%', width: 19, height: 19, display: 'block', position: 'absolute', left: 0, top: 0 }}></span>
-          <svg width="12.67" height="12.67" viewBox="0 0 12.67 12.67" fill="none" style={{ position: 'absolute', left: 3.17, top: 3.17 }}>
+        <div className="relative w-[19px] h-[19px]">
+          <span className="absolute inset-0 bg-[#E73828] rounded-full"></span>
+          <svg width="12.67" height="12.67" viewBox="0 0 12.67 12.67" fill="none" className="absolute left-[3.17px] top-[3.17px]">
             <rect x="3" y="5.5" width="7" height="1.67" rx="0.8" fill="white" transform="rotate(45 6.335 6.335)" />
             <rect x="3" y="5.5" width="7" height="1.67" rx="0.8" fill="white" transform="rotate(-45 6.335 6.335)" />
           </svg>
-        </span>
+        </div>
       ),
     },
     {
@@ -131,13 +129,13 @@ export default function MyOrders() {
           ? "bg-[#FB923C] border border-[#FB923C] text-white w-[140px]"
           : "bg-white border border-[#FB923C] text-[#FB923C] w-[140px]",
       icon: (
-        <span className="absolute left-[12px] flex items-center justify-center" style={{ width: 19, height: 19, top: '50%', transform: 'translateY(-50%)' }}>
-          <span style={{ background: '#FF9D00', borderRadius: '50%', width: 19, height: 19, display: 'block', position: 'absolute', left: 0, top: 0 }}></span>
-          <svg width="12.67" height="12.67" viewBox="0 0 12.67 12.67" fill="none" style={{ position: 'absolute', left: 3.17, top: 3.17 }}>
+        <div className="relative w-[19px] h-[19px]">
+          <span className="absolute inset-0 bg-[#FB923C] rounded-full"></span>
+          <svg width="12.67" height="12.67" viewBox="0 0 12.67 12.67" fill="none" className="absolute left-[3.17px] top-[3.17px]">
             <rect x="5.5" y="3" width="1.67" height="5.5" rx="0.8" fill="white" />
             <rect x="5.5" y="9.2" width="1.67" height="1.67" rx="0.8" fill="white" />
           </svg>
-        </span>
+        </div>
       ),
     },
   ];
@@ -157,12 +155,16 @@ export default function MyOrders() {
           {filterButtons.map(btn => (
             <button
               key={btn.key}
-              className={`flex-1 min-w-[120px] flex flex-row items-center rounded-[50.5px] px-2 md:px-3 py-1 md:py-2 font-['Roboto'] font-semibold text-[16px] h-[32px] md:h-[35px] justify-center items-center relative ${btn.className}`}
+              className={`flex-1 min-w-[120px] flex flex-row items-center rounded-[50.5px] px-3 md:px-3 py-1 md:py-2 font-['Roboto'] font-semibold text-[16px] h-[32px] md:h-[35px] justify-center items-center relative ${btn.className}`}
               onClick={() => setActiveFilter(btn.key)}
               type="button"
             >
-              {btn.icon}
-              <span className="w-full text-center">{btn.label}</span>
+              {btn.icon && (
+                <div className="flex items-center justify-center w-[19px] h-[19px] mr-2">
+                  {btn.icon}
+                </div>
+              )}
+              <span className="flex-1 text-center">{btn.label}</span>
             </button>
           ))}
         </div>

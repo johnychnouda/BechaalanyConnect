@@ -127,8 +127,7 @@ export default function SigninModal({ isOpen, setIsOpen }: SigninModalProps) {
         setSuccess(true);
         login(); // Call login() to update the auth state
         setIsOpen(false);
-
-        router.push("/account-dashboard"); // Redirect to dashboard
+        router.push("/"); // Redirect to home page instead of dashboard
       }
     }, 1200);
   };
@@ -155,79 +154,94 @@ export default function SigninModal({ isOpen, setIsOpen }: SigninModalProps) {
           setIsOpen(false);
         }}
       >
-        <h2 className="text-3xl font-extrabold text-[#E73828] text-center mb-1 tracking-tight">
-          WELCOME BACK
-        </h2>
-        <p className="text-center text-black text-base mb-6">
-          Login to continue
-        </p>
-        {error && (
-          <div className="w-full mb-2 text-center text-red-600 text-sm font-semibold">
-            {error}
-          </div>
-        )}
-        {success && (
-          <div className="w-full mb-2 text-center text-green-600 text-sm font-semibold">
-            Signed in successfully!
-          </div>
-        )}
-        <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            name="emailOrPhone"
-            placeholder="Email"
-            value={form.emailOrPhone}
-            onChange={handleChange}
-            required
-            className="w-full border border-[#E73828] rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
-            autoComplete="username"
-          />
-          <div className="relative w-full">
+        <div className="w-full max-w-[400px]">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#E73828] text-center mb-1 tracking-tight">
+            WELCOME BACK
+          </h2>
+          <p className="text-center text-black text-sm sm:text-base mb-4 sm:mb-6">
+            Login to continue
+          </p>
+          {error && (
+            <div className="w-full mb-2 text-center text-red-600 text-xs sm:text-sm font-semibold">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="w-full mb-2 text-center text-green-600 text-xs sm:text-sm font-semibold">
+              Signed in successfully!
+            </div>
+          )}
+          <form className="w-full flex flex-col gap-3 sm:gap-4" onSubmit={handleSubmit}>
             <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder="Password"
-              value={form.password}
+              type="text"
+              name="emailOrPhone"
+              placeholder="Email"
+              value={form.emailOrPhone}
               onChange={handleChange}
               required
-              className="w-full border border-[#E73828] rounded-full px-4 py-2 pr-12 focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
-              autoComplete="current-password"
+              className="w-full border border-[#E73828] rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+              autoComplete="username"
             />
+            <div className="relative w-full">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Password"
+                value={form.password}
+                onChange={handleChange}
+                required
+                className="w-full border border-[#E73828] rounded-full px-4 py-2 pr-12 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-[#E73828]/10 transition-colors duration-200 focus:outline-none"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                <EyeIcon open={showPassword} />
+              </button>
+            </div>
+            <div className="w-full flex justify-end">
+              <Link
+                href="/auth/forgot-password"
+                className="text-xs text-[#E73828] hover:underline font-semibold"
+              >
+                Forgot Password ?
+              </Link>
+            </div>
             <button
-              type="button"
-              tabIndex={-1}
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-[#E73828]/10 transition-colors duration-200 focus:outline-none"
-              onClick={() => setShowPassword((v) => !v)}
-              aria-label={showPassword ? "Hide password" : "Show password"}
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#E73828] text-white font-bold py-3 rounded-full mt-2 hover:bg-white hover:text-[#E73828] border border-[#E73828] transition-colors duration-200 text-lg disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <EyeIcon open={showPassword} />
+              {loading ? "Signing in..." : "LOGIN"}
             </button>
-          </div>
-          <div className="w-full flex justify-end">
+
+            <div className="relative w-full my-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              </div>
+            </div>
+
+            <GoogleButton 
+              onClick={() => alert("Google login logic here")} 
+              text="CONTINUE WITH GOOGLE"
+            />
+          </form>
+          <div className="w-full text-center mt-4 text-black text-sm sm:text-base">
+            Don&apos;t have an account ?{" "}
             <Link
-              href="/auth/forgot-password"
-              className="text-xs text-[#E73828] hover:underline font-semibold"
+              href="/auth/register"
+              className="text-[#E73828] font-bold hover:underline"
             >
-              Forgot Password ?
+              Sign up
             </Link>
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[#E73828] text-white font-bold py-3 rounded-full mt-2 hover:bg-white hover:text-[#E73828] border border-[#E73828] transition-colors duration-200 text-lg disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {loading ? "Signing in..." : "LOGIN"}
-          </button>
-          <GoogleButton onClick={() => alert("Google login logic here")} />
-        </form>
-        <div className="w-full text-center mt-4 text-black text-base">
-          Don&apos;t have an account ?{" "}
-          <Link
-            href="/auth/register"
-            className="text-[#E73828] font-bold hover:underline"
-          >
-            Sign up
-          </Link>
         </div>
       </Modal>
       <VerifyEmailModal
