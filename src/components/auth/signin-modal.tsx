@@ -2,33 +2,35 @@ import React, { useState } from "react";
 import Modal from "@/components/ui/modal";
 import VerifyEmailModal from "@/components/ui/verify-email-modal";
 import PendingApprovalModal from "@/components/ui/pending-approval-modal";
-import { useAuth } from '@/context/AuthContext';
-import GoogleButton from '@/components/ui/google-button';
+import { useAuth } from "@/context/AuthContext";
+import GoogleButton from "@/components/ui/google-button";
+import Link from "next/link";
+import { useRouter } from "next/router";
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      className="w-5 h-5 transition-transform duration-200 hover:scale-110" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="#E73828" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-5 h-5 transition-transform duration-200 hover:scale-110"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#E73828"
+      strokeWidth="2"
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
       <circle cx="12" cy="12" r="3" />
     </svg>
   ) : (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      className="w-5 h-5 transition-transform duration-200 hover:scale-110" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="#E73828" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-5 h-5 transition-transform duration-200 hover:scale-110"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#E73828"
+      strokeWidth="2"
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
@@ -37,8 +39,16 @@ function EyeIcon({ open }: { open: boolean }) {
   );
 }
 
-export default function Signin() {
+export type SigninModalProps = {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+};
+
+export default function SigninModal({ isOpen, setIsOpen }: SigninModalProps) {
+  const router = useRouter();
+
   const { login } = useAuth();
+
   const [form, setForm] = useState({
     emailOrPhone: "",
     password: "",
@@ -47,7 +57,6 @@ export default function Signin() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [isOpen, setIsOpen] = useState(true);
   const [showVerify, setShowVerify] = useState(false);
   const [showPending, setShowPending] = useState(false);
   const [verifyError, setVerifyError] = useState("");
@@ -70,7 +79,9 @@ export default function Signin() {
 
   const validatePassword = (value: string) => {
     // At least 8 chars, one uppercase, one lowercase, one number, one special char
-    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/.test(value);
+    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/.test(
+      value
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,7 +93,10 @@ export default function Signin() {
       setError("Please fill in all required fields.");
       return;
     }
-    if (!validateEmail(form.emailOrPhone) && !validatePhone(form.emailOrPhone)) {
+    if (
+      !validateEmail(form.emailOrPhone) &&
+      !validatePhone(form.emailOrPhone)
+    ) {
       setError("Please enter a valid email or phone number.");
       return;
     }
@@ -97,11 +111,12 @@ export default function Signin() {
     setTimeout(() => {
       setLoading(false);
       // Simulate user status: 'unverified', 'pending', 'active'
-      const status = form.emailOrPhone === "unverified@example.com"
-        ? "unverified"
-        : form.emailOrPhone === "pending@example.com"
-        ? "pending"
-        : "active";
+      const status =
+        form.emailOrPhone === "unverified@example.com"
+          ? "unverified"
+          : form.emailOrPhone === "pending@example.com"
+          ? "pending"
+          : "active";
       if (status === "unverified") {
         setIsOpen(false);
         setShowVerify(true);
@@ -111,7 +126,9 @@ export default function Signin() {
       } else {
         setSuccess(true);
         login(); // Call login() to update the auth state
-        window.location.href = '/account-dashboard'; // Redirect to dashboard
+        setIsOpen(false);
+
+        router.push("/account-dashboard"); // Redirect to dashboard
       }
     }, 1200);
   };
@@ -132,11 +149,28 @@ export default function Signin() {
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={() => { setIsOpen(false); window.history.back(); }}>
-        <h2 className="text-3xl font-extrabold text-[#E73828] text-center mb-1 tracking-tight">WELCOME BACK</h2>
-        <p className="text-center text-black text-base mb-6">Login to continue</p>
-        {error && <div className="w-full mb-2 text-center text-red-600 text-sm font-semibold">{error}</div>}
-        {success && <div className="w-full mb-2 text-center text-green-600 text-sm font-semibold">Signed in successfully!</div>}
+      <Modal
+        isOpen={isOpen}
+        onClose={() => {
+          setIsOpen(false);
+        }}
+      >
+        <h2 className="text-3xl font-extrabold text-[#E73828] text-center mb-1 tracking-tight">
+          WELCOME BACK
+        </h2>
+        <p className="text-center text-black text-base mb-6">
+          Login to continue
+        </p>
+        {error && (
+          <div className="w-full mb-2 text-center text-red-600 text-sm font-semibold">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="w-full mb-2 text-center text-green-600 text-sm font-semibold">
+            Signed in successfully!
+          </div>
+        )}
         <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit}>
           <input
             type="text"
@@ -170,7 +204,12 @@ export default function Signin() {
             </button>
           </div>
           <div className="w-full flex justify-end">
-            <a href="/auth/forgot-password" className="text-xs text-[#E73828] hover:underline font-semibold">Forgot Password ?</a>
+            <Link
+              href="/auth/forgot-password"
+              className="text-xs text-[#E73828] hover:underline font-semibold"
+            >
+              Forgot Password ?
+            </Link>
           </div>
           <button
             type="submit"
@@ -179,11 +218,16 @@ export default function Signin() {
           >
             {loading ? "Signing in..." : "LOGIN"}
           </button>
-          <GoogleButton onClick={() => alert('Google login logic here')} />
+          <GoogleButton onClick={() => alert("Google login logic here")} />
         </form>
         <div className="w-full text-center mt-4 text-black text-base">
-          Don't have an account ?{' '}
-          <a href="/auth/register" className="text-[#E73828] font-bold hover:underline">Sign up</a>
+          Don&apos;t have an account ?{" "}
+          <Link
+            href="/auth/register"
+            className="text-[#E73828] font-bold hover:underline"
+          >
+            Sign up
+          </Link>
         </div>
       </Modal>
       <VerifyEmailModal
@@ -192,11 +236,15 @@ export default function Signin() {
         onVerify={handleVerify}
         loading={verifyLoading}
         error={verifyError}
-        onResend={() => alert('Resend code logic here')}
+        onResend={() => alert("Resend code logic here")}
       />
       <PendingApprovalModal
         isOpen={showPending}
-        onClose={() => { setShowPending(false); window.location.href = '/'; }}
+        onClose={() => {
+          setShowPending(false);
+
+          router.push("/");
+        }}
       />
     </>
   );

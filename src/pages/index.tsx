@@ -8,12 +8,12 @@ import { getCategories } from "@/services/categories.service";
 import { getProducts } from "@/services/products.service";
 
 export default function Home() {
-  const { data: categories = [], isLoading: isLoadingCategories } = useQuery({
+  const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: getCategories,
   });
 
-  const { data: products = [], isLoading: isLoadingProducts } = useQuery({
+  const { data: products = [] } = useQuery({
     queryKey: ["products"],
     queryFn: getProducts,
   });
@@ -26,7 +26,7 @@ export default function Home() {
   return (
     <PageLayout className={`flex flex-col min-h-screen gap-16 pb-32`}>
       <HomePageHeader />
-      <section className="flex flex-col gap-20 px-12">
+      <section className="flex flex-col gap-20 px-6 md:px-12">
         <PageGrid
           items={categories}
           label="CATEGORIES"

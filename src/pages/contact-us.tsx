@@ -24,12 +24,6 @@ export default function ContactUs() {
     // Form submission logic here
   };
 
-  // Add this in your component or in your global CSS
-  const redCursorStyle = {
-    cursor: 'pointer',
-    color: '#E93323'
-  };
-
   return (
     <>
       <Head>

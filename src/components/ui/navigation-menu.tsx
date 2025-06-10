@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
@@ -50,7 +51,7 @@ export default function NavigationMenu({ items = defaultItems, className, isMobi
   return (
     <div
       className={clsx(
-        "flex items-center gap-1 sm:gap-2 lg:gap-4 flex-nowrap",
+        "flex items-center gap-6 lg:gap-4 flex-nowrap",
         className
       )}
       style={{ minWidth: 0 }}

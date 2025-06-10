@@ -22,7 +22,7 @@ export default function TopBanner({ children }: PropsWithChildren) {
           </div>
 
           {/* Social icons and language switcher */}
-          <div className="flex rtl:flex-row-reverse items-center gap-1 sm:gap-1.5 md:gap-2 py-0.5">
+          <div className="flex rtl:flex-row-reverse items-center gap-2 sm:gap-1.5 md:gap-2 py-0.5">
             <ButtonLink href="#" className="hover:opacity-80 transition-opacity flex items-center p-0">
               <div className="flex items-center w-[15px] h-[15px] sm:w-[17px] sm:h-[17px] md:w-[18px] md:h-[18px]">
                 <InstagramWhiteIcon />

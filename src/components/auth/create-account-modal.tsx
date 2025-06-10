@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import CustomDropdown from "@/components/ui/custom-dropdown";
-import GoogleButton from '@/components/ui/google-button';
-import Modal from '@/components/ui/modal';
-import VerifyEmailModal from '@/components/ui/verify-email-modal';
-import PendingApprovalModal from '@/components/ui/pending-approval-modal';
+import GoogleButton from "@/components/ui/google-button";
+import Modal from "@/components/ui/modal";
+import VerifyEmailModal from "@/components/ui/verify-email-modal";
+import PendingApprovalModal from "@/components/ui/pending-approval-modal";
+import Link from "next/link";
+import { useRouter } from "next/router";
 
 const COUNTRIES = [
   "LEBANON",
@@ -23,36 +25,32 @@ const COUNTRY_PHONE_FORMATS = {
   EGYPT: { code: "+20", regex: /^\+20\d{9,10}$/ },
 };
 
-const USER_TYPES = [
-  "Reseller",
-  "Wholesale",
-  "Wholesale API",
-];
+const USER_TYPES = ["Reseller", "Wholesale", "Wholesale API"];
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      className="w-5 h-5 transition-transform duration-200 hover:scale-110" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="#E73828" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-5 h-5 transition-transform duration-200 hover:scale-110"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#E73828"
+      strokeWidth="2"
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
       <circle cx="12" cy="12" r="3" />
     </svg>
   ) : (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      className="w-5 h-5 transition-transform duration-200 hover:scale-110" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="#E73828" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-5 h-5 transition-transform duration-200 hover:scale-110"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#E73828"
+      strokeWidth="2"
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
@@ -61,7 +59,17 @@ function EyeIcon({ open }: { open: boolean }) {
   );
 }
 
-export default function Register() {
+export type CreateAccountModalProps = {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+};
+
+export default function CreateAccountModal({
+  isOpen,
+  setIsOpen,
+}: CreateAccountModalProps) {
+  const router = useRouter();
+
   const [form, setForm] = useState({
     email: "",
     phone: "",
@@ -77,25 +85,14 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
-  const [isOpen, setIsOpen] = useState(true);
   const [showVerify, setShowVerify] = useState(false);
   const [showPending, setShowPending] = useState(false);
   const [verifyError, setVerifyError] = useState("");
   const [verifyLoading, setVerifyLoading] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState<number>(0);
-  const [isDuplicateUser, setIsDuplicateUser] = useState<boolean>(false);
 
-  const calculatePasswordStrength = (password: string) => {
-    let strength = 0;
-    if (password.length >= 8) strength += 1;
-    if (/[A-Z]/.test(password)) strength += 1;
-    if (/[a-z]/.test(password)) strength += 1;
-    if (/[0-9]/.test(password)) strength += 1;
-    if (/[^A-Za-z0-9]/.test(password)) strength += 1;
-    return strength;
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value, type } = e.target;
     if (type === "checkbox") {
       const input = e.target as HTMLInputElement;
@@ -108,9 +105,6 @@ export default function Register() {
         ...prev,
         [name]: value,
       }));
-      if (name === "password") {
-        setPasswordStrength(calculatePasswordStrength(value));
-      }
     }
   };
 
@@ -119,11 +113,14 @@ export default function Register() {
   };
 
   const validatePassword = (password: string) => {
-    return /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/.test(password);
+    return /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/.test(
+      password
+    );
   };
 
   const validatePhone = (phone: string, country: string) => {
-    const countryFormat = COUNTRY_PHONE_FORMATS[country as keyof typeof COUNTRY_PHONE_FORMATS];
+    const countryFormat =
+      COUNTRY_PHONE_FORMATS[country as keyof typeof COUNTRY_PHONE_FORMATS];
     if (!countryFormat) return false;
     return countryFormat.regex.test(phone);
   };
@@ -131,9 +128,15 @@ export default function Register() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setIsDuplicateUser(false);
     // All fields mandatory
-    if (!form.username || !form.country || !form.phone || !form.email || !form.password || !form.confirmPassword) {
+    if (
+      !form.username ||
+      !form.country ||
+      !form.phone ||
+      !form.email ||
+      !form.password ||
+      !form.confirmPassword
+    ) {
       setError("Please fill in all required fields.");
       return;
     }
@@ -146,7 +149,9 @@ export default function Register() {
       return;
     }
     if (!validatePassword(form.password)) {
-      setError("Password must be at least 8 characters, include 1 uppercase letter, 1 number, and 1 special character.");
+      setError(
+        "Password must be at least 8 characters, include 1 uppercase letter, 1 number, and 1 special character."
+      );
       return;
     }
     if (form.password !== form.confirmPassword) {
@@ -160,8 +165,10 @@ export default function Register() {
       }
     }
     // Simulate duplicate user check
-    if (form.username === "existinguser" || form.email === "existing@example.com") {
-      setIsDuplicateUser(true);
+    if (
+      form.username === "existinguser" ||
+      form.email === "existing@example.com"
+    ) {
       setError("Username or email already exists.");
       return;
     }
@@ -176,7 +183,8 @@ export default function Register() {
     // Simulate API call
     setTimeout(() => {
       setVerifyLoading(false);
-      if (code === "123456") { // Simulate correct code
+      if (code === "123456") {
+        // Simulate correct code
         setShowVerify(false);
         setShowPending(true);
       } else {
@@ -186,20 +194,39 @@ export default function Register() {
   };
 
   // Helper for phone prefix
-  const phonePrefix = form.country ? COUNTRY_PHONE_FORMATS[form.country as keyof typeof COUNTRY_PHONE_FORMATS]?.code : "+";
+  const phonePrefix = form.country
+    ? COUNTRY_PHONE_FORMATS[form.country as keyof typeof COUNTRY_PHONE_FORMATS]
+        ?.code
+    : "+";
 
   const handleGoogleSignup = () => {
     // Redirect to Google OAuth signup page
-    window.location.href = "https://accounts.google.com/signup";
   };
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={() => { setIsOpen(false); window.history.back(); }}>
-        <h2 className="text-3xl font-extrabold text-[#E73828] text-center mb-1 tracking-tight">CREATE ACCOUNT</h2>
-        <p className="text-center text-black text-base mb-6">Sign up to continue</p>
-        {error && <div className="w-full mb-2 text-center text-red-600 text-sm font-semibold">{error}</div>}
-        <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit} autoComplete="off">
+      <Modal
+        isOpen={isOpen}
+        onClose={() => {
+          setIsOpen(false);
+        }}
+      >
+        <h2 className="text-3xl font-extrabold text-[#E73828] text-center mb-1 tracking-tight">
+          CREATE ACCOUNT
+        </h2>
+        <p className="text-center text-black text-base mb-6">
+          Sign up to continue
+        </p>
+        {error && (
+          <div className="w-full mb-2 text-center text-red-600 text-sm font-semibold">
+            {error}
+          </div>
+        )}
+        <form
+          className="w-full flex flex-col gap-4"
+          onSubmit={handleSubmit}
+          autoComplete="off"
+        >
           <input
             type="text"
             name="username"
@@ -216,7 +243,9 @@ export default function Register() {
             placeholder="Country"
           />
           <div className="flex items-center border border-[#E73828] rounded-full px-4 py-2 bg-transparent">
-            <span className="text-[#E73828] mr-2 min-w-[48px]">{phonePrefix}</span>
+            <span className="text-[#E73828] mr-2 min-w-[48px]">
+              {phonePrefix}
+            </span>
             <input
               type="tel"
               name="phone"
@@ -242,7 +271,9 @@ export default function Register() {
               <CustomDropdown
                 options={USER_TYPES}
                 value={form.userType}
-                onChange={(val) => setForm((prev) => ({ ...prev, userType: val }))}
+                onChange={(val) =>
+                  setForm((prev) => ({ ...prev, userType: val }))
+                }
                 placeholder="User Type"
               />
               <input
@@ -302,7 +333,9 @@ export default function Register() {
               tabIndex={-1}
               className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-[#E73828]/10 transition-colors duration-200 focus:outline-none"
               onClick={() => setShowConfirmPassword((v) => !v)}
-              aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+              aria-label={
+                showConfirmPassword ? "Hide password" : "Show password"
+              }
             >
               <EyeIcon open={showConfirmPassword} />
             </button>
@@ -312,9 +345,12 @@ export default function Register() {
               type="checkbox"
               name="isBusiness"
               checked={form.isBusiness}
-              onChange={e => {
+              onChange={(e) => {
                 if (e.target instanceof HTMLInputElement) {
-                  setForm((prev) => ({ ...prev, isBusiness: e.target.checked }));
+                  setForm((prev) => ({
+                    ...prev,
+                    isBusiness: e.target.checked,
+                  }));
                 }
               }}
               className="accent-[#E73828] w-4 h-4 rounded"
@@ -330,8 +366,13 @@ export default function Register() {
           <GoogleButton onClick={handleGoogleSignup} />
         </form>
         <div className="w-full text-center mt-4 text-black text-base">
-          Already have an account ?{' '}
-          <a href="/auth/signin" className="text-[#E73828] font-bold hover:underline">Login</a>
+          Already have an account ?{" "}
+          <Link
+            href="/auth/signin"
+            className="text-[#E73828] font-bold hover:underline"
+          >
+            Login
+          </Link>
         </div>
       </Modal>
       <VerifyEmailModal
@@ -340,11 +381,14 @@ export default function Register() {
         onVerify={handleVerify}
         loading={verifyLoading}
         error={verifyError}
-        onResend={() => alert('Resend code logic here')}
+        onResend={() => alert("Resend code logic here")}
       />
       <PendingApprovalModal
         isOpen={showPending}
-        onClose={() => { setShowPending(false); window.location.href = '/'; }}
+        onClose={() => {
+          setShowPending(false);
+          router.push("/");
+        }}
       />
     </>
   );

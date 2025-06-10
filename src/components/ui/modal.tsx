@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import React, { ReactNode, useEffect, useRef } from "react";
 
 interface ModalProps {
@@ -10,7 +11,6 @@ interface ModalProps {
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, className }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Close on ESC key
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -31,7 +31,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, className }) =
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center min-h-screen bg-black bg-opacity-95"
+      className={clsx("fixed inset-0 z-50 flex items-center justify-center min-h-screen bg-black/40", className, isOpen ? "pointer-events-auto" : "pointer-events-none")}
       aria-modal="true"
       role="dialog"
       tabIndex={-1}
