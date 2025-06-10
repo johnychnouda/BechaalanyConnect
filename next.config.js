@@ -10,7 +10,11 @@ const nextConfig = {
 
   images: {
     domains: ['127.0.0.1', 'varda.hellotree.dev','admin.varda.ag', 'picsum.photos', 'store.storeimages.cdn-apple.com', 'images.unsplash.com'],
-  }
+  },
+
+  experimental: {
+    disableVercelToolbar: true,
+  },
 }
 
 
