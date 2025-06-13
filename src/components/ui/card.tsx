@@ -1,6 +1,7 @@
 import { Url } from "next/dist/shared/lib/router/router";
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import clsx from "clsx";
 
 type CardProps = {
@@ -23,9 +24,6 @@ export default function Card({
   imageClassName,
   titleClassName 
 }: CardProps) {
-  // Convert image path to use optimized version
-  const optimizedImage = image.replace('/public/', '/optimized/');
-  
   return (
     <div className="flex flex-col items-center">
       <Link
@@ -35,11 +33,15 @@ export default function Card({
           className
         )}
       >
-        <div className={clsx("relative w-full h-full", className)}>
-          <img
-            src={optimizedImage} 
-            alt={title} 
-            className={clsx("w-full h-full object-cover rounded-lg", imageClassName)}
+        <div className={clsx("relative w-full aspect-[4/3]", className)}>
+          <Image
+            src={image}
+            alt={title}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className={clsx("object-cover rounded-lg transition-transform duration-300 ease-in-out group-hover:scale-105", imageClassName)}
+            loading="lazy"
+            quality={85}
           />
           {/* View All Overlay */}
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-90 transition-opacity duration-300 ease-in-out">
