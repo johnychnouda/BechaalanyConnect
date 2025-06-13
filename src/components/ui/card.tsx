@@ -15,7 +15,6 @@ type CardProps = {
 };
 
 export default function Card({ 
-  id, 
   title, 
   image, 
   type, 
@@ -37,7 +36,7 @@ export default function Card({
         )}
       >
         <div className={clsx("relative w-full h-full", className)}>
-          <img 
+          <img
             src={optimizedImage} 
             alt={title} 
             className={clsx("w-full h-full object-cover rounded-lg", imageClassName)}
@@ -52,12 +51,12 @@ export default function Card({
         </div>
       </Link>
       {/* Title and Price Container */}
-      <div className={clsx("w-full mt-2 px-2 flex items-center justify-between gap-2", type === 'product' ? "" : "justify-center")}>
-        <h3 className={clsx("text-[12px] sm:text-[14px] font-bold text-gray-800 dark:text-white truncate", titleClassName)}>
+      <div className={clsx("w-full mt-2 px-2 flex items-center gap-2", type === 'product' ? "justify-between" : "justify-center")}>
+        <h3 className={clsx("font-bold text-gray-800 dark:text-white flex-shrink min-w-0 text-[clamp(10px,3vw,16px)]", titleClassName)}>
           {title}
         </h3>
         {type === 'product' && (
-          <span className="text-[12px] sm:text-[14px] font-bold text-app-red whitespace-nowrap">
+          <span className="font-bold text-app-red flex-shrink-0 text-[clamp(10px,3vw,16px)] ml-1">
             ${(Math.random() * 50 + 10).toFixed(2)}
           </span>
         )}

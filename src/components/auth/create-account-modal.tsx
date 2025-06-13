@@ -348,7 +348,7 @@ export default function CreateAccountModal({
 
             <button
               type="submit"
-              className="w-full bg-[#E73828] text-white rounded-full py-2 sm:py-3 text-sm sm:text-base font-bold mt-4 hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200"
+              className="w-full bg-[#E73828] text-white rounded-full py-2 sm:py-3 text-sm sm:text-base font-bold mt-4 hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200 no-wrap-account-btn"
             >
               CREATE ACCOUNT
             </button>

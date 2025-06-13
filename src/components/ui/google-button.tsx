@@ -40,15 +40,57 @@ const StyledWrapper = styled.div`
     background: transparent;
     color: #E73828;
     font-size: 18px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .svg {
     height: 24px;
+    min-width: 24px;
     margin-right: 10px;
+    flex-shrink: 0;
   }
 
   .button .text {
     z-index: 10;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 18px;
+    font-weight: bold;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  @media (max-width: 400px) {
+    .button {
+      font-size: 14px;
+      padding: 10px;
+    }
+    .button .text {
+      font-size: 14px;
+    }
+    .svg {
+      height: 20px;
+      min-width: 20px;
+      margin-right: 8px;
+    }
+  }
+  @media (max-width: 340px) {
+    .button {
+      font-size: 11px;
+      padding: 8px;
+    }
+    .button .text {
+      font-size: 11px;
+    }
+    .svg {
+      height: 16px;
+      min-width: 16px;
+      margin-right: 6px;
+    }
   }
 
   .button:hover .text {

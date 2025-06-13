@@ -214,7 +214,7 @@ export default function SigninModal({ isOpen, setIsOpen }: SigninModalProps) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#E73828] text-white font-bold py-3 rounded-full mt-2 hover:bg-white hover:text-[#E73828] border border-[#E73828] transition-colors duration-200 text-lg disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full bg-[#E73828] text-white font-bold py-3 rounded-full mt-2 hover:bg-white hover:text-[#E73828] border border-[#E73828] transition-colors duration-200 text-lg disabled:opacity-60 disabled:cursor-not-allowed no-wrap-login-btn"
             >
               {loading ? "Signing in..." : "LOGIN"}
             </button>

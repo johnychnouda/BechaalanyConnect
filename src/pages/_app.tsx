@@ -13,6 +13,7 @@ import WhatsAppButton from "@/components/ui/whatsapp-button";
 // import axios from 'axios';
 import GlobalState from "@/utils/GlobalState";
 import { AuthProvider } from '@/context/AuthContext';
+import FallbackTheme from "@/components/ui/fallback-theme";
 
 export default function App({
   Component,
@@ -42,6 +43,7 @@ export default function App({
                 }
               }}
             >
+              <FallbackTheme />
               <main
                 className={`min-h-screen flex flex-col ${isRTL ? "rtl" : "ltr"}`}
                 dir={isRTL ? "rtl" : "ltr"}

@@ -30,7 +30,7 @@ export default function PageGrid<T>({
             href={viewMoreHref}
             className="text-app-red font-semibold text-[16px] sm:text-[20px] underline"
           >
-            VIEW ALL
+            View All
           </ButtonLink>
         )}
       </div>
