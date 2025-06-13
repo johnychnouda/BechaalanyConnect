@@ -1,0 +1,94 @@
+.container {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 9999;
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: clamp(35px, 5vw, 45px);
+  height: clamp(35px, 5vw, 45px);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition-duration: 0.3s;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.199);
+  background-color: #5FD568;
+}
+
+.button:hover {
+  width: clamp(120px, 15vw, 150px);
+  border-radius: 40px;
+}
+
+.button:hover .icon {
+  width: 30%;
+  padding-left: 10px;
+}
+
+.button:hover .label {
+  opacity: 1;
+  width: 70%;
+  padding-right: 10px;
+}
+
+.button:active {
+  transform: translate(2px, 2px);
+}
+
+.icon {
+  width: 100%;
+  transition-duration: 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon svg {
+  width: clamp(20px, 3vw, 25px);
+}
+
+.icon svg path {
+  fill: white;
+}
+
+.label {
+  position: absolute;
+  right: 0%;
+  width: 0%;
+  opacity: 0;
+  color: white;
+  font-size: clamp(0.8em, 2vw, 1.2em);
+  font-weight: 600;
+  transition-duration: 0.3s;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .container {
+    bottom: 1rem;
+    right: 1rem;
+  }
+
+  .button {
+    width: 35px;
+    height: 35px;
+  }
+
+  .button:hover {
+    width: 120px;
+  }
+
+  .icon svg {
+    width: 20px;
+  }
+
+  .label {
+    font-size: 0.8em;
+  }
+} 

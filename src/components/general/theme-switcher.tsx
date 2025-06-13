@@ -6,7 +6,9 @@ const ThemeSwitcher = () => {
   const { theme, setTheme } = useAppTheme();
 
   const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    console.log('Switching theme to:', newTheme); // Debug log
+    setTheme(newTheme);
   };
 
   return (

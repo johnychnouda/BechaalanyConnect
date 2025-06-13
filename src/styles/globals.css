@@ -1,20 +1,23 @@
-@import "tailwindcss";
-
-@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
-
-@theme {
-  --color-background-dark: #2a2a2a;
-  --color-background-light: #ffffff;
-  --color-app-red: #e73828;
-  --color-app-black: #070707;
-  --color-app-white: #FFFFFF;
-  --color-app-off-white: #EDEDED;
-  --color-app-whatsapp-green: #5FD568;
-}
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --color-background-light: #ffffff;
+  --color-background-dark: #2a2a2a;
+  --color-text-light: #070707;
+  --color-text-dark: #ffffff;
+}
+
+/* Theme transition */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Base styles */
+body {
+  @apply bg-background-light text-app-black dark:bg-background-dark dark:text-app-white;
+}
 
 /* Responsive no-wrap for account and login buttons */
 .no-wrap-account-btn, .no-wrap-login-btn {
@@ -100,5 +103,4 @@
     padding-right: 6px;
     height: 28px;
   }
-}
-
+} 

@@ -155,7 +155,7 @@ export default function MyOrders() {
           {filterButtons.map(btn => (
             <button
               key={btn.key}
-              className={`flex-1 min-w-[120px] flex flex-row items-center rounded-[50.5px] px-3 md:px-3 py-1 md:py-2 font-['Roboto'] font-semibold text-[16px] h-[32px] md:h-[35px] justify-center items-center relative ${btn.className}`}
+              className={`flex-1 min-w-[120px] flex flex-row items-center rounded-[50.5px] px-3 md:px-3 py-1 md:py-2 font-['Roboto'] font-semibold text-[16px] h-[32px] md:h-[35px] justify-center relative ${btn.className}`}
               onClick={() => setActiveFilter(btn.key)}
               type="button"
             >

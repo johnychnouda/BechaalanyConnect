@@ -1,19 +1,53 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  swcMinify: true,
+  poweredByHeader: false,
 
   i18n: {
-    locales: ['en', 'ar'],
-    defaultLocale: 'en',
+    locales: ["en", "ar"],
+    defaultLocale: "en",
     localeDetection: false,
   },
 
   images: {
-    domains: ['127.0.0.1', 'varda.hellotree.dev','admin.varda.ag', 'picsum.photos', 'store.storeimages.cdn-apple.com', 'images.unsplash.com'],
+    domains: ["images.unsplash.com"],
   },
 
   env: {
-    NEXT_DISABLE_VERCEL_TOOLBAR: '1',
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    NEXT_DISABLE_VERCEL_TOOLBAR: "1",
+  },
+
+  // Simplified webpack configuration
+  webpack: (config) => {
+    config.module = {
+      ...config.module,
+      rules: [
+        ...(config.module?.rules || []),
+        {
+          test: /\.m?js/,
+          resolve: {
+            fullySpecified: false,
+          },
+        },
+      ],
+    };
+    return config;
+  },
+
+  // Keep only stable experimental features
+  experimental: {
+    scrollRestoration: true,
+  },
+
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+
+  eslint: {
+    ignoreDuringBuilds: false,
   },
 }
 

@@ -28,7 +28,7 @@ export default function HomePageHeader() {
           </div>
         </div>
       </section>
-      <section className="flex flex-col justify-between items-center px-4 sm:px-6 md:px-8 lg:px-12 py-4 gap-4 text-center lg:flex-row bg-white dark:bg-gray-900">
+      <section className="flex flex-col justify-between items-center px-4 sm:px-6 md:px-8 lg:px-12 py-4 gap-4 text-center lg:flex-row">
         <p className="text-sm sm:text-base font-bold text-gray-800 dark:text-gray-200">
           Join Our WhatsApp Community to Stay Updated with the Latest Offers on
           Our Website!
