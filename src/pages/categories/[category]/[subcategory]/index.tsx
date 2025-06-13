@@ -127,14 +127,16 @@ const SubCategoryPage: React.FC = () => {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Breadcrumb items={breadcrumbItems} />
-      <BackButton href={`/categories/${categorySlug}`} className="mb-4" />
+    <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+      <div className="px-2 sm:px-0">
+        <Breadcrumb items={breadcrumbItems} />
+        <BackButton href={`/categories/${categorySlug}`} className="mb-2 sm:mb-4" />
+      </div>
       
-      <h1 className="text-3xl font-bold text-gray-900 mt-8 mb-4">{subcategoryTitle}</h1>
+      <h1 className="text-[clamp(20px,5vw,32px)] font-bold text-gray-900 mt-4 sm:mt-8 mb-4 px-2 sm:px-0">{subcategoryTitle}</h1>
       
       {products.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 mt-4 sm:mt-8">
           {products.map((product) => (
             <Card
               key={product.id}

@@ -166,10 +166,10 @@ const ProductPage: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-col md:flex-row gap-8 items-start w-full px-4 md:px-12 pb-8">
+      <div className="flex flex-col md:flex-row gap-8 items-start w-full px-2 md:px-12 pb-8 max-w-[400px] mx-auto">
         {/* Product Image */}
-        <div className="md:w-1/2 flex justify-center items-start">
-          <div className="relative w-full max-w-[400px] h-[400px]">
+        <div className="w-full">
+          <div className="relative w-full max-w-[400px] h-[400px] mx-auto">
             <div className="block overflow-hidden rounded-[25px] shadow-sm border border-transparent relative h-full">
               <div className="relative w-full h-full">
                 <img 
@@ -183,7 +183,7 @@ const ProductPage: React.FC = () => {
         </div>
 
         {/* Product Details */}
-        <div className="md:w-1/2 flex flex-col gap-4 max-w-lg w-full">
+        <div className="w-full max-w-[400px] mx-auto flex flex-col gap-4">
           <h1 className="text-[32px] font-bold text-app-red leading-tight">{selectedAmount.amount}</h1>
           <p className="text-gray-700 text-[15px] mb-2 dark:text-white">{product.description}</p>
 
@@ -259,9 +259,9 @@ const ProductPage: React.FC = () => {
       </div>
 
       {/* Related Products */}
-      <div className="w-full px-4 md:px-12 pb-12">
-        <h2 className="text-app-red text-[24px] font-bold mb-4 mt-2">RELATED PRODUCTS</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="w-full px-0 pb-12">
+        <h2 className="text-app-red text-[20px] font-bold mb-4 mt-2 px-4">RELATED PRODUCTS</h2>
+        <div className="grid grid-cols-2 gap-2">
           {related.map((prod) => (
             <div key={prod.id} className="flex flex-col items-center">
               <Card
