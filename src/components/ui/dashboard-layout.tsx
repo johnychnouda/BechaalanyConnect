@@ -1,7 +1,6 @@
 import React from "react";
 import AccountSidebar from "@/components/ui/account-sidebar";
 import WhatsAppButton from "@/components/ui/whatsapp-button";
-import Footer from "@/components/ui/footer";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -22,8 +21,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
       {/* WhatsApp Floating Button */}
       <WhatsAppButton style={{ position: "fixed", bottom: "2rem", right: "2rem", zIndex: 50 }} />
-      {/* Footer */}
-      <Footer />
     </div>
   );
 } 
