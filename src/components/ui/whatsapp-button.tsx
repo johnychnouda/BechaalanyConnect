@@ -17,12 +17,17 @@ const WhatsAppButton = ({ className, ...props }: React.HTMLAttributes<HTMLDivEle
 }
 
 const StyledWrapper = styled.div`
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 9999;
+
   .Btn {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    width: 45px;
-    height: 45px;
+    width: clamp(35px, 5vw, 45px);
+    height: clamp(35px, 5vw, 45px);
     border: none;
     border-radius: 50%;
     cursor: pointer;
@@ -42,7 +47,7 @@ const StyledWrapper = styled.div`
   }
 
   .sign svg {
-    width: 25px;
+    width: clamp(20px, 3vw, 25px);
   }
 
   .sign svg path {
@@ -55,13 +60,14 @@ const StyledWrapper = styled.div`
     width: 0%;
     opacity: 0;
     color: white;
-    font-size: 1.2em;
+    font-size: clamp(0.8em, 2vw, 1.2em);
     font-weight: 600;
     transition-duration: 0.3s;
+    white-space: nowrap;
   }
 
   .Btn:hover {
-    width: 150px;
+    width: clamp(120px, 15vw, 150px);
     border-radius: 40px;
     transition-duration: 0.3s;
   }
@@ -81,6 +87,28 @@ const StyledWrapper = styled.div`
 
   .Btn:active {
     transform: translate(2px, 2px);
+  }
+
+  @media (max-width: 640px) {
+    bottom: 1rem;
+    right: 1rem;
+
+    .Btn {
+      width: 35px;
+      height: 35px;
+    }
+
+    .sign svg {
+      width: 20px;
+    }
+
+    .Btn:hover {
+      width: 120px;
+    }
+
+    .text {
+      font-size: 0.8em;
+    }
   }
 `;
 
