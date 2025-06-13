@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import TopBanner from "@/components/ui/top-banner";
 import Header from "@/components/ui/header";
 import WhatsAppButton from "@/components/ui/whatsapp-button";
+import Footer from "@/components/ui/footer";
 // import axiosConfig from "@/utils/axiosConfig";
 // import axios from 'axios';
 import GlobalState from "@/utils/GlobalState";
@@ -73,6 +74,8 @@ export default function App({
                   </TopBanner>
                   {/* WhatsApp Floating Button */}
                   <WhatsAppButton style={{ position: "fixed", bottom: "2rem", right: "2rem", zIndex: 50 }} />
+                  {/* Footer */}
+                  <Footer />
                 </main>
               </NextIntlClientProvider>
             </QueryClientProvider>
