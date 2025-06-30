@@ -5,7 +5,6 @@ import LanguageThemeSwitcher from "../general/language-theme-switcher";
 import { useGlobalContext } from "@/context/GlobalContext";
 import Image from "next/image";
 import { useLanguage } from "@/hooks/use-language";
-import { formatArabicPhone } from "@/utils/GlobalState";
 
 export default function TopBanner({ children }: PropsWithChildren) {
   const { generalData } = useGlobalContext();
@@ -17,7 +16,7 @@ export default function TopBanner({ children }: PropsWithChildren) {
 
   return (
     <>
-      <section className="flex bg-app-red py-1.5 sm:py-2 px-2 sm:px-4 md:px-6 lg:px-8">
+      <section className="flex bg-app-red py-1.5 sm:py-2 px-4 sm:px-4 md:px-8 lg:px-8">
         <div className="flex justify-between items-center w-full">
           {/* Phone number section */}
           <a href={`https://wa.me/${whatsappNumber}`} target="_blank">
@@ -58,7 +57,7 @@ export default function TopBanner({ children }: PropsWithChildren) {
                 </div>
               </ButtonLink>
             ))}
-            <div className="flex items-center ml-0.5 sm:ml-1 md:ml-2 h-[15px] sm:h-[17px] md:h-[18px]">
+            <div className="items-center ml-0.5 sm:ml-1 md:ml-2 h-[15px] sm:h-[17px] md:h-[18px] hidden lg:flex">
               <LanguageThemeSwitcher />
             </div>
           </div>

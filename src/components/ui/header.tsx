@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, useContext, useState } from "react";
+import React, { PropsWithChildren, useContext, useEffect, useState } from "react";
 import PageLayout from "./page-layout";
 import { LogoIcon } from "@/assets/icons/logo.icon";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -6,8 +6,6 @@ import { LogoWhiteIcon } from "@/assets/icons/logo-white.icon";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import ButtonLink from "./button-link";
 import ProfileIcon from "@/assets/icons/profile.icon";
-import GlobalState from "@/utils/GlobalState";
-import { GlobalStateType } from "@/types/globalSettings.type";
 import NavigationMenu from "./navigation-menu";
 import ThemeSwitcher from "../general/theme-switcher";
 import { useAuth } from "@/context/AuthContext";
@@ -18,6 +16,9 @@ import SigninModal from "../auth/signin-modal";
 import CreateAccountModal from "../auth/create-account-modal";
 import Image from "next/image";
 import { useGlobalContext } from "@/context/GlobalContext";
+import { BurgerIcon } from "@/assets/icons/burger.icon";
+import { useLanguage } from "@/hooks/use-language";
+import LanguageThemeSwitcher from "../general/language-theme-switcher";
 
 export default function Header({ children }: PropsWithChildren) {
   const { generalData } = useGlobalContext();
@@ -25,18 +26,31 @@ export default function Header({ children }: PropsWithChildren) {
   const isMounted = useIsMounted();
   const { isAuthenticated, user } = useAuth();
   const { count } = useNotificationStore();
+  const { isRTL } = useLanguage();
 
   const [isSigninOpen, setIsSigninOpen] = useState(false);
   const [isCreateAccountOpen, setIsCreateAccountOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
 
   if (!isMounted) return null;
+
 
   return (
     <>
       {/* Main Header */}
-      <PageLayout className="sticky top-0 py-1 px-1 z-40 sm:py-2 sm:px-4 lg:py-3 lg:px-12 flex items-center w-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)] bg-background-light dark:bg-background-dark overflow-x-auto whitespace-nowrap">
+      <PageLayout className="sticky top-0 py-1 px-2 sm:px-2 md:px-6 lg:px-8 z-40 sm:py-2  lg:py-3 flex items-center w-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)] bg-background-light dark:bg-background-dark overflow-x-auto whitespace-nowrap">
         {/* Left: Logo and Theme Switcher */}
-        <div className="flex items-center gap-0 min-w-0">
+        <div className="flex items-center justify-between lg:justify-center w-full lg:w-auto">
+          {/* Burger Icon for Mobile */}
+          <button
+            className="lg:hidden p-1 rounded focus:outline-none"
+            onClick={() => setIsMobileMenuOpen(true)}
+            aria-label="Open menu"
+            type="button"
+          >
+            <BurgerIcon className="text-app-red" />
+          </button>
           <ButtonLink
             href="/"
             className="w-[100px] sm:w-[150px] lg:w-[200px] min-w-0"
@@ -47,7 +61,7 @@ export default function Header({ children }: PropsWithChildren) {
               <Image src={generalData?.settings?.full_path?.logo || ""} alt="Logo" width={160} height={55} />
             )}
           </ButtonLink>
-          <div className="w-[20px] h-[12px] sm:w-[26px] sm:h-[15px] md:w-[32px] md:h-[18px] flex items-center">
+          <div className="flex items-center justify-center">
             <ThemeSwitcher />
           </div>
         </div>
@@ -58,7 +72,7 @@ export default function Header({ children }: PropsWithChildren) {
         </div>
 
         {/* Right: User Actions or Auth Buttons */}
-        <div className="flex items-center  gap-1 sm:gap-2 lg:gap-4 ml-auto flex-nowrap min-w-0 max-w-full overflow-x-auto whitespace-nowrap">
+        <div className="hidden lg:flex items-center  gap-1 sm:gap-2 lg:gap-4 ml-auto flex-nowrap min-w-0 max-w-full overflow-x-auto whitespace-nowrap">
           {isAuthenticated ? (
             <>
               <Notification
@@ -83,7 +97,7 @@ export default function Header({ children }: PropsWithChildren) {
                 {generalData?.settings.create_account_button}
               </ButtonLink>
               <ButtonLink
-                className="flex items-center justify-center w-[55px] sm:w-[70px] md:w-[85px] mx-auto text-app-red text-center bg-white py-0.5 sm:py-1 px-1 sm:px-2 rounded-full font-bold text-[9px] sm:text-[11px] md:text-xs border-2 border-app-red transition-all duration-200 hover:bg-app-red hover:text-white whitespace-nowrap truncate"
+                className="flex items-center justify-center  mx-auto text-app-red text-center bg-white py-0.5 sm:py-1 px-2 sm:px-4 rounded-full font-bold text-[9px] sm:text-[11px] md:text-xs border-2 border-app-red transition-all duration-200 hover:bg-app-red hover:text-white whitespace-nowrap truncate"
                 onClick={() => setIsSigninOpen(true)}
               >
                 {generalData?.settings.login_button}
@@ -93,12 +107,69 @@ export default function Header({ children }: PropsWithChildren) {
         </div>
       </PageLayout>
 
+      {/* Mobile Sliding Menu & Overlay */}
+      {/* {isMobileMenuOpen && ( */}
+      <>
+        {/* Overlay */}
+        <div
+          className={`${isMobileMenuOpen ? 'fixed opacity-100' : 'hidden opacity-0'} inset-0 z-50 bg-black transition-opacity duration-300 ${isMobileMenuOpen ? "bg-opacity-40 pointer-events-auto" : "bg-opacity-0 pointer-events-none"}`}
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+        {/* Sliding Menu */}
+        <div className={`${isMobileMenuOpen ? 'opacity-100' : 'opacity-0'} fixed top-0 z-50 h-full w-4/5 max-w-xs bg-background-light dark:bg-background-dark shadow-lg transition-transform duration-300
+          ${isRTL ? "right-0" : "left-0"}
+          ${isMobileMenuOpen
+            ? "translate-x-0"
+            : isRTL
+              ? "translate-x-full"
+              : "-translate-x-full"
+          }
+          flex flex-col p-4 gap-4`}>
+          {/* Close Button */}
+          <button
+            className="self-end mb-2 p-2 rounded focus:outline-none"
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-label="Close menu"
+            type="button"
+          >
+            <span className="text-2xl">&times;</span>
+          </button>
+          {/* Navigation Menu */}
+          <NavigationMenu isMobile={true} className="flex-col gap-2" />
+          <div className="flex flex-col gap-2 mt-4">
+            <ButtonLink
+              className="flex items-center justify-center w-full text-white text-center bg-app-red py-2 px-4 rounded-full font-bold text-xs border-2 border-app-red transition-all duration-200 hover:bg-white hover:text-app-red whitespace-nowrap"
+              onClick={() => {
+                setIsCreateAccountOpen(true);
+                setIsMobileMenuOpen(false);
+              }}
+            >
+              {generalData?.settings.create_account_button}
+            </ButtonLink>
+            <ButtonLink
+              className="flex items-center justify-center w-full text-app-red text-center bg-white py-2 px-4 rounded-full font-bold text-xs border-2 border-app-red transition-all duration-200 hover:bg-app-red hover:text-white whitespace-nowrap"
+              onClick={() => {
+                setIsSigninOpen(true);
+                setIsMobileMenuOpen(false);
+              }}
+            >
+              {generalData?.settings.login_button}
+            </ButtonLink>
+          </div>
+
+          <div className="flex items-center justify-center w-full  text-center  py-2 px-4  font-bold text-xs whitespace-nowrap">
+            <LanguageThemeSwitcher isMobileMenu={true} setIsMobileMenuOpen={setIsMobileMenuOpen} />
+          </div>
+        </div>
+      </>
+      {/* )} */}
+
       {/* Mobile/Tablet Navigation Banner */}
-      <div className="flex items-center justify-center py-2 px-1 sm:px-4 overflow-x-auto flex-nowrap lg:hidden">
+      {/* <div className="hidden lg:flex items-center justify-center py-2 px-1 sm:px-4 overflow-x-auto flex-nowrap lg:hidden">
         <div className="flex items-center gap-1 overflow-y-hidden sm:gap-2 flex-nowrap justify-center w-full overflow-x-auto whitespace-nowrap">
           <NavigationMenu className="flex-nowrap" isMobile={true} />
         </div>
-      </div>
+      </div> */}
 
       <SigninModal isOpen={isSigninOpen} setIsOpen={setIsSigninOpen} />
       <CreateAccountModal isOpen={isCreateAccountOpen} setIsOpen={setIsCreateAccountOpen} />

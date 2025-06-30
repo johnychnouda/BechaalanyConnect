@@ -1,6 +1,8 @@
+import { useGlobalContext } from "@/context/GlobalContext";
 import ButtonLink from "./button-link";
 import clsx from "clsx";
 import React from "react";
+import { useRouter } from "next/router";
 
 type Props<T> = {
   items: T[];
@@ -17,6 +19,7 @@ export default function PageGrid<T>({
   viewMoreHref,
   itemsContainerClassName,
 }: Props<T>) {
+  const { locale } = useRouter();
   return (
     <div className="flex flex-col gap-6">
       <div className="flex justify-between items-center">
@@ -30,7 +33,9 @@ export default function PageGrid<T>({
             href={viewMoreHref}
             className="text-app-red font-semibold text-[16px] sm:text-[20px] underline"
           >
-            View All
+            {
+              locale === "ar" ? "عرض الكل" : "View All"
+            }
           </ButtonLink>
         )}
       </div>

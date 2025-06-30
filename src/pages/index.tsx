@@ -44,18 +44,18 @@ function HomeContent() {
       <section className="flex flex-col gap-20 px-6 md:px-12">
         <PageGrid
           items={categories}
-          label="CATEGORIES"
+          label={homepageData.homepageSettings.categories_section_title}
           renderItem={(item) => <Category key={item.id} category={item} />}
           viewMoreHref="/categories"
         />
         <PageGrid
           items={featuredProducts}
-          label="FEATURED PRODUCTS"
+          label={homepageData.homepageSettings.featured_products_section_title}
           renderItem={(item) => <Product key={item.id} product={item} />}
         />
         <PageGrid
           items={latestProducts}
-          label="LATEST PRODUCTS"
+          label={homepageData.homepageSettings.latest_products_section_title}
           renderItem={(item) => <Product key={item.id} product={item} />}
         />
       </section>
