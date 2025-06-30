@@ -3,18 +3,19 @@ import "@/styles/globals.css";
 import { ThemeProvider } from "next-themes";
 import type { AppProps } from "next/app";
 import { NextIntlClientProvider } from "next-intl";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import TopBanner from "@/components/ui/top-banner";
 import Header from "@/components/ui/header";
 import WhatsAppButton from "@/components/ui/whatsapp-button";
 import Footer from "@/components/ui/footer";
-// import axiosConfig from "@/utils/axiosConfig";
-// import axios from 'axios';
 import GlobalState from "@/utils/GlobalState";
 import { AuthProvider } from '@/context/AuthContext';
 import FallbackTheme from "@/components/ui/fallback-theme";
 import StyledComponentsRegistry from '@/lib/registry';
+import { GlobalProvider } from "@/context/GlobalContext";
+import { useRouter } from 'next/router';
+import PageLoader from '@/components/ui/PageLoader';
 
 export default function App({
   Component,
@@ -44,57 +45,77 @@ export default function App({
     locale
   }), [generalData, locale]);
 
+  const nextRouter = useRouter();
+  const [loading, setLoading] = useState(false);
+
+
+  useEffect(() => {
+    const handleStart = () => setLoading(true);
+    const handleStop = () => setLoading(false);
+
+    nextRouter.events.on('routeChangeStart', handleStart);
+    nextRouter.events.on('routeChangeComplete', handleStop);
+    nextRouter.events.on('routeChangeError', handleStop);
+
+    return () => {
+      nextRouter.events.off('routeChangeStart', handleStart);
+      nextRouter.events.off('routeChangeComplete', handleStop);
+      nextRouter.events.off('routeChangeError', handleStop);
+    };
+  }, [nextRouter]);
+
+  // Prevent scrolling when loader is active or not hydrated
+  useEffect(() => {
+    if (loading) {
+      document.body.classList.add('overflow-hidden');
+      document.documentElement.classList.add('overflow-hidden');
+    } else {
+      document.body.classList.remove('overflow-hidden');
+      document.documentElement.classList.remove('overflow-hidden');
+    }
+  }, [loading]);
+
   return (
     <StyledComponentsRegistry>
-      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={true} storageKey="theme" disableTransitionOnChange={false}>
-        <AuthProvider>
-          <GlobalState.Provider value={globalStateValue}>
-            <QueryClientProvider client={queryClient}>
-              <NextIntlClientProvider
-                locale={router.locale}
-                timeZone="Asia/Beirut"
-                messages={messages || {}}
-                onError={(error) => {
-                  if (error.code !== 'MISSING_MESSAGE') {
-                    console.error(error);
-                  }
-                }}
-              >
-                <FallbackTheme />
-                <main
-                  className={`min-h-screen flex flex-col ${isRTL ? "rtl" : "ltr"}`}
-                  dir={isRTL ? "rtl" : "ltr"}
+      <GlobalProvider>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={true} storageKey="theme" disableTransitionOnChange={false}>
+          <AuthProvider>
+            <GlobalState.Provider value={globalStateValue}>
+              <QueryClientProvider client={queryClient}>
+                <NextIntlClientProvider
+                  locale={router.locale}
+                  timeZone="Asia/Beirut"
+                  messages={messages || {}}
+                  onError={(error) => {
+                    if (error.code !== 'MISSING_MESSAGE') {
+                      console.error(error);
+                    }
+                  }}
                 >
-                  <TopBanner>
-                    <Header>
-                      <div className="flex-grow">
-                        <Component {...pageProps} />
-                      </div>
-                    </Header>
-                  </TopBanner>
-                  {/* WhatsApp Floating Button */}
-                  <WhatsAppButton style={{ position: "fixed", bottom: "2rem", right: "2rem", zIndex: 50 }} />
-                  {/* Footer */}
-                  <Footer />
-                </main>
-              </NextIntlClientProvider>
-            </QueryClientProvider>
-          </GlobalState.Provider>
-        </AuthProvider>
-      </ThemeProvider>
+                  <FallbackTheme />
+                  {loading && <PageLoader />}
+                  <main
+                    className={`min-h-screen flex flex-col ${isRTL ? "rtl" : "ltr"}`}
+                    dir={isRTL ? "rtl" : "ltr"}
+                  >
+                    <TopBanner>
+                      <Header>
+                        <div className="flex-grow">
+                          <Component {...pageProps} />
+                        </div>
+                      </Header>
+                    </TopBanner>
+                    {/* WhatsApp Floating Button */}
+                    <WhatsAppButton style={{ position: "fixed", bottom: "2rem", right: "2rem", zIndex: 40 }} />
+                    {/* Footer */}
+                    <Footer />
+                  </main>
+                </NextIntlClientProvider>
+              </QueryClientProvider>
+            </GlobalState.Provider>
+          </AuthProvider>
+        </ThemeProvider>
+      </GlobalProvider>
     </StyledComponentsRegistry>
   );
 }
-
-// import { NextPageContext } from "next";
-
-// App.getInitialProps = async ({ ctx }: { ctx: NextPageContext }) => {
-//   const locale = ctx.locale || 'en';
-//   axiosConfig(locale);
-//   const generalData = await axios.get('/general')
-
-//   return {
-//     generalData: generalData.data,
-//     locale,
-//   }
-// }

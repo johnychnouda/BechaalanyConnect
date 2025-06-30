@@ -2,7 +2,7 @@
   position: fixed;
   bottom: 2rem;
   right: 2rem;
-  z-index: 9999;
+  z-index: 40;
 }
 
 .button {
@@ -21,21 +21,21 @@
   background-color: #5FD568;
 }
 
-.button:hover {
+/* .button:hover {
   width: clamp(120px, 15vw, 150px);
   border-radius: 40px;
-}
+} */
 
-.button:hover .icon {
+/* .button:hover .icon {
   width: 30%;
   padding-left: 10px;
-}
+} */
 
-.button:hover .label {
+/* .button:hover .label {
   opacity: 1;
   width: 70%;
   padding-right: 10px;
-}
+} */
 
 .button:active {
   transform: translate(2px, 2px);

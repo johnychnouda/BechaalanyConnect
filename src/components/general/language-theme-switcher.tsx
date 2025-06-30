@@ -1,14 +1,11 @@
-import React, { useContext } from "react";
-// import ButtonLink from "../ui/button-link";
+import React from "react";
 import { useRouter } from "next/router";
 import { useIsMounted } from "@/hooks/use-is-mounted";
-import { GlobalStateType } from "@/types/globalSettings.type";
-import GlobalState from "@/utils/GlobalState";
 import ButtonLink from "../ui/button-link";
+import { useGlobalContext } from "@/context/GlobalContext";
 
 export default function LanguageThemeSwitcher({ }) {
-  const globalState = useContext<GlobalStateType>(GlobalState);
-  const language = globalState?.generalData?.locale || {};
+  const { generalData } = useGlobalContext();
   const router = useRouter();
   const isMounted = useIsMounted();
   const isEnActive = router.locale === "en";
@@ -26,14 +23,14 @@ export default function LanguageThemeSwitcher({ }) {
           onClick={() => changeLocale("en")}
           className={isEnActive ? "text-app-white text-[10px] sm:text-xs md:text-sm" : "text-app-black text-[10px] sm:text-xs md:text-sm"}
         >
-          {language?.['en']?.['title'] || "EN"}
+          {generalData?.locale.en.title}
         </ButtonLink>
         <div className="bg-app-white h-[10px] sm:h-[12px] md:h-[14px] w-[1px]" />
         <ButtonLink
           onClick={() => changeLocale("ar")}
           className={isEnActive ? "text-app-black text-[10px] sm:text-xs md:text-sm" : "text-app-white text-[10px] sm:text-xs md:text-sm"}
         >
-          {language?.['ar']?.['title'] || "AR"}
+          {generalData?.locale.ar.title}
         </ButtonLink>
       </div>
     </div>

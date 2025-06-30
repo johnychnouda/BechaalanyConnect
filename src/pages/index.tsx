@@ -6,8 +6,19 @@ import PageLayout from "@/components/ui/page-layout";
 import { useQuery } from "@tanstack/react-query";
 import { getCategories } from "@/services/categories.service";
 import { getProducts } from "@/services/products.service";
+import { HomepageProvider, useHomepageContext } from "@/context/HomepageContext";
+import PageLoader from "@/components/ui/PageLoader";
 
 export default function Home() {
+  return (
+    <HomepageProvider>
+      <HomeContent />
+    </HomepageProvider>
+  );
+}
+
+function HomeContent() {
+  const { homepageData } = useHomepageContext();
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: getCategories,
@@ -22,6 +33,10 @@ export default function Home() {
   const featuredProducts = products.slice(0, 4);
   // Get latest products (last 4)
   const latestProducts = products.slice(-4);
+
+  if (!homepageData) {
+    return <PageLoader />;
+  }
 
   return (
     <PageLayout className={`flex flex-col min-h-screen gap-16 pb-32`}>

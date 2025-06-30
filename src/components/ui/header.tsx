@@ -16,10 +16,11 @@ import Notification from "./notification";
 import { useNotificationStore } from "@/store/notification.store";
 import SigninModal from "../auth/signin-modal";
 import CreateAccountModal from "../auth/create-account-modal";
+import Image from "next/image";
+import { useGlobalContext } from "@/context/GlobalContext";
 
 export default function Header({ children }: PropsWithChildren) {
-  const globalState = useContext<GlobalStateType>(GlobalState);
-  const menuItems = globalState?.generalData?.menu_items;
+  const { generalData } = useGlobalContext();
   const { theme } = useAppTheme();
   const isMounted = useIsMounted();
   const { isAuthenticated, user } = useAuth();
@@ -33,7 +34,7 @@ export default function Header({ children }: PropsWithChildren) {
   return (
     <>
       {/* Main Header */}
-      <PageLayout className="sticky top-0 py-1 px-1 z-50 sm:py-2 sm:px-4 lg:py-3 lg:px-12 flex items-center w-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)] bg-background-light dark:bg-background-dark overflow-x-auto whitespace-nowrap">
+      <PageLayout className="sticky top-0 py-1 px-1 z-40 sm:py-2 sm:px-4 lg:py-3 lg:px-12 flex items-center w-full shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)] bg-background-light dark:bg-background-dark overflow-x-auto whitespace-nowrap">
         {/* Left: Logo and Theme Switcher */}
         <div className="flex items-center gap-0 min-w-0">
           <ButtonLink
@@ -41,9 +42,9 @@ export default function Header({ children }: PropsWithChildren) {
             className="w-[100px] sm:w-[150px] lg:w-[200px] min-w-0"
           >
             {theme === "dark" ? (
-              <LogoWhiteIcon className="w-[80px] h-[28px] sm:w-[120px] sm:h-[41px] lg:w-[160px] lg:h-[55px]" />
+              <Image src={generalData?.settings?.full_path?.dark_mode_logo || ""} alt="Dark Mode Logo" width={160} height={55} />
             ) : (
-              <LogoIcon className="w-[80px] h-[28px] sm:w-[120px] sm:h-[41px] lg:w-[160px] lg:h-[55px]" />
+              <Image src={generalData?.settings?.full_path?.logo || ""} alt="Logo" width={160} height={55} />
             )}
           </ButtonLink>
           <div className="w-[20px] h-[12px] sm:w-[26px] sm:h-[15px] md:w-[32px] md:h-[18px] flex items-center">
@@ -53,7 +54,7 @@ export default function Header({ children }: PropsWithChildren) {
 
         {/* Center: Navigation Menu (desktop only) */}
         <div className="hidden lg:flex flex-1 justify-center items-center gap-2 lg:gap-8 min-w-0">
-          <NavigationMenu items={menuItems} />
+          <NavigationMenu />
         </div>
 
         {/* Right: User Actions or Auth Buttons */}
@@ -79,14 +80,13 @@ export default function Header({ children }: PropsWithChildren) {
                 style={{ minWidth: "100px" }}
                 onClick={() => setIsCreateAccountOpen(true)}
               >
-                CREATE ACCOUNT
+                {generalData?.settings.create_account_button}
               </ButtonLink>
               <ButtonLink
                 className="flex items-center justify-center w-[55px] sm:w-[70px] md:w-[85px] mx-auto text-app-red text-center bg-white py-0.5 sm:py-1 px-1 sm:px-2 rounded-full font-bold text-[9px] sm:text-[11px] md:text-xs border-2 border-app-red transition-all duration-200 hover:bg-app-red hover:text-white whitespace-nowrap truncate"
-                style={{ maxWidth: "55px" }}
                 onClick={() => setIsSigninOpen(true)}
               >
-                LOGIN
+                {generalData?.settings.login_button}
               </ButtonLink>
             </>
           )}

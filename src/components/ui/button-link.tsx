@@ -1,17 +1,17 @@
 import clsx from "clsx";
-import { Url } from "next/dist/shared/lib/router/router";
 import Link from "next/link";
 import React, { HTMLAttributes } from "react";
 
-export type ButtonLinkProps = { href?: Url } & HTMLAttributes<HTMLElement>;
+export type ButtonLinkProps = { href?: string, target?: string } & HTMLAttributes<HTMLElement>;
 
 export default function ButtonLink({
   children,
   href,
   className,
+  target,
   ...props
 }: ButtonLinkProps) {
-  if (href) {
+  if (href && !target) {
     return (
       <Link
         href={href}
@@ -20,6 +20,14 @@ export default function ButtonLink({
       >
         {children}
       </Link>
+    );
+  }
+
+  if (target && href) {
+    return (
+      <a href={href} target="_blank" className={clsx("cursor-pointer", className)} {...props}>
+        {children}
+      </a>
     );
   }
 

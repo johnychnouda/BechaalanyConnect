@@ -9,12 +9,6 @@ export function useAppTheme() {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (mounted) {
-      console.log(`Theme changed - Current: ${theme}, Resolved: ${resolvedTheme}`);
-    }
-  }, [theme, resolvedTheme, mounted]);
-
   return {
     theme: mounted ? (resolvedTheme || theme || 'light') : 'light',
     setTheme,
