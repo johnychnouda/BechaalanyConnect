@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import Modal from "@/components/ui/modal";
+import { useForm } from "react-hook-form";
 
 interface VerifyEmailModalProps {
   isOpen: boolean;
@@ -11,11 +12,12 @@ interface VerifyEmailModalProps {
 }
 
 const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({ isOpen, onClose, onVerify, onResend, loading, error }) => {
-  const [code, setCode] = useState("");
+  const { register, handleSubmit, formState: { errors } } = useForm<{ code: string }>({
+    defaultValues: { code: "" },
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onVerify(code);
+  const onSubmit = (data: { code: string }) => {
+    onVerify(data.code);
   };
 
   return (
@@ -23,16 +25,16 @@ const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({ isOpen, onClose, on
       <h2 className="text-3xl font-extrabold text-[#E73828] text-center mb-1 tracking-tight">VERIFY YOUR EMAIL</h2>
       <p className="text-center text-black text-base mb-6">We've sent a verification code to your email<br />please check your inbox and enter the code below</p>
       {error && <div className="w-full mb-2 text-center text-red-600 text-sm font-semibold">{error}</div>}
-      <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit}>
+      <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
         <input
           type="text"
-          name="code"
+          {...register("code", { required: "Verification code is required" })}
           placeholder="Verification Code"
-          value={code}
-          onChange={e => setCode(e.target.value)}
-          required
           className="w-full border border-[#E73828] rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black text-center"
         />
+        {errors.code && (
+          <span className="text-xs text-red-600 text-center">{errors.code.message}</span>
+        )}
         <button
           type="submit"
           disabled={loading}

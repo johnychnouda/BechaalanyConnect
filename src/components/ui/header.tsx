@@ -171,7 +171,7 @@ export default function Header({ children }: PropsWithChildren) {
         </div>
       </div> */}
 
-      <SigninModal isOpen={isSigninOpen} setIsOpen={setIsSigninOpen} />
+      <SigninModal isOpen={isSigninOpen} setIsOpen={setIsSigninOpen} setCreateAccountOpen={setIsCreateAccountOpen} />
       <CreateAccountModal isOpen={isCreateAccountOpen} setIsOpen={setIsCreateAccountOpen} />
 
       {children}
