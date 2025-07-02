@@ -9,9 +9,10 @@ interface VerifyEmailModalProps {
   onResend?: () => void;
   loading?: boolean;
   error?: string;
+  success?: string;
 }
 
-const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({ isOpen, onClose, onVerify, onResend, loading, error }) => {
+const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({ isOpen, onClose, onVerify, onResend, loading, error, success }) => {
   const { register, handleSubmit, formState: { errors } } = useForm<{ code: string }>({
     defaultValues: { code: "" },
   });
@@ -25,6 +26,7 @@ const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({ isOpen, onClose, on
       <h2 className="text-3xl font-extrabold text-[#E73828] text-center mb-1 tracking-tight">VERIFY YOUR EMAIL</h2>
       <p className="text-center text-black text-base mb-6">We've sent a verification code to your email<br />please check your inbox and enter the code below</p>
       {error && <div className="w-full mb-2 text-center text-red-600 text-sm font-semibold">{error}</div>}
+      {success && <div className="w-full mb-2 text-center text-green-600 text-sm font-semibold">{success}</div>}
       <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
         <input
           type="text"

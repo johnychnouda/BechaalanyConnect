@@ -6,6 +6,8 @@ import { useAuth } from "@/context/AuthContext";
 import GoogleButton from "@/components/ui/google-button";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import api from "@/utils/axiosConfig";
+import { useForm } from "react-hook-form";
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
@@ -42,17 +44,14 @@ function EyeIcon({ open }: { open: boolean }) {
 export type SigninModalProps = {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
+  setCreateAccountOpen: (isOpen: boolean) => void;
 };
 
-export default function SigninModal({ isOpen, setIsOpen }: SigninModalProps) {
+export default function SigninModal({ isOpen, setIsOpen, setCreateAccountOpen }: SigninModalProps) {
   const router = useRouter();
 
   const { login } = useAuth();
 
-  const [form, setForm] = useState({
-    emailOrPhone: "",
-    password: "",
-  });
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -62,10 +61,12 @@ export default function SigninModal({ isOpen, setIsOpen }: SigninModalProps) {
   const [verifyError, setVerifyError] = useState("");
   const [verifyLoading, setVerifyLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
+  const {
+    register,
+    handleSubmit,
+    setError: setFormError,
+    formState: { errors },
+  } = useForm();
 
   const validateEmail = (value: string) => {
     // Simple email regex
@@ -84,67 +85,41 @@ export default function SigninModal({ isOpen, setIsOpen }: SigninModalProps) {
     );
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: any) => {
     setError("");
     setSuccess(false);
-    // Advanced validation
-    if (!form.emailOrPhone || !form.password) {
-      setError("Please fill in all required fields.");
-      return;
-    }
-    if (
-      !validateEmail(form.emailOrPhone) &&
-      !validatePhone(form.emailOrPhone)
-    ) {
-      setError("Please enter a valid email or phone number.");
-      return;
-    }
-    if (!validatePassword(form.password)) {
-      setError(
-        "Password must be at least 8 characters, include uppercase, lowercase, a number, and a special character."
-      );
-      return;
-    }
     setLoading(true);
-    // Simulate API call and user status
-    setTimeout(() => {
+    try {
+      const response = await api.post(`/login`, {
+        email: data.emailOrPhone,
+        password: data.password,
+      });
+      const { token, user } = response.data;
+      login(token, user);
+      setIsOpen(false);
+      router.push("/");
+    } catch (err: any) {
       setLoading(false);
-      // Simulate user status: 'unverified', 'pending', 'active'
-      const status =
-        form.emailOrPhone === "unverified@example.com"
-          ? "unverified"
-          : form.emailOrPhone === "pending@example.com"
-          ? "pending"
-          : "active";
-      if (status === "unverified") {
-        setIsOpen(false);
-        setShowVerify(true);
-      } else if (status === "pending") {
-        setIsOpen(false);
-        setShowPending(true);
+      if (err.response) {
+        const apiError = err.response.data?.error || "Login failed. Please try again.";
+        setError(apiError);
       } else {
-        setSuccess(true);
-        login(); // Call login() to update the auth state
-        setIsOpen(false);
-        router.push("/"); // Redirect to home page instead of dashboard
+        setError("Network error. Please try again.");
       }
-    }, 1200);
+      return;
+    }
+    setLoading(false);
   };
 
-  const handleVerify = (code: string) => {
-    setVerifyLoading(true);
-    setVerifyError("");
-    setTimeout(() => {
-      setVerifyLoading(false);
-      if (code === "123456") {
-        setShowVerify(false);
-        setShowPending(true);
-      } else {
-        setVerifyError("Invalid verification code. Please try again.");
-      }
-    }, 1000);
-  };
+  const handleLoginWithGoogle = async () => {
+    try {
+       await api.get('/signin-with-google');
+    }
+    catch{
+      setError("Network error. Please try again.");
+    }
+  }
+
 
   return (
     <>
@@ -171,24 +146,34 @@ export default function SigninModal({ isOpen, setIsOpen }: SigninModalProps) {
               Signed in successfully!
             </div>
           )}
-          <form className="w-full flex flex-col gap-3 sm:gap-4" onSubmit={handleSubmit}>
+          <form className="w-full flex flex-col gap-3 sm:gap-4" onSubmit={handleSubmit(onSubmit)}>
             <input
               type="text"
-              name="emailOrPhone"
+              {...register("emailOrPhone", {
+                required: "Email or phone is required.",
+                validate: value =>
+                  validateEmail(value) || validatePhone(value) || "Please enter a valid email or phone number.",
+              })}
               placeholder="Email"
-              value={form.emailOrPhone}
-              onChange={handleChange}
               required
               className="w-full border border-[#E73828] rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
               autoComplete="username"
             />
+            {errors.emailOrPhone && (
+              <div className="w-full mb-2 text-center text-red-600 text-xs sm:text-sm font-semibold">
+                {errors.emailOrPhone.message as string}
+              </div>
+            )}
             <div className="relative w-full">
               <input
                 type={showPassword ? "text" : "password"}
-                name="password"
+                {...register("password", {
+                  required: "Password is required.",
+                  validate: value =>
+                    validatePassword(value) ||
+                    "Password must be at least 8 characters, include uppercase, lowercase, a number, and a special character.",
+                })}
                 placeholder="Password"
-                value={form.password}
-                onChange={handleChange}
                 required
                 className="w-full border border-[#E73828] rounded-full px-4 py-2 pr-12 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
                 autoComplete="current-password"
@@ -203,6 +188,11 @@ export default function SigninModal({ isOpen, setIsOpen }: SigninModalProps) {
                 <EyeIcon open={showPassword} />
               </button>
             </div>
+            {errors.password && (
+              <div className="w-full mb-2 text-center text-red-600 text-xs sm:text-sm font-semibold">
+                {errors.password.message as string}
+              </div>
+            )}
             <div className="w-full flex justify-end">
               <Link
                 href="/auth/forgot-password"
@@ -228,23 +218,30 @@ export default function SigninModal({ isOpen, setIsOpen }: SigninModalProps) {
               </div>
             </div>
 
-            <GoogleButton 
-              onClick={() => alert("Google login logic here")} 
+            <GoogleButton
+              onClick={handleLoginWithGoogle}
               text="CONTINUE WITH GOOGLE"
             />
           </form>
-          <div className="w-full text-center mt-4 text-black text-sm sm:text-base">
-            Don&apos;t have an account ?{" "}
-            <Link
-              href="/auth/register"
-              className="text-[#E73828] font-bold hover:underline"
+          <div className="flex items-center justify-center gap-1 mt-4">
+            <div className="text-center text-black text-sm sm:text-base ">
+              Don&apos;t have an account ?{" "}
+
+            </div>
+            <div
+              className="text-[#E73828] font-bold hover:underline cursor-pointer"
+              onClick={() => {
+                setCreateAccountOpen(true);
+                setIsOpen(false);
+              }}
             >
               Sign up
-            </Link>
+            </div>
           </div>
+
         </div>
       </Modal>
-      <VerifyEmailModal
+      {/* <VerifyEmailModal
         isOpen={showVerify}
         onClose={() => setShowVerify(false)}
         onVerify={handleVerify}
@@ -259,7 +256,7 @@ export default function SigninModal({ isOpen, setIsOpen }: SigninModalProps) {
 
           router.push("/");
         }}
-      />
+      /> */}
     </>
   );
 }

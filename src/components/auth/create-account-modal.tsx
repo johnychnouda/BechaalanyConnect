@@ -112,6 +112,7 @@ export default function CreateAccountModal({
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [error, setError] = React.useState("");
+  const [success, setSuccessMessage] = React.useState("");
   const [showVerify, setShowVerify] = React.useState(false);
   const [showPending, setShowPending] = React.useState(false);
   const [verifyError, setVerifyError] = React.useState("");
@@ -164,7 +165,7 @@ export default function CreateAccountModal({
       reset();
     } catch (err: any) {
       if (err.response) {
-        setError(err.response.data?.error || "Registration failed. Please try again.");
+        setError(err.response.data?.message || "Registration failed. Please try again.");
       } else {
         setError("Network error. Please try again.");
       }
@@ -198,6 +199,20 @@ export default function CreateAccountModal({
     // Redirect to Google OAuth signup page
   };
 
+  const ResendCode = async () => {
+    try {
+      const response = await api.post(`/resend-verification-code`, {
+        email: verifyEmail,
+      });
+      setVerifyError(""); // Clear the verification error
+      setSuccessMessage(response.data?.message || "Verification code resent successfully.");
+      setTimeout(() => setSuccessMessage(""), 4000); // Optionally clear after 4s
+    } catch (err: any) {
+      setVerifyError(err.response?.data?.error || "Network error. Please try again.");
+      setSuccessMessage("");
+    }
+  };
+
   return (
     <>
       <Modal
@@ -218,6 +233,11 @@ export default function CreateAccountModal({
               {error}
             </div>
           )}
+          {success &&
+            <div className="w-full mb-2 text-center text-green-600 text-xs sm:text-sm font-semibold">
+              {success}
+            </div>
+          }
           <form
             className="w-full flex flex-col gap-3 sm:gap-4"
             onSubmit={handleSubmit(onSubmit)}
@@ -238,8 +258,13 @@ export default function CreateAccountModal({
               onChange={(val) => setValue("country", val, { shouldValidate: true })}
               placeholder="Country"
             />
+            <input
+              type="hidden"
+              {...register("country", { required: "Country is required" })}
+              name="country"
+            />
             {errors.country && (
-              <span className="text-xs text-red-600">Country is required</span>
+              <span className="text-xs text-red-600">{errors.country.message as string}</span>
             )}
             <div className="flex items-center border border-[#E73828] rounded-full px-4 py-2 bg-transparent">
               <span className="text-[#E73828] mr-2 min-w-[48px] text-sm sm:text-base">
@@ -283,13 +308,12 @@ export default function CreateAccountModal({
                 })}
                 className="w-full border border-[#E73828] rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
               />
-              <button
-                type="button"
+              <div
                 className="absolute right-4 top-1/2 -translate-y-1/2"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 <EyeIcon open={showPassword} />
-              </button>
+              </div>
             </div>
             {errors.password && (
               <span className="text-xs text-red-600">{errors.password.message as string}</span>
@@ -304,13 +328,12 @@ export default function CreateAccountModal({
                 })}
                 className="w-full border border-[#E73828] rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
               />
-              <button
-                type="button"
+              <div
                 className="absolute right-4 top-1/2 -translate-y-1/2"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               >
                 <EyeIcon open={showConfirmPassword} />
-              </button>
+              </div>
             </div>
             {errors.confirmPassword && (
               <span className="text-xs text-red-600">{errors.confirmPassword.message as string}</span>
@@ -385,7 +408,8 @@ export default function CreateAccountModal({
         onVerify={handleVerify}
         loading={verifyLoading}
         error={verifyError}
-        onResend={() => alert("Resend code logic here")}
+        success={success}
+        onResend={ResendCode}
       />
       <PendingApprovalModal
         isOpen={showPending}

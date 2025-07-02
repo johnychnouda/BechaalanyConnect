@@ -1,5 +1,6 @@
 "use client";
 
+import axios from 'axios';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface UserType {
@@ -46,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsAuthenticated(true);
   };
 
-  const logout = () => {
+  const logout = async () => {
     localStorage.removeItem('auth-token');
     localStorage.removeItem('auth-user');
     setToken(null);
