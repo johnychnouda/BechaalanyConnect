@@ -27,7 +27,7 @@ export default function NavigationMenu({ className, isMobile }: Props) {
       {generalData?.menu_items.map((item, index) => (
         <Link
           key={index}
-          href={item.slug}
+          href={item.slug.startsWith('/') ? item.slug : `/${item.slug}`}
           className={clsx(
             "cursor-pointer font-semibold hover:text-app-red flex items-center gap-0.5 sm:gap-1.5 whitespace-nowrap",
             pathname === item.slug && "text-app-red",

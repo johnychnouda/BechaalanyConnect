@@ -6,6 +6,7 @@ import BackButton from '@/components/ui/back-button';
 import Breadcrumb from '@/components/ui/breadcrumb';
 import PageLayout from '@/components/ui/page-layout';
 import Card from '@/components/ui/card';
+import Image from 'next/image';
 
 interface Product {
   id: string;
@@ -91,6 +92,17 @@ const ProductPage: React.FC = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Simulate available amounts (should come from backend in real app)
+  const amounts = [
+    { id: 1, amount: "100 UC", price: 1, image: '/pubg-uc.png' },
+    { id: 2, amount: "325 UC", price: 5, image: '/pubg-uc.png' },
+    { id: 3, amount: "660 UC", price: 10, image: '/pubg-uc.png' },
+    { id: 4, amount: "1800 UC", price: 25, image: '/pubg-uc.png' },
+    { id: 5, amount: "3850 UC", price: 48, image: '/pubg-uc.png' },
+    { id: 6, amount: "8100 UC", price: 92, image: '/pubg-uc.png' },
+  ];
+  const [selectedAmount, setSelectedAmount] = useState(amounts[0]);
+
   const { data: categories, isLoading: isLoadingCategories } = useQuery({
     queryKey: ['categories'],
     queryFn: getCategories
@@ -138,18 +150,6 @@ const ProductPage: React.FC = () => {
     { label: product.name }
   ];
 
-  // Simulate available amounts (should come from backend in real app)
-  const amounts = [
-    { id: 1, amount: "100 UC", price: 1, image: '/pubg-uc.png' },
-    { id: 2, amount: "325 UC", price: 5, image: '/pubg-uc.png' },
-    { id: 3, amount: "660 UC", price: 10, image: '/pubg-uc.png' },
-    { id: 4, amount: "1800 UC", price: 25, image: '/pubg-uc.png' },
-    { id: 5, amount: "3850 UC", price: 48, image: '/pubg-uc.png' },
-    { id: 6, amount: "8100 UC", price: 92, image: '/pubg-uc.png' },
-  ];
-
-  const [selectedAmount, setSelectedAmount] = useState(amounts[0]);
-
   const total = selectedAmount.price * quantity;
 
   // Related products: all except the current one
@@ -166,24 +166,24 @@ const ProductPage: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-col md:flex-row gap-8 items-start w-full px-2 md:px-12 pb-8 max-w-[400px] mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start w-full px-2 md:px-12 pb-8  mx-auto">
         {/* Product Image */}
-        <div className="w-full">
-          <div className="relative w-full max-w-[400px] h-[400px] mx-auto">
-            <div className="block overflow-hidden rounded-[25px] shadow-sm border border-transparent relative h-full">
-              <div className="relative w-full h-full">
-                <img 
-                  src={selectedAmount.image} 
-                  alt={selectedAmount.amount} 
-                  className="w-full h-full object-cover"
-                />
-              </div>
+        <div className="relative h-full w-full mx-auto col-span-1 aspect-square max-h-[600px] max-w-[600px]">
+          <div className="block overflow-hidden rounded-[25px] shadow-sm border border-transparent relative h-full w-full">
+            <div className="relative w-full h-full">
+              <Image
+                src={selectedAmount.image}
+                alt={selectedAmount.amount}
+                className="w-full h-full object-cover"
+                fill
+                objectFit='cover'
+              />
             </div>
           </div>
         </div>
 
         {/* Product Details */}
-        <div className="w-full max-w-[400px] mx-auto flex flex-col gap-4">
+        <div className="w-full max-w-[400px] mx-auto flex flex-col gap-4 col-span-1">
           <h1 className="text-[32px] font-bold text-app-red leading-tight">{selectedAmount.amount}</h1>
           <p className="text-gray-700 text-[15px] mb-2 dark:text-white">{product.description}</p>
 
@@ -211,7 +211,7 @@ const ProductPage: React.FC = () => {
                 </span>
               </button>
               {dropdownOpen && (
-                <div className="absolute left-0 right-0 mt-2 z-20 bg-white border border-app-red rounded-[12px] py-2 flex flex-col" style={{padding: '8px 0'}}>
+                <div className="absolute left-0 right-0 mt-2 z-20 bg-white border border-app-red rounded-[12px] py-2 flex flex-col" style={{ padding: '8px 0' }}>
                   {amounts.map(a => (
                     <button
                       key={a.id}
@@ -261,7 +261,7 @@ const ProductPage: React.FC = () => {
       {/* Related Products */}
       <div className="w-full px-0 pb-12">
         <h2 className="text-app-red text-[20px] font-bold mb-4 mt-2 px-4">RELATED PRODUCTS</h2>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           {related.map((prod) => (
             <div key={prod.id} className="flex flex-col items-center">
               <Card
