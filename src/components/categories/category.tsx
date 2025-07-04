@@ -13,7 +13,7 @@ export default function Category({ category }: Props) {
     <Card
       id={String(category.id)}
       title={category.title}
-      image={category.image}
+      image={category.full_path.image}
       type="category"
       href={`/categories/${slug}`}
     />

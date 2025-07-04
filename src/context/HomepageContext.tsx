@@ -1,31 +1,10 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useRouter } from "next/router";
 import { fetchHomePageData } from "@/services/general.service";
+import { HomepageDataType } from "@/types/HomeData.type";
 
 // Types for /home API response
-export type BannerSwiperType = {
-    full_path: {
-        image: string;
-    };
-    title: string;
-    subtitle: string;
-    description: string | null;
-};
 
-export type HomepageSettingsType = {
-    whatsapp_number: number;
-    whatsapp_text: string;
-    categories_section_title: string;
-    view_all_button_label: string;
-    featured_products_section_title: string;
-    latest_products_section_title: string;
-    whatsapp_channel_button_text: string;
-};
-
-export type HomepageDataType = {
-    bannerSwiper: BannerSwiperType[];
-    homepageSettings: HomepageSettingsType;
-};
 
 export type HomepageContextType = {
     homepageData: HomepageDataType | null;

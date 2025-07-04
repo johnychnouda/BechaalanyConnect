@@ -1,13 +1,15 @@
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import WhatsAppChannelButton from "../ui/whatsapp-channel-button";
-import { useHomepageContext } from "@/context/HomepageContext";
 import Image from "next/image";
+import { BannerSwiperType, HomepageSettingsType } from "@/types/HomeData.type";
 
-export default function HomePageHeader() {
-  const { homepageData } = useHomepageContext();
-  const bannerSwiper = homepageData?.bannerSwiper || [];
-  const homepageSettings = homepageData?.homepageSettings;
+export default function HomePageHeader({ bannerSwiper, homepageSettings }:
+  {
+    bannerSwiper: BannerSwiperType[],
+    homepageSettings?: HomepageSettingsType | null
+  }) {
+
 
   return (
     <div className="flex flex-col w-full gap-3">

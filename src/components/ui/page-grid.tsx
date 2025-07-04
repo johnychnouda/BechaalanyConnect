@@ -1,4 +1,3 @@
-import { useGlobalContext } from "@/context/GlobalContext";
 import ButtonLink from "./button-link";
 import clsx from "clsx";
 import React from "react";

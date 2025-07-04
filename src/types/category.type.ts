@@ -1,12 +1,11 @@
 export type Category = {
   id: number;
+  slug?: string;
   title: string;
-  image: string;
-  type?: 'gaming' | 'regular';
-  parentId?: number | null;
-  children?: Category[];
-  category: Category | null;
-  showProducts: boolean;
+  full_path: {
+    image: string;
+  };
+  description?: string;
 };
 
 

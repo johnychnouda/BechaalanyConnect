@@ -1,20 +1,20 @@
 import { type Product } from "@/types/product.type";
 import React from "react";
 import Card from "../ui/card";
+import { ProductType } from "@/types/HomeData.type";
 
 type Props = {
-  product: Product;
+  product: ProductType;
 };
 
 export default function Product({ product }: Props) {
-  const href = product.hasContent
-    ? `/products/${product.id}`
-    : `/products/coming-soon?title=${encodeURIComponent(product.title)}`;
+  const href = `/products/${product.slug}`;
+
   return (
     <Card
       id={String(product.id)}
-      title={product.title}
-      image={product.image}
+      title={product.name}
+      image={product.full_path.image}
       type="product"
       href={href}
     />
