@@ -36,7 +36,7 @@ export default function BackButton({ href, className, label }: Props) {
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="w-3.5 h-3.5 sm:w-4 sm:h-4"
+        className="w-3.5 h-3.5 sm:w-4 sm:h-4 rtl:rotate-180"
       >
         <path d="M19 12H5M12 19l-7-7 7-7" />
       </svg>

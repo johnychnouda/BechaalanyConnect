@@ -18,7 +18,6 @@ import Image from "next/image";
 import { useGlobalContext } from "@/context/GlobalContext";
 import { BurgerIcon } from "@/assets/icons/burger.icon";
 import { useLanguage } from "@/hooks/use-language";
-import LanguageThemeSwitcher from "../general/language-theme-switcher";
 import MobileMenu from "./MobileMenu";
 
 export default function Header({ children }: PropsWithChildren) {
@@ -57,9 +56,13 @@ export default function Header({ children }: PropsWithChildren) {
             className="w-[100px] sm:w-[150px] lg:w-[200px] min-w-0"
           >
             {theme === "dark" ? (
-              <Image src={generalData?.settings?.full_path?.dark_mode_logo || ""} alt="Dark Mode Logo" width={160} height={55} />
+              generalData?.settings?.full_path?.dark_mode_logo && (
+                <Image src={generalData?.settings?.full_path?.dark_mode_logo} alt="Dark Mode Logo" width={160} height={55} />
+              )
             ) : (
-              <Image src={generalData?.settings?.full_path?.logo || ""} alt="Logo" width={160} height={55} />
+              generalData?.settings?.full_path?.logo && (
+                <Image src={generalData?.settings?.full_path?.logo} alt="Logo" width={160} height={55} />
+              )
             )}
           </ButtonLink>
           <div className="flex items-center justify-center">

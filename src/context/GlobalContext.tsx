@@ -13,6 +13,9 @@ export type SettingsType = {
   create_account_button: string;
   footer_copyright: string;
   login_button: string;
+  categories_label: string;
+  homepage_label: string;
+  back_button_label: string;
 };
 
 export type MenuItemType = {
