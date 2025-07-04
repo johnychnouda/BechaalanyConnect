@@ -39,3 +39,12 @@ export const fetchSubCategoriesData = async (locale: string, categorySlug: strin
         console.warn('API call failed, using fallback sub categories:', error);
     }
 };
+
+export const fetchProductsData = async (locale: string, categorySlug: string, subcategorySlug: string) => {
+    try {
+        const { data } = await api.get(`/${locale}/categories/${categorySlug}/${subcategorySlug}`);
+        return data;
+    } catch (error) {
+        console.warn('API call failed, using fallback products:', error);
+    }
+};

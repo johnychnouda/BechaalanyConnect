@@ -13,16 +13,18 @@ type CardProps = {
   className?: string;
   imageClassName?: string;
   titleClassName?: string;
+  price?: number;
 };
 
-export default function Card({ 
-  title, 
-  image, 
-  type, 
+export default function Card({
+  title,
+  image,
+  type,
   href,
   className,
   imageClassName,
-  titleClassName 
+  titleClassName,
+  price
 }: CardProps) {
   return (
     <div className="flex flex-col items-center">
@@ -59,7 +61,10 @@ export default function Card({
         </h3>
         {type === 'product' && (
           <span className="font-bold text-app-red flex-shrink-0 text-[clamp(10px,3vw,16px)] ml-1">
-            ${(Math.random() * 50 + 10).toFixed(2)}
+            {
+              price &&
+              `$ ${price}`
+            }
           </span>
         )}
       </div>

@@ -18,7 +18,7 @@ interface SubCategory {
 }
 
 const SubCategoryCard = ({ category, parentSlug }: { category: SubCategory; parentSlug: string }) => {
-  const subcategorySlug = category.title.toLowerCase().replace(/\s+/g, '-');
+  const subcategorySlug = category.slug;
   return (
     <Card
       id={category.id.toString()}
@@ -89,7 +89,7 @@ export default function CategoryPage() {
   return (
     <div className="container mx-auto px-4 py-6">
       {!isLoading && <Breadcrumb items={breadcrumbItems} />}
-      <BackButton href="/categories" className="mb-4" />
+      <BackButton href="/categories" className="mb-4" label={generalData?.settings.back_button_label || ''} />
       {isLoading ? (
         <div>Loading...</div>
       ) : hasContent ? (
