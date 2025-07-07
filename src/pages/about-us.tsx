@@ -42,8 +42,6 @@ export default function AboutUs() {
       });
   }, [router.locale]); 
 
-  console.log(aboutUsData);
-
   return (
     <>
       <Head>

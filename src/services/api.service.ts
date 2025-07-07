@@ -56,3 +56,12 @@ export const fetchAboutUsData = async (locale: string) => {
         console.warn('API call failed, using fallback about us data:', error);
     }
 };
+
+export const fetchContactUsData = async (locale: string) => {
+    try {
+        const { data } = await api.get(`/${locale}/contact`);
+        return data;
+    } catch (error) {
+        console.warn('API call failed, using fallback contact us data:', error);
+    }
+};
