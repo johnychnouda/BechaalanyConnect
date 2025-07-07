@@ -144,7 +144,6 @@ export default function ContactUs() {
                    handleSubmit={handleSubmit} 
                    onSubmit={onSubmit} 
                    setIsDropdownOpen={setIsDropdownOpen} 
-                   setValue={setValue}
                    isDropdownOpen={isDropdownOpen}
                    selectedSubject={selectedSubject}
                    subjects={subjects}

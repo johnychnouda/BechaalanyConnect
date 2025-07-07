@@ -9,7 +9,6 @@ interface ContactFormProps {
   handleSubmit: any;
   onSubmit: any;
   setIsDropdownOpen: (value: boolean) => void;
-  setValue: any;
   isDropdownOpen: boolean;
   selectedSubject: string;
   subjects: string[] | undefined;
@@ -26,7 +25,6 @@ function ContactForm({
   handleSubmit, 
   onSubmit, 
   setIsDropdownOpen, 
-  setValue,
   isDropdownOpen,
   selectedSubject,
   subjects,
@@ -194,7 +192,7 @@ function ContactForm({
                 </div>
             )}
 
-            {!submitSuccess && !submitError && (
+            {!submitSuccess && (
                 <button
                     type="submit"
                     className="w-full bg-[#E93323] text-white font-bold py-3 px-4 rounded-lg hover:bg-[#d62d1f] transform hover:scale-[1.02] transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
