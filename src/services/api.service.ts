@@ -65,3 +65,18 @@ export const fetchContactUsData = async (locale: string) => {
         console.warn('API call failed, using fallback contact us data:', error);
     }
 };
+
+export const submitContactForm = async (formData: {
+    name: string;
+    email: string;
+    phone: string;
+    subject: string;
+    message: string;
+}) => {
+    try {
+        const { data } = await api.post('/contact-form-submit', formData);
+        return data;
+    } catch (error) {
+        throw error;
+    }
+};
