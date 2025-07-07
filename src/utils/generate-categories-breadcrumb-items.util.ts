@@ -11,11 +11,8 @@ export function generateCategoriesBreadcrumbItems(
     res.push(product);
   }
 
-  let cur = category;
-
-  while (cur) {
-    res.push(cur);
-    cur = cur.category;
+  if (category) {
+    res.push(category);
   }
 
   return res.reverse();
