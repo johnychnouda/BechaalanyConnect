@@ -11,7 +11,7 @@ const nextConfig = {
   },
 
   images: {
-    domains: ["images.unsplash.com", "localhost", "127.0.0.1"],
+    domains: ["images.unsplash.com", "localhost", "127.0.0.1", "admin.bechaalanyconnect.com"],
   },
 
   env: {
