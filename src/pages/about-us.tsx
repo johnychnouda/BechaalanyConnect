@@ -20,11 +20,6 @@ export default function AboutUs() {
 
   useEffect(() => {
     if (!router.locale) return;
-    fetchAboutUsData(router.locale).then(setAboutUsData);
-  }, [router.locale]);
-
-  useEffect(() => {
-    if (!router.locale) return;
     setIsLoading(true);
     setError(null);
 
