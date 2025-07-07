@@ -40,7 +40,7 @@ export default function AboutUs() {
       .finally(() => {
         setIsLoading(false);
       });
-  }, [router.locale]);
+  }, [router.locale]); 
 
   console.log(aboutUsData);
 
