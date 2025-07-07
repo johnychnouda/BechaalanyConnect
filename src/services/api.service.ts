@@ -12,7 +12,6 @@ export const fetchGeneralData = async (locale: string) => {
 
 export const fetchHomePageData = async (locale: string) => {
     try {
-
         const { data } = await api.get(`/${locale}/home`);
         return data;
     } catch (error) {

@@ -23,5 +23,16 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function({ addUtilities }) {
+      addUtilities({
+        '.rotate-y-180': {
+          'transform': 'rotateY(180deg)',
+        },
+        '.rtl\\:rotate-y-180': {
+          'transform': 'rotateY(180deg)',
+        },
+      })
+    }
+  ],
 }; 
