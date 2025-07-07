@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useRouter } from "next/router";
-import { fetchGeneralData } from "@/services/general.service";
+import { fetchGeneralData } from "@/services/api.service";
 
 // Types based on your provided JSON
 export type SettingsType = {

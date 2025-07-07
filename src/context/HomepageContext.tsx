@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useRouter } from "next/router";
-import { fetchHomePageData } from "@/services/general.service";
+import { fetchHomePageData } from "@/services/api.service";
 import { HomepageDataType } from "@/types/HomeData.type";
 
 // Types for /home API response

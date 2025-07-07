@@ -4,7 +4,7 @@ import BackButton from '@/components/ui/back-button';
 import ComingSoon from '@/components/ui/coming-soon';
 import Breadcrumb from '@/components/ui/breadcrumb';
 import Card from '@/components/ui/card';
-import { fetchProductsData } from '@/services/general.service';
+import { fetchProductsData } from '@/services/api.service';
 import { useGlobalContext } from '@/context/GlobalContext';
 
 interface Product {

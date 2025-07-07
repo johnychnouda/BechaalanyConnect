@@ -6,7 +6,7 @@ import Breadcrumb from "@/components/ui/breadcrumb";
 import Card from "@/components/ui/card";
 import Error from "next/error";
 import { useGlobalContext } from "@/context/GlobalContext";
-import { fetchSubCategoriesData } from "@/services/general.service";
+import { fetchSubCategoriesData } from "@/services/api.service";
 
 interface SubCategory {
   id: number;

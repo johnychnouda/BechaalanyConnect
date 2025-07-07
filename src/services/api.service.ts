@@ -23,7 +23,7 @@ export const fetchHomePageData = async (locale: string) => {
 export const fetchCategoriesData = async (locale: string) => {
     try {
         const { data } = await api.get(`/${locale}/categories`);
-        return  data.categories; // Return data.data if it exists, otherwise return data
+        return data.categories; // Return data.data if it exists, otherwise return data
     } catch (error) {
         console.warn('API call failed, using fallback categories:', error);
         // Return fallback categories if API fails
@@ -46,5 +46,14 @@ export const fetchProductsData = async (locale: string, categorySlug: string, su
         return data;
     } catch (error) {
         console.warn('API call failed, using fallback products:', error);
+    }
+};
+
+export const fetchAboutUsData = async (locale: string) => {
+    try {
+        const { data } = await api.get(`/${locale}/about`);
+        return data;
+    } catch (error) {
+        console.warn('API call failed, using fallback about us data:', error);
     }
 };

@@ -4,7 +4,7 @@ import Breadcrumb from '@/components/ui/breadcrumb';
 import Card from '@/components/ui/card';
 import { useGlobalContext } from '@/context/GlobalContext';
 import { useRouter } from 'next/router';
-import { fetchCategoriesData } from '@/services/general.service';
+import { fetchCategoriesData } from '@/services/api.service';
 import { Category } from '@/types/category.type';
 
 const CategoryCard: React.FC<{ category: Category }> = ({ category }) => {
