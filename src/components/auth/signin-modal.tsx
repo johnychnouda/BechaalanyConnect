@@ -113,9 +113,9 @@ export default function SigninModal({ isOpen, setIsOpen, setCreateAccountOpen }:
 
   const handleLoginWithGoogle = async () => {
     try {
-       await api.get('/signin-with-google');
+      await api.get('/signin-with-google');
     }
-    catch{
+    catch {
       setError("Network error. Please try again.");
     }
   }
@@ -218,11 +218,11 @@ export default function SigninModal({ isOpen, setIsOpen, setCreateAccountOpen }:
               </div>
             </div>
 
-            <GoogleButton
-              onClick={handleLoginWithGoogle}
-              text="CONTINUE WITH GOOGLE"
-            />
           </form>
+          <GoogleButton
+            onClick={handleLoginWithGoogle}
+            text="CONTINUE WITH GOOGLE"
+          />
           <div className="flex items-center justify-center gap-1 mt-4">
             <div className="text-center text-black text-sm sm:text-base ">
               Don&apos;t have an account ?{" "}

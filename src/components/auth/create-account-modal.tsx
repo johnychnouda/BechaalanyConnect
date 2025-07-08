@@ -398,8 +398,8 @@ export default function CreateAccountModal({
                 <span className="px-2 bg-white text-gray-500">Or continue with</span>
               </div>
             </div>
-            <GoogleButton onClick={handleGoogleSignup} />
           </form>
+          <GoogleButton onClick={handleGoogleSignup} />
         </div>
       </Modal>
       <VerifyEmailModal
