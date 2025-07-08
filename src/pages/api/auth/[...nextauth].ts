@@ -37,7 +37,7 @@ export default NextAuth({
                         },
                         body: JSON.stringify({
                             email: user.email,
-                            name: user.name,
+                            username: user.name,
                             google_id: user.id,
                         }),
                     });
