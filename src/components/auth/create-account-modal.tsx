@@ -9,6 +9,7 @@ import { useRouter } from "next/router";
 import api from "@/utils/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
 import { useForm, FieldErrors } from "react-hook-form";
+import { signIn } from "next-auth/react";
 
 const COUNTRIES = [
   "LEBANON",
@@ -196,7 +197,7 @@ export default function CreateAccountModal({
   };
 
   const handleGoogleSignup = () => {
-    // Redirect to Google OAuth signup page
+    signIn("google");
   };
 
   const ResendCode = async () => {

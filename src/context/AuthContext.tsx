@@ -2,6 +2,7 @@
 
 import axios from 'axios';
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { signOut } from "next-auth/react";
 
 interface UserType {
   id: number;
@@ -53,6 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);
+    signOut({ callbackUrl: "/" }); // Also sign out from NextAuth and redirect home
   };
 
   const isAdmin = user?.role === 'admin';
