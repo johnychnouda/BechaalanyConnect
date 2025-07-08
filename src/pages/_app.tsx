@@ -5,6 +5,7 @@ import type { AppProps } from "next/app";
 import { NextIntlClientProvider } from "next-intl";
 import { useMemo, useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { SessionProvider } from "next-auth/react";
 import TopBanner from "@/components/ui/top-banner";
 import Header from "@/components/ui/header";
 import WhatsAppButton from "@/components/ui/whatsapp-button";
@@ -77,45 +78,47 @@ export default function App({
 
   return (
     <StyledComponentsRegistry>
-      <GlobalProvider>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={true} storageKey="theme" disableTransitionOnChange={false}>
-          <AuthProvider>
-            <GlobalState.Provider value={globalStateValue}>
-              <QueryClientProvider client={queryClient}>
-                <NextIntlClientProvider
-                  locale={router.locale}
-                  timeZone="Asia/Beirut"
-                  messages={messages || {}}
-                  onError={(error) => {
-                    if (error.code !== 'MISSING_MESSAGE') {
-                      console.error(error);
-                    }
-                  }}
-                >
-                  <FallbackTheme />
-                  {loading && <PageLoader />}
-                  <main
-                    className={`min-h-screen flex flex-col ${isRTL ? "rtl" : "ltr"}`}
-                    dir={isRTL ? "rtl" : "ltr"}
+      <SessionProvider session={pageProps.session}>
+        <GlobalProvider>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem={true} storageKey="theme" disableTransitionOnChange={false}>
+            <AuthProvider>
+              <GlobalState.Provider value={globalStateValue}>
+                <QueryClientProvider client={queryClient}>
+                  <NextIntlClientProvider
+                    locale={router.locale}
+                    timeZone="Asia/Beirut"
+                    messages={messages || {}}
+                    onError={(error) => {
+                      if (error.code !== 'MISSING_MESSAGE') {
+                        console.error(error);
+                      }
+                    }}
                   >
-                    <TopBanner>
-                      <Header>
-                        <div className="flex-grow">
-                          <Component {...pageProps} />
-                        </div>
-                      </Header>
-                    </TopBanner>
-                    {/* WhatsApp Floating Button */}
-                    <WhatsAppButton style={{ position: "fixed", bottom: "2rem", right: "2rem", zIndex: 40 }} />
-                    {/* Footer */}
-                    <Footer />
-                  </main>
-                </NextIntlClientProvider>
-              </QueryClientProvider>
-            </GlobalState.Provider>
-          </AuthProvider>
-        </ThemeProvider>
-      </GlobalProvider>
+                    <FallbackTheme />
+                    {loading && <PageLoader />}
+                    <main
+                      className={`min-h-screen flex flex-col ${isRTL ? "rtl" : "ltr"}`}
+                      dir={isRTL ? "rtl" : "ltr"}
+                    >
+                      <TopBanner>
+                        <Header>
+                          <div className="flex-grow">
+                            <Component {...pageProps} />
+                          </div>
+                        </Header>
+                      </TopBanner>
+                      {/* WhatsApp Floating Button */}
+                      <WhatsAppButton style={{ position: "fixed", bottom: "2rem", right: "2rem", zIndex: 40 }} />
+                      {/* Footer */}
+                      <Footer />
+                    </main>
+                  </NextIntlClientProvider>
+                </QueryClientProvider>
+              </GlobalState.Provider>
+            </AuthProvider>
+          </ThemeProvider>
+        </GlobalProvider>
+      </SessionProvider>
     </StyledComponentsRegistry>
   );
 }

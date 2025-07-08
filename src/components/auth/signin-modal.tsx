@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Modal from "@/components/ui/modal";
 import VerifyEmailModal from "@/components/ui/verify-email-modal";
 import PendingApprovalModal from "@/components/ui/pending-approval-modal";
@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import api from "@/utils/axiosConfig";
 import { useForm } from "react-hook-form";
+import { signIn, useSession } from "next-auth/react";
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
@@ -49,7 +50,7 @@ export type SigninModalProps = {
 
 export default function SigninModal({ isOpen, setIsOpen, setCreateAccountOpen }: SigninModalProps) {
   const router = useRouter();
-
+  const { data: session, status } = useSession();
   const { login } = useAuth();
 
   const [error, setError] = useState("");
@@ -60,6 +61,16 @@ export default function SigninModal({ isOpen, setIsOpen, setCreateAccountOpen }:
   const [showPending, setShowPending] = useState(false);
   const [verifyError, setVerifyError] = useState("");
   const [verifyLoading, setVerifyLoading] = useState(false);
+
+  // Handle NextAuth session changes
+  useEffect(() => {
+    if (session?.laravelToken && session?.laravelUser) {
+      // Login with Laravel token and user data
+      login(session.laravelToken, session.laravelUser);
+      setIsOpen(false);
+      router.push("/");
+    }
+  }, [session, login, setIsOpen, router]);
 
   const {
     register,
@@ -112,7 +123,7 @@ export default function SigninModal({ isOpen, setIsOpen, setCreateAccountOpen }:
   };
 
   const handleLoginWithGoogle = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/signin-with-google`;
+    signIn("google");
   };
 
 
