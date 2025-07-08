@@ -65,15 +65,17 @@ export default function SigninModal({ isOpen, setIsOpen, setCreateAccountOpen }:
   // Handle NextAuth session changes
   useEffect(() => {
     if (
+      status === "authenticated" &&
       session?.laravelToken &&
       session?.laravelUser &&
-      !isAuthenticated // Only login if not already authenticated
+      !isAuthenticated
     ) {
       login(session.laravelToken, session.laravelUser);
       setIsOpen(false);
       router.push("/");
     }
-  }, [session, login, setIsOpen, router, isAuthenticated]);
+    // Do nothing if status is "unauthenticated" or "loading"
+  }, [session, status, login, setIsOpen, router, isAuthenticated]);
 
   const {
     register,
