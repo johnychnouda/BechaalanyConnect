@@ -111,14 +111,9 @@ export default function SigninModal({ isOpen, setIsOpen, setCreateAccountOpen }:
     setLoading(false);
   };
 
-  const handleLoginWithGoogle = async () => {
-    try {
-      await api.get('/signin-with-google');
-    }
-    catch {
-      setError("Network error. Please try again.");
-    }
-  }
+  const handleLoginWithGoogle = () => {
+    window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/signin-with-google`;
+  };
 
 
   return (
