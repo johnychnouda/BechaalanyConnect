@@ -51,7 +51,7 @@ export type SigninModalProps = {
 export default function SigninModal({ isOpen, setIsOpen, setCreateAccountOpen }: SigninModalProps) {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
 
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -64,13 +64,16 @@ export default function SigninModal({ isOpen, setIsOpen, setCreateAccountOpen }:
 
   // Handle NextAuth session changes
   useEffect(() => {
-    if (session?.laravelToken && session?.laravelUser) {
-      // Login with Laravel token and user data
+    if (
+      session?.laravelToken &&
+      session?.laravelUser &&
+      !isAuthenticated // Only login if not already authenticated
+    ) {
       login(session.laravelToken, session.laravelUser);
       setIsOpen(false);
       router.push("/");
     }
-  }, [session, login, setIsOpen, router]);
+  }, [session, login, setIsOpen, router, isAuthenticated]);
 
   const {
     register,
