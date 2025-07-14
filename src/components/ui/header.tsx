@@ -19,6 +19,7 @@ import { useGlobalContext } from "@/context/GlobalContext";
 import { BurgerIcon } from "@/assets/icons/burger.icon";
 import { useLanguage } from "@/hooks/use-language";
 import MobileMenu from "./MobileMenu";
+import SearchModal from "./SearchModal";
 
 export default function Header({ children }: PropsWithChildren) {
   const { generalData } = useGlobalContext();
@@ -30,6 +31,7 @@ export default function Header({ children }: PropsWithChildren) {
 
   const [isSigninOpen, setIsSigninOpen] = useState(false);
   const [isCreateAccountOpen, setIsCreateAccountOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
 
@@ -100,12 +102,28 @@ export default function Header({ children }: PropsWithChildren) {
               >
                 {generalData?.settings.create_account_button}
               </ButtonLink>
-              <ButtonLink
-                className="flex items-center justify-center  mx-auto text-app-red text-center bg-white py-0.5 sm:py-1 px-2 sm:px-4 rounded-full font-bold text-[9px] sm:text-[11px] md:text-xs border-2 border-app-red transition-all duration-200 hover:bg-app-red hover:text-white whitespace-nowrap truncate"
+              <div className="flex items-center justify-center cursor-pointer"
                 onClick={() => setIsSigninOpen(true)}
               >
-                {generalData?.settings.login_button}
-              </ButtonLink>
+                <Image
+                  src={'/login-icon.svg'}
+                  alt="Login Button"
+                  width={18}
+                  height={18}
+                  objectFit="contain"
+                />
+              </div>
+              <div className="flex items-center justify-center cursor-pointer"
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+              >
+                <Image
+                  src={'/search-icon.svg'}
+                  alt="Search Button"
+                  width={25}
+                  height={25}
+                  objectFit="contain"
+                />
+              </div>
             </>
           )}
         </div>
@@ -126,6 +144,7 @@ export default function Header({ children }: PropsWithChildren) {
 
       <SigninModal isOpen={isSigninOpen} setIsOpen={setIsSigninOpen} setCreateAccountOpen={setIsCreateAccountOpen} />
       <CreateAccountModal isOpen={isCreateAccountOpen} setIsOpen={setIsCreateAccountOpen} />
+      {isSearchOpen && <SearchModal isOpen={isSearchOpen} setIsOpen={setIsSearchOpen} />}
 
       {children}
 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import NavigationMenu from "./navigation-menu";
 import ButtonLink from "./button-link";
 import LanguageThemeSwitcher from "../general/language-theme-switcher";
@@ -8,6 +8,8 @@ import ProfileIcon from "@/assets/icons/profile.icon";
 import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/router";
+import Image from "next/image";
+import { SearchIcon } from "@/assets/icons/search.icon";
 
 interface MobileMenuProps {
     isMobileMenuOpen: boolean;
@@ -35,7 +37,17 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
 
     const { logout } = useAuth();
     const router = useRouter();
+    const [mobileSearch, setMobileSearch] = useState("");
 
+    // Handle search submit
+    const handleMobileSearch = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (mobileSearch.trim()) {
+            setIsMobileMenuOpen(false);
+            router.push(`/search?name=${encodeURIComponent(mobileSearch)}`);
+            setMobileSearch("");
+        }
+    };
 
     return (
         <>
@@ -79,6 +91,25 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                     </div>
                 )
                 }
+
+                {/* Search */}
+                <form className="flex items-center justify-center w-full" onSubmit={handleMobileSearch}>
+                    <input
+                        type="text"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-app-red text-sm"
+                        placeholder={`${router.locale === 'ar' ? 'ابحث عن منتجات...' : 'Search products...'}`}
+                        value={mobileSearch}
+                        onChange={e => setMobileSearch(e.target.value)}
+                    />
+                    <button
+                        type="submit"
+                        className="ms-2 px-3 py-2 bg-app-red text-white rounded hover:bg-app-red/90 text-xs"
+                        aria-label="Search"
+                    >
+                        <SearchIcon className="w-4 h-4 text-white" />
+                    </button>
+                </form>
+
                 {/* Navigation Menu */}
                 <NavigationMenu isMobile={true} className="flex-col gap-2" />
                 {
