@@ -8,7 +8,7 @@ type Props = {
 
 export default function Category({ category }: Props) {
   // Slugify the category title for the URL
-  const slug = category.title.toLowerCase().replace(/\s+/g, '-');
+  const slug = category.slug;
   return (
     <Card
       id={String(category.id)}

@@ -34,6 +34,14 @@ export type ProductType = {
     full_path: {
         image: string;
     };
+    subcategory: {
+        slug: string;
+        title: string;
+        category: {
+            slug: string;
+            title: string;
+        }
+    }
 };
 
 export type HomepageDataType = {

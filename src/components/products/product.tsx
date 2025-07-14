@@ -8,7 +8,7 @@ type Props = {
 };
 
 export default function Product({ product }: Props) {
-  const href = `/products/${product.slug}`;
+  const href = `/categories/${product.subcategory.category.slug}/${product.subcategory.slug}/${product.slug}`;
 
   return (
     <Card
