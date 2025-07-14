@@ -1,112 +1,116 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useQuery } from '@tanstack/react-query';
-import { getCategories } from '@/services/categories.service';
 import BackButton from '@/components/ui/back-button';
 import Breadcrumb from '@/components/ui/breadcrumb';
 import PageLayout from '@/components/ui/page-layout';
 import Card from '@/components/ui/card';
 import Image from 'next/image';
+import { useGlobalContext } from '@/context/GlobalContext';
+import { fetchProductDetails } from '@/services/api.service';
+
+interface ProductVariation {
+  id: number;
+  name: string;
+  description: string;
+  full_path: {
+    image: string;
+  }
+  price: number;
+  wholesale_price: number | null;
+  product_id: number;
+  is_active: number;
+  quantity: number | null;
+}
 
 interface Product {
-  id: string;
+  id: number;
   name: string;
-  image: string;
+  description: string;
+  slug: string;
+  full_path: {
+    image: string;
+  }
+  related_products: Product[];
+}
+
+// Type for the selected amount/variation
+interface SelectedAmount {
+  id: number;
+  amount: string;
   price: number;
+  image: string;
   description: string;
 }
 
-// This would typically come from your API
-const getProduct = (category: string, subcategory: string, productId: string): Product | null => {
-  const products: Record<string, Record<string, Product[]>> = {
-    GAMING: {
-      'Pubg': [
-        {
-          id: 'pubg-mobile',
-          name: 'PUBG Mobile',
-          image: '/pubg-mobile.png',
-          price: 0.00,
-          description: 'PUBG Mobile Game'
-        },
-        {
-          id: 'pubg-mobile-code',
-          name: 'PUBG Mobile Code',
-          image: '/pubg-mobile-code.png',
-          price: 0.00,
-          description: 'PUBG Mobile Game Code'
-        },
-        {
-          id: 'pubg-lite',
-          name: 'PUBG Lite',
-          image: '/pubg-lite.png',
-          price: 0.00,
-          description: 'PUBG Lite Game'
-        },
-        {
-          id: 'pubg-turkey',
-          name: 'PUBG Turkey',
-          image: '/pubg-turkey.png',
-          price: 0.00,
-          description: 'PUBG Turkey Version'
-        }
-      ],
-      'Free Fire': [
-        {
-          id: 'ff-diamonds-100',
-          name: 'Free Fire Diamonds 100',
-          image: '/freefire-image.png',
-          price: 0.99,
-          description: '100 Diamonds for Free Fire'
-        }
-      ]
-    },
-    STREAMING: {
-      'NETFLIX': [
-        {
-          id: 'netflix-basic',
-          name: 'Netflix Basic Plan',
-          image: '/netflix-image.png',
-          price: 8.99,
-          description: 'Netflix Basic Plan - Standard Definition'
-        }
-      ],
-      'DISNEY+': [
-        {
-          id: 'disney-plus',
-          name: 'Disney+ Subscription',
-          image: '/disney-image.png',
-          price: 7.99,
-          description: 'Disney+ Monthly Subscription'
-        }
-      ]
-    }
-  };
-
-  return products[category]?.[subcategory]?.find(p => p.id === productId) || null;
-};
-
 const ProductPage: React.FC = () => {
+
   const router = useRouter();
-  const { category: categorySlug, subcategory: subcategorySlug, productId } = router.query;
+  const { category: categorySlug, subcategory: subcategorySlug, productId: productSlug } = router.query;
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { generalData } = useGlobalContext();
+  const [productVariations, setProductVariations] = useState<ProductVariation[]>([]);
+  const [currentCategory, setCurrentCategory] = useState<string>('');
+  const [currentSubcategory, setCurrentSubcategory] = useState<string>('');
+  const [product, setProduct] = useState<Product>();
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [selectedAmount, setSelectedAmount] = useState<SelectedAmount | null>(null);
+
+  // Convert product variations to amounts format
+  const amounts: SelectedAmount[] = productVariations.map((variation, index) => ({
+    id: variation.id || index,
+    amount: variation.name,
+    price: variation.price,
+    image: variation.full_path?.image || '',
+    description: variation.description
+  }));
+
+  useEffect(() => {
+    if (!router.locale || !categorySlug) return;
+    setIsLoading(true);
+    setError(null);
+    fetchProductDetails(router.locale, categorySlug as string, subcategorySlug as string, productSlug as string)
+      .then((data) => {
+        if (data && typeof data === 'object') {
+          setProductVariations(data.product_variations || []);
+          setProduct(data.product || {});
+          setRelatedProducts(data.product.related_products || []);
+          setCurrentCategory(data.category || '');
+          setCurrentSubcategory(data.subcategory || '');
+        }
+        else {
+          console.error('Products data is invalid:', data);
+          setProductVariations([]);
+          setRelatedProducts([]);
+          setCurrentCategory('');
+          setCurrentSubcategory('');
+          setError('Invalid data format received');
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching Products:', error);
+        setProductVariations([]);
+        setRelatedProducts([]);
+        setCurrentCategory('');
+        setCurrentSubcategory('');
+        setError('Failed to load Products');
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, [router.locale, categorySlug, subcategorySlug, productSlug]);
+
+
+  // Set initial selected amount when variations are loaded
+  useEffect(() => {
+    if (amounts.length > 0 && !selectedAmount) {
+      setSelectedAmount(amounts[0]);
+    }
+  }, [amounts, selectedAmount]);
+
   const [quantity, setQuantity] = useState(1);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Simulate available amounts (should come from backend in real app)
-  const amounts = [
-    { id: 1, amount: "100 UC", price: 1, image: '/pubg-uc.png' },
-    { id: 2, amount: "325 UC", price: 5, image: '/pubg-uc.png' },
-    { id: 3, amount: "660 UC", price: 10, image: '/pubg-uc.png' },
-    { id: 4, amount: "1800 UC", price: 25, image: '/pubg-uc.png' },
-    { id: 5, amount: "3850 UC", price: 48, image: '/pubg-uc.png' },
-    { id: 6, amount: "8100 UC", price: 92, image: '/pubg-uc.png' },
-  ];
-  const [selectedAmount, setSelectedAmount] = useState(amounts[0]);
-
-  const { data: categories, isLoading: isLoadingCategories } = useQuery({
-    queryKey: ['categories'],
-    queryFn: getCategories
-  });
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -118,37 +122,41 @@ const ProductPage: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  if (isLoadingCategories) {
-    return <div>Loading...</div>;
-  }
-
-  if (!categorySlug || !subcategorySlug || !productId || !categories) {
-    return null;
-  }
-
-  const categoryTitle = (categorySlug as string).toUpperCase();
-  const subcategoryTitle = (subcategorySlug as string)
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-
-  const currentCategory = categories.find(c => c.title === categoryTitle);
-  if (!currentCategory) {
-    return <div>Category not found</div>;
-  }
-
-  const product = getProduct(categoryTitle, subcategoryTitle, productId as string);
-  if (!product) {
-    return <div>Product not found</div>;
-  }
-
   const breadcrumbItems = [
     { label: 'Homepage', href: '/' },
     { label: 'Categories', href: '/categories' },
-    { label: currentCategory.title, href: `/categories/${categorySlug}` },
-    { label: subcategoryTitle, href: `/categories/${categorySlug}/${subcategorySlug}` },
-    { label: product.name }
+    { label: currentCategory, href: `/categories/${categorySlug}` },
+    { label: currentSubcategory, href: `/categories/${categorySlug}/${subcategorySlug}` },
+    { label: product?.name || '' }
   ];
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <PageLayout className="flex flex-col min-h-screen px-0 md:px-0 py-0 bg-white">
+        <div className="w-full px-4 md:px-12 pt-6 pb-2">
+          <Breadcrumb items={breadcrumbItems} />
+        </div>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Loading...</div>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  // Show error state
+  if (error || !selectedAmount) {
+    return (
+      <PageLayout className="flex flex-col min-h-screen px-0 md:px-0 py-0 bg-white">
+        <div className="w-full px-4 md:px-12 pt-6 pb-2">
+          <Breadcrumb items={breadcrumbItems} />
+        </div>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-red-600">{error || 'Product not found'}</div>
+        </div>
+      </PageLayout>
+    );
+  }
 
   const total = selectedAmount.price * quantity;
 
@@ -185,7 +193,7 @@ const ProductPage: React.FC = () => {
         {/* Product Details */}
         <div className="w-full max-w-[400px] mx-auto flex flex-col gap-4 col-span-1">
           <h1 className="text-[32px] font-bold text-app-red leading-tight">{selectedAmount.amount}</h1>
-          <p className="text-gray-700 text-[15px] mb-2 dark:text-white">{product.description}</p>
+          <p className="text-gray-700 text-[15px] mb-2 dark:text-white">{product?.description || selectedAmount.description}</p>
 
           {/* Amount Select */}
           <div className="mb-2">
@@ -212,14 +220,14 @@ const ProductPage: React.FC = () => {
               </button>
               {dropdownOpen && (
                 <div className="absolute left-0 right-0 mt-2 z-20 bg-white border border-app-red rounded-[12px] py-2 flex flex-col" style={{ padding: '8px 0' }}>
-                  {amounts.map(a => (
+                  {amounts.map((amount: SelectedAmount) => (
                     <button
-                      key={a.id}
+                      key={amount.id}
                       type="button"
-                      className={`text-left px-4 py-2 text-[16px] font-roboto font-normal uppercase ${a.id === selectedAmount.id ? 'bg-app-red/10 text-black font-bold' : 'text-black'} hover:bg-app-red/20 transition-all rounded-[8px]`}
-                      onClick={() => { setSelectedAmount(a); setDropdownOpen(false); }}
+                      className={`text-left px-4 py-2 text-[16px] font-roboto font-normal uppercase ${amount.id === selectedAmount.id ? 'bg-app-red/10 text-black font-bold' : 'text-black'} hover:bg-app-red/20 transition-all rounded-[8px]`}
+                      onClick={() => { setSelectedAmount(amount); setDropdownOpen(false); }}
                     >
-                      {a.amount}
+                      {amount.amount}
                     </button>
                   ))}
                 </div>
@@ -259,19 +267,18 @@ const ProductPage: React.FC = () => {
       </div>
 
       {/* Related Products */}
-      <div className="w-full px-0 pb-12">
-        <h2 className="text-app-red text-[20px] font-bold mb-4 mt-2 px-4">RELATED PRODUCTS</h2>
+      <div className="w-full px-4 md:px-12 pt-6 pb-2">
+        <h2 className="text-app-red text-[20px] font-bold mb-4 mt-2">RELATED PRODUCTS</h2>
         <div className="grid grid-cols-4 gap-2">
-          {related.map((prod) => (
-            <div key={prod.id} className="flex flex-col items-center">
-              <Card
-                id={prod.id.toString()}
-                title={prod.amount}
-                image={prod.image}
-                type="product"
-                href="#"
-              />
-            </div>
+          {relatedProducts.map((prod: Product, index: number) => (
+            <Card
+              key={index}
+              id={prod.id.toString()}
+              title={prod.name}
+              image={prod.full_path.image}
+              type="product"
+              href={`/categories/${categorySlug}/${subcategorySlug}/${prod.slug}`}
+            />
           ))}
         </div>
       </div>

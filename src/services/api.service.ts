@@ -66,6 +66,15 @@ export const fetchContactUsData = async (locale: string) => {
     }
 };
 
+export const fetchProductDetails = async (locale: string, category: string, subcategory: string, slug: string) => {
+    try {
+        const { data } = await api.get(`/${locale}/categories/${category}/${subcategory}/${slug}`);
+        return data;
+    } catch (error) {
+        console.warn('API call failed, using fallback product details:', error);
+    }
+};
+
 export const submitContactForm = async (formData: {
     name: string;
     email: string;
