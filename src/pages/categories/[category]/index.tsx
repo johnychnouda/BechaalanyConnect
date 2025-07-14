@@ -7,6 +7,7 @@ import Card from "@/components/ui/card";
 import Error from "next/error";
 import { useGlobalContext } from "@/context/GlobalContext";
 import { fetchSubCategoriesData } from "@/services/api.service";
+import CardSkeleton from "@/components/ui/card-skeleton";
 
 interface SubCategory {
   id: number;
@@ -68,9 +69,9 @@ export default function CategoryPage() {
       });
   }, [router.locale, category]);
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  // if (isLoading) {
+  //   return <div>Loading...</div>;
+  // }
 
   // If no category or categories, show 404
   if (!category || !category.length) {
@@ -88,14 +89,18 @@ export default function CategoryPage() {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      {!isLoading && <Breadcrumb items={breadcrumbItems} />}
+      <Breadcrumb items={breadcrumbItems} />
       <BackButton href="/categories" className="mb-4" label={generalData?.settings.back_button_label || ''} />
       {isLoading ? (
-        <div>Loading...</div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-8">
+          {[...Array(4)].map((_, i) => (
+            <CardSkeleton key={i} />
+          ))}
+        </div>
       ) : hasContent ? (
         <div>
           <h1 className="text-2xl font-bold mb-6 dark:text-[#E73828]">{currentCategory}</h1>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {subCategories.map((subCategory) => (
               <SubCategoryCard
                 key={subCategory.id}

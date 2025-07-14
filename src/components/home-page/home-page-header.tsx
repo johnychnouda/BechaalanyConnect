@@ -51,6 +51,8 @@ export default function HomePageHeader({ bannerSwiper, homepageSettings }:
                   className="object-cover object-center"
                   priority={true}
                 />
+                {/* add a overlay to the image */}
+                <div className="absolute inset-0 bg-gradient-to-b from-slate-200 to-black opacity-50"></div>
               </div>
             </section>
           </SwiperSlide>

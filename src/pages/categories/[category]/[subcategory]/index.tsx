@@ -6,6 +6,7 @@ import Breadcrumb from '@/components/ui/breadcrumb';
 import Card from '@/components/ui/card';
 import { fetchProductsData } from '@/services/api.service';
 import { useGlobalContext } from '@/context/GlobalContext';
+import CardSkeleton from '@/components/ui/card-skeleton';
 
 interface Product {
   id: string;
@@ -76,33 +77,39 @@ const SubCategoryPage: React.FC = () => {
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
       <div className="px-2 sm:px-0">
-        {
-          !isLoading && <Breadcrumb items={breadcrumbItems} />
-        }
+        <Breadcrumb items={breadcrumbItems} />
         <BackButton href={`/categories/${categorySlug}`} className="mb-2 sm:mb-4" label={generalData?.settings.back_button_label || ''} />
       </div>
 
       {
         !isLoading && <h1 className="text-[clamp(20px,5vw,32px)] font-bold text-gray-900 mt-4 sm:mt-8 mb-4 px-2 sm:px-0">{currentSubcategory}</h1>
       }
-
-      {products.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 mt-4 sm:mt-8">
-          {products.map((product) => (
-            <Card
-              key={product.id}
-              id={product.id}
-              title={product.name}
-              image={product.full_path.image}
-              price={product.price}
-              type="product"
-              href={`/categories/${categorySlug}/${subcategorySlug}/${product.slug}`}
-            />
+      {isLoading ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-8">
+          {[...Array(4)].map((_, i) => (
+            <CardSkeleton key={i} />
           ))}
         </div>
       ) : (
-        <ComingSoon />
+        products.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 mt-4 sm:mt-8">
+            {products.map((product) => (
+              <Card
+                key={product.id}
+                id={product.id}
+                title={product.name}
+                image={product.full_path.image}
+                type="product"
+                href={`/categories/${categorySlug}/${subcategorySlug}/${product.slug}`}
+              />
+            ))}
+          </div>
+        ) : (
+          <ComingSoon />
+        )
       )}
+
+
     </div>
   );
 };

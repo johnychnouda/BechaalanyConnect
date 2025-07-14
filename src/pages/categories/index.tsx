@@ -6,6 +6,8 @@ import { useGlobalContext } from '@/context/GlobalContext';
 import { useRouter } from 'next/router';
 import { fetchCategoriesData } from '@/services/api.service';
 import { Category } from '@/types/category.type';
+import PageLoader from '@/components/ui/PageLoader';
+import CardSkeleton from '@/components/ui/card-skeleton';
 
 const CategoryCard: React.FC<{ category: Category }> = ({ category }) => {
   return (
@@ -71,12 +73,10 @@ const CategoriesPage = () => {
 
       {/* Categories Grid */}
       {isLoading ? (
-        <div className="flex justify-center items-center py-8">
-          <div className="text-lg">
-            {
-              router.locale === 'ar' ? 'جاري تحميل الفئات...' : 'Loading categories...'
-            }
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-8">
+          {[...Array(4)].map((_, i) => (
+            <CardSkeleton key={i} />
+          ))}
         </div>
       ) : error ? (
         <div className="flex justify-center items-center py-8">
