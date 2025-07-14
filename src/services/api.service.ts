@@ -1,4 +1,4 @@
-import api from '../utils/axiosConfig';
+import api from '../utils/api';
 import { getCategories } from './categories.service';
 
 export const fetchGeneralData = async (locale: string) => {

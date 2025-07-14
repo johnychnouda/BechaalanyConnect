@@ -1,14 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Modal from "@/components/ui/modal";
-import VerifyEmailModal from "@/components/ui/verify-email-modal";
-import PendingApprovalModal from "@/components/ui/pending-approval-modal";
 import { useAuth } from "@/context/AuthContext";
 import GoogleButton from "@/components/ui/google-button";
 import Link from "next/link";
-import { useRouter } from "next/router";
-import api from "@/utils/axiosConfig";
 import { useForm } from "react-hook-form";
-import { signIn, useSession } from "next-auth/react";
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
@@ -49,88 +44,53 @@ export type SigninModalProps = {
 };
 
 export default function SigninModal({ isOpen, setIsOpen, setCreateAccountOpen }: SigninModalProps) {
-  const router = useRouter();
-  const { data: session, status } = useSession();
-  const { login, isAuthenticated } = useAuth();
-
+  const { login, loginWithGoogle, loading } = useAuth();
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [showVerify, setShowVerify] = useState(false);
-  const [showPending, setShowPending] = useState(false);
-  const [verifyError, setVerifyError] = useState("");
-  const [verifyLoading, setVerifyLoading] = useState(false);
-
-  // Handle NextAuth session changes
-  useEffect(() => {
-    if (
-      status === "authenticated" &&
-      session?.laravelToken &&
-      session?.laravelUser &&
-      !isAuthenticated
-    ) {
-      login(session.laravelToken, session.laravelUser);
-      setIsOpen(false);
-      router.push("/");
-    }
-    // Do nothing if status is "unauthenticated" or "loading"
-  }, [session, status, login, setIsOpen, router, isAuthenticated]);
 
   const {
     register,
     handleSubmit,
-    setError: setFormError,
     formState: { errors },
   } = useForm();
 
   const validateEmail = (value: string) => {
-    // Simple email regex
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   };
 
   const validatePhone = (value: string) => {
-    // Simple phone regex (Lebanon +961 or other country codes)
     return /^\+?\d{7,15}$/.test(value.replace(/\s/g, ""));
   };
 
   const validatePassword = (value: string) => {
-    // At least 8 chars, one uppercase, one lowercase, one number, one special char
-    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/.test(
-      value
-    );
+    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/.test(value);
   };
 
   const onSubmit = async (data: any) => {
     setError("");
     setSuccess(false);
-    setLoading(true);
     try {
-      const response = await api.post(`/login`, {
-        email: data.emailOrPhone,
-        password: data.password,
-      });
-      const { token, user } = response.data;
-      login(token, user);
+      // Use the login function from AuthContext that uses NextAuth
+      await login(data.email, data.password);
+      setSuccess(true);
       setIsOpen(false);
-      router.push("/");
-    } catch (err: any) {
-      setLoading(false);
-      if (err.response) {
-        const apiError = err.response.data?.error || "Login failed. Please try again.";
-        setError(apiError);
-      } else {
-        setError("Network error. Please try again.");
-      }
-      return;
+    } catch (err: Error | unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Login failed. Please try again.";
+      setError(errorMessage);
     }
-    setLoading(false);
   };
 
-  const handleLoginWithGoogle = () => {
-    signIn("google");
+  const handleLoginWithGoogle = async () => {
+    setError("");
+    try {
+      // Use loginWithGoogle from AuthContext that uses NextAuth
+      await loginWithGoogle();
+    } catch (err: Error | unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Google login failed. Please try again.";
+      setError(errorMessage);
+    }
   };
-
 
   return (
     <>
@@ -160,19 +120,19 @@ export default function SigninModal({ isOpen, setIsOpen, setCreateAccountOpen }:
           <form className="w-full flex flex-col gap-3 sm:gap-4" onSubmit={handleSubmit(onSubmit)}>
             <input
               type="text"
-              {...register("emailOrPhone", {
-                required: "Email or phone is required.",
+              {...register("email", {
+                required: "Email is required.",
                 validate: value =>
-                  validateEmail(value) || validatePhone(value) || "Please enter a valid email or phone number.",
+                  validateEmail(value) || "Please enter a valid email .",
               })}
               placeholder="Email"
               required
               className="w-full border border-[#E73828] rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
               autoComplete="username"
             />
-            {errors.emailOrPhone && (
+            {errors.email && (
               <div className="w-full mb-2 text-center text-red-600 text-xs sm:text-sm font-semibold">
-                {errors.emailOrPhone.message as string}
+                {errors.email.message as string}
               </div>
             )}
             <div className="relative w-full">
@@ -252,22 +212,6 @@ export default function SigninModal({ isOpen, setIsOpen, setCreateAccountOpen }:
 
         </div>
       </Modal>
-      {/* <VerifyEmailModal
-        isOpen={showVerify}
-        onClose={() => setShowVerify(false)}
-        onVerify={handleVerify}
-        loading={verifyLoading}
-        error={verifyError}
-        onResend={() => alert("Resend code logic here")}
-      />
-      <PendingApprovalModal
-        isOpen={showPending}
-        onClose={() => {
-          setShowPending(false);
-
-          router.push("/");
-        }}
-      /> */}
     </>
   );
 }

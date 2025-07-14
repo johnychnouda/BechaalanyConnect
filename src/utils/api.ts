@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { getSession } from 'next-auth/react';
 
 // Create axios instance with default config
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL,
+    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
@@ -11,11 +12,11 @@ const api = axios.create({
 
 // Add request interceptor
 api.interceptors.request.use(
-    (config) => {
-        // Get token from localStorage or your auth state management
-        const token = localStorage.getItem('token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+    async (config) => {
+        // Get token from NextAuth session
+        const session = await getSession();
+        if (session?.laravelToken) {
+            config.headers.Authorization = `Bearer ${session.laravelToken}`;
         }
         return config;
     },
@@ -46,9 +47,8 @@ api.interceptors.response.use(
                     break;
                 case 401:
                     console.error('Unauthorized:', data);
-                    // Handle authentication errors
-                    localStorage.removeItem('token');
-                    window.location.href = '/auth/login';
+                    // Handle authentication errors via NextAuth signOut
+                    // This will be handled by NextAuth automatically
                     return Promise.reject({
                         type: 'auth',
                         message: 'Session expired. Please login again.'
@@ -95,17 +95,5 @@ api.interceptors.response.use(
         }
     }
 );
-
-// API function to fetch general settings
-export const fetchGeneralSettings = async (locale: string) => {
-    const response = await api.get(`/${locale}/general`);
-    return response.data;
-};
-
-// API function to fetch homepage data
-export const fetchHomepageData = async (locale: string) => {
-    const response = await api.get(`/${locale}/home`);
-    return response.data;
-};
 
 export default api;

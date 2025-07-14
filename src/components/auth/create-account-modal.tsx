@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import CustomDropdown from "@/components/ui/custom-dropdown";
 import GoogleButton from "@/components/ui/google-button";
 import Modal from "@/components/ui/modal";
@@ -6,10 +6,9 @@ import VerifyEmailModal from "@/components/ui/verify-email-modal";
 import PendingApprovalModal from "@/components/ui/pending-approval-modal";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import api from "@/utils/axiosConfig";
 import { useAuth } from "@/context/AuthContext";
 import { useForm, FieldErrors } from "react-hook-form";
-import { signIn } from "next-auth/react";
+import { authService } from "@/services/auth.service";
 
 const COUNTRIES = [
   "LEBANON",
@@ -73,103 +72,67 @@ export default function CreateAccountModal({
   setIsOpen,
 }: CreateAccountModalProps) {
   const router = useRouter();
-  const { login } = useAuth();
-
-  type FormValues = {
-    email: string;
-    phone: string;
-    username: string;
-    country: string;
-    userType: string;
-    storeName: string;
-    location: string;
-    password: string;
-    confirmPassword: string;
-    isBusiness: boolean;
-  };
+  const { login, loginWithGoogle, loading } = useAuth();
+  const [error, setError] = useState("");
+  const [showVerify, setShowVerify] = useState(false);
+  const [showPending, setShowPending] = useState(false);
+  const [verifyEmail, setVerifyEmail] = useState("");
+  const [verifyToken, setVerifyToken] = useState("");
+  const [verifyError, setVerifyError] = useState("");
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [success, setSuccess] = useState("");
+  const [regPassword, setRegPassword] = useState(""); // Store password for auto-login
 
   const {
     register,
     handleSubmit,
-    watch,
-    setValue,
-    formState: { errors },
     reset,
-  } = useForm<FormValues>({
-    defaultValues: {
-      email: "",
-      phone: "",
-      username: "",
-      country: "",
-      userType: "",
-      storeName: "",
-      location: "",
-      password: "",
-      confirmPassword: "",
-      isBusiness: false,
-    },
-  });
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm();
 
-  const [showPassword, setShowPassword] = React.useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
-  const [error, setError] = React.useState("");
-  const [success, setSuccessMessage] = React.useState("");
-  const [showVerify, setShowVerify] = React.useState(false);
-  const [showPending, setShowPending] = React.useState(false);
-  const [verifyError, setVerifyError] = React.useState("");
-  const [verifyLoading, setVerifyLoading] = React.useState(false);
-  const [verifyEmail, setVerifyEmail] = React.useState("");
-  const [verifyToken, setVerifyToken] = React.useState("");
-
-  const isBusiness = watch("isBusiness");
-  const country = watch("country");
-  const password = watch("password");
-
-  const phonePrefix = country
-    ? COUNTRY_PHONE_FORMATS[country as keyof typeof COUNTRY_PHONE_FORMATS]?.code
-    : "+";
+  const country = watch("country") as keyof typeof COUNTRY_PHONE_FORMATS;
+  const phonePrefix = country ? COUNTRY_PHONE_FORMATS[country]?.code : "+";
 
   const validatePhone = (phone: string) => {
-    const countryFormat =
-      COUNTRY_PHONE_FORMATS[country as keyof typeof COUNTRY_PHONE_FORMATS];
+    const countryFormat = COUNTRY_PHONE_FORMATS[country];
     const fullPhoneNumber = `${countryFormat?.code}${phone}`;
     if (!countryFormat) return false;
     return countryFormat.regex.test(fullPhoneNumber);
   };
 
   const validatePassword = (password: string) => {
-    return /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/.test(
-      password
-    );
+    return /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/.test(password);
   };
 
-  const onSubmit = async (data: FormValues) => {
+  const onSubmit = async (data: any) => {
     setError("");
+    setSuccess("");
     try {
-      const response = await api.post(`/register`, {
-        username: data.username, // Adjust if you have separate first/last name
+      // Use auth service for registration
+      const response = await authService.register({
         email: data.email,
-        password: data.password,
-        password_confirmation: data.confirmPassword,
         phone: data.phone,
+        username: data.username,
         country: data.country,
-        // user_type: data.userType,
-        // store_name: data.storeName,
-        // store_location: data.location,
-        // is_business: data.isBusiness,
-        // Add any other required fields here
+        userType: data.userType || 'Reseller',
+        storeName: data.storeName,
+        location: data.location,
+        password: data.password,
+        confirmPassword: data.confirmPassword,
+        isBusiness: data.isBusiness || false,
       });
       setIsOpen(false);
       setShowVerify(true);
       setVerifyEmail(data.email);
-      setVerifyToken(response.data?.verification_token || "");
+      setVerifyToken(response.verification_token || "");
+      setRegPassword(data.password); // Store password for auto-login
       reset();
     } catch (err: any) {
-      if (err.response) {
-        setError(err.response.data?.message || "Registration failed. Please try again.");
-      } else {
-        setError("Network error. Please try again.");
-      }
+      setError(err.message || "Registration failed. Please try again.");
     }
   };
 
@@ -177,42 +140,50 @@ export default function CreateAccountModal({
     setVerifyLoading(true);
     setVerifyError("");
     try {
-      await api.post(`/verify-email`, {
-        email: verifyEmail,
-        token: verifyToken,
-        code,
-      });
+      await authService.verifyEmail(code, verifyEmail, verifyToken);
       setShowVerify(false);
       setShowPending(true);
+      // Auto-login after successful verification
+      if (regPassword) {
+        try {
+          await login(verifyEmail, regPassword);
+          setSuccess("Account verified and logged in successfully!");
+        } catch (loginErr: any) {
+          console.error("Auto-login failed:", loginErr);
+          // Don't show error to user since verification was successful
+          setSuccess("Account verified successfully! Please log in.");
+        }
+      }
     } catch (err: any) {
       setVerifyLoading(false);
-      if (err.response) {
-        setVerifyError(err.response.data?.error || "Invalid verification code. Please try again.");
-      } else {
-        setVerifyError("Network error. Please try again.");
-      }
+      setVerifyError(err.message || "Invalid verification code. Please try again.");
       return;
     }
     setVerifyLoading(false);
   };
 
-  const handleGoogleSignup = () => {
-    signIn("google");
+  const handleGoogleSignup = async () => {
+    setError("");
+    try {
+      await loginWithGoogle();
+    } catch (err: any) {
+      setError(err.message || "Google signup failed. Please try again.");
+    }
   };
 
   const ResendCode = async () => {
     try {
-      const response = await api.post(`/resend-verification-code`, {
-        email: verifyEmail,
-      });
-      setVerifyError(""); // Clear the verification error
-      setSuccessMessage(response.data?.message || "Verification code resent successfully.");
-      setTimeout(() => setSuccessMessage(""), 4000); // Optionally clear after 4s
+      await authService.resendVerificationCode(verifyEmail);
+      setVerifyError("");
+      setSuccess("Verification code resent successfully.");
+      setTimeout(() => setSuccess(""), 4000);
     } catch (err: any) {
-      setVerifyError(err.response?.data?.error || "Network error. Please try again.");
-      setSuccessMessage("");
+      setVerifyError(err.message || "Network error. Please try again.");
+      setSuccess("");
     }
   };
+
+  const isBusiness = watch("isBusiness");
 
   return (
     <>
@@ -325,7 +296,7 @@ export default function CreateAccountModal({
                 placeholder="Confirm Password"
                 {...register("confirmPassword", {
                   required: "Please confirm your password",
-                  validate: (val: string) => val === password || "Passwords do not match.",
+                  validate: (val: string) => val === watch("password") || "Passwords do not match.",
                 })}
                 className="w-full border border-[#E73828] rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
               />
@@ -412,13 +383,13 @@ export default function CreateAccountModal({
         success={success}
         onResend={ResendCode}
       />
-      <PendingApprovalModal
+      {/* <PendingApprovalModal
         isOpen={showPending}
         onClose={() => {
           setShowPending(false);
           router.push("/");
         }}
-      />
+      /> */}
     </>
   );
 }

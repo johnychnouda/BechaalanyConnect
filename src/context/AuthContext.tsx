@@ -1,15 +1,15 @@
 "use client";
 
-import axios from 'axios';
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { signOut } from "next-auth/react";
+import React, { createContext, useContext, useState } from 'react';
+import { useSession, signOut, signIn } from "next-auth/react";
 
 interface UserType {
-  id: number;
+  id: string;
   name: string;
   email: string;
   role: string;
-  [key: string]: any;
+  // Using a more specific type instead of any
+  [key: string]: string | number | boolean | undefined;
 }
 
 interface AuthContextType {
@@ -17,50 +17,80 @@ interface AuthContextType {
   user: UserType | null;
   token: string | null;
   isAdmin: boolean;
-  login: (token: string, user: UserType) => void;
-  logout: () => void;
-  setUser: React.Dispatch<React.SetStateAction<UserType | null>>;
-  setToken: React.Dispatch<React.SetStateAction<string | null>>;
+  login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  logout: () => Promise<void>;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [user, setUser] = useState<UserType | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const { data: session, status } = useSession();
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const storedToken = localStorage.getItem('auth-token');
-    const storedUser = localStorage.getItem('auth-user');
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-      setIsAuthenticated(true);
+  // Derive authentication state from NextAuth session only
+  const isAuthenticated = status === "authenticated" && !!session;
+  const user = session?.user ? {
+    id: session.user.id,
+    name: session.user.name || '',
+    email: session.user.email || '',
+    role: session.user.role || 'user',
+  } : null;
+  const token = session?.laravelToken || null;
+  const isAdmin = user?.role === 'admin';
+
+  const login = async (email: string, password: string) => {
+    setLoading(true);
+    try {
+      // Using NextAuth credentials provider for login
+      const result = await signIn("credentials", {
+        email: email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      throw error;
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  };
 
-  const login = (token: string, user: UserType) => {
-    localStorage.setItem('auth-token', token);
-    localStorage.setItem('auth-user', JSON.stringify(user));
-    setToken(token);
-    setUser(user);
-    setIsAuthenticated(true);
+  const loginWithGoogle = async () => {
+    setLoading(true);
+    try {
+      await signIn("google", { callbackUrl: "/" });
+    } catch (error) {
+      setLoading(false);
+      throw error;
+    }
   };
 
   const logout = async () => {
-    localStorage.removeItem('auth-token');
-    localStorage.removeItem('auth-user');
-    setToken(null);
-    setUser(null);
-    setIsAuthenticated(false);
-    signOut({ callbackUrl: "/" }); // Also sign out from NextAuth and redirect home
+    setLoading(true);
+    try {
+      await signOut({ callbackUrl: "/" });
+    } catch (error) {
+      setLoading(false);
+      throw error;
+    }
   };
 
-  const isAdmin = user?.role === 'admin';
-
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, token, isAdmin, login, logout, setUser, setToken }}>
+    <AuthContext.Provider value={{ 
+      isAuthenticated, 
+      user, 
+      token, 
+      isAdmin, 
+      login, 
+      loginWithGoogle, 
+      logout, 
+      loading 
+    }}>
       {children}
     </AuthContext.Provider>
   );

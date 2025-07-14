@@ -1,8 +1,9 @@
 import api from '@/utils/api';
 import { AxiosError } from 'axios';
+import { signIn, signOut, getSession } from 'next-auth/react';
 
 export interface LoginCredentials {
-  emailOrPhone: string;
+  email: string;
   password: string;
 }
 
@@ -29,6 +30,11 @@ export interface AuthResponse {
   };
 }
 
+export interface RegisterResponse {
+  message: string;
+  verification_token: string;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -38,8 +44,6 @@ export interface User {
 
 class AuthService {
   private static instance: AuthService;
-  private tokenKey = 'token';
-  private userKey = 'user';
 
   private constructor() {}
 
@@ -52,35 +56,73 @@ class AuthService {
 
   public async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      const response = await api.post<AuthResponse>('/auth/login', credentials);
-      this.setAuthData(response.data);
+      // Use NextAuth signIn for login
+      const result = await signIn('credentials', {
+        email: credentials.email,
+        password: credentials.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+      
+      // Get the session to return user and token info
+      const session = await getSession();
+      if (!session) {
+        throw new Error('Failed to get session after login');
+      }
+      
+      return {
+        token: session.laravelToken as string,
+        user: {
+          id: session.user.id,
+          email: session.user.email,
+          username: session.user.name,
+          role: session.user.role,
+        }
+      };
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  public async register(data: RegisterData): Promise<RegisterResponse> {
+    try {
+      // Transform data to match Laravel backend expectations
+      const registerData = {
+        email: data.email,
+        phone: data.phone,
+        username: data.username,
+        country: data.country,
+        userType: data.userType,
+        storeName: data.storeName,
+        location: data.location,
+        password: data.password,
+        password_confirmation: data.confirmPassword, // Map confirmPassword to password_confirmation
+        isBusiness: data.isBusiness,
+      };
+      
+      // Register via API - this returns verification token, not session token
+      const response = await api.post<RegisterResponse>('/register', registerData);
+      
       return response.data;
     } catch (error) {
       throw this.handleError(error);
     }
   }
 
-  public async register(data: RegisterData): Promise<AuthResponse> {
+  public async verifyEmail(code: string, email: string, token: string): Promise<void> {
     try {
-      const response = await api.post<AuthResponse>('/auth/register', data);
-      this.setAuthData(response.data);
-      return response.data;
+      await api.post('/verify-email', { code, email, token });
     } catch (error) {
       throw this.handleError(error);
     }
   }
 
-  public async verifyEmail(code: string): Promise<void> {
+  public async resendVerificationCode(email: string): Promise<void> {
     try {
-      await api.post('/auth/verify-email', { code });
-    } catch (error) {
-      throw this.handleError(error);
-    }
-  }
-
-  public async resendVerificationCode(): Promise<void> {
-    try {
-      await api.post('/auth/resend-verification');
+      await api.post('/resend-verification', { email });
     } catch (error) {
       throw this.handleError(error);
     }
@@ -88,39 +130,36 @@ class AuthService {
 
   public async logout(): Promise<void> {
     try {
-      await api.post('/auth/logout');
+      // Use NextAuth signOut for logout
+      await signOut({ callbackUrl: '/' });
     } catch (error) {
       console.error('Logout error:', error);
-    } finally {
-      this.clearAuthData();
+      throw this.handleError(error);
     }
   }
 
-  public getToken(): string | null {
+  public async getToken(): Promise<string | null> {
     if (typeof window === 'undefined') return null;
-    return localStorage.getItem(this.tokenKey);
+    const session = await getSession();
+    return session?.laravelToken || null;
   }
 
-  public getUser(): User | null {
+  public async getUser(): Promise<User | null> {
     if (typeof window === 'undefined') return null;
-    const userStr = localStorage.getItem(this.userKey);
-    return userStr ? JSON.parse(userStr) : null;
+    const session = await getSession();
+    if (!session?.user) return null;
+    
+    return {
+      id: session.user.id,
+      email: session.user.email,
+      username: session.user.name,
+      role: session.user.role,
+    };
   }
 
-  public isAuthenticated(): boolean {
-    return !!this.getToken();
-  }
-
-  private setAuthData(data: AuthResponse): void {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(this.tokenKey, data.token);
-    localStorage.setItem(this.userKey, JSON.stringify(data.user));
-  }
-
-  private clearAuthData(): void {
-    if (typeof window === 'undefined') return;
-    localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem(this.userKey);
+  public async isAuthenticated(): Promise<boolean> {
+    const session = await getSession();
+    return !!session;
   }
 
   private handleError(error: unknown): Error {
