@@ -20,6 +20,8 @@ import { BurgerIcon } from "@/assets/icons/burger.icon";
 import { useLanguage } from "@/hooks/use-language";
 import MobileMenu from "./MobileMenu";
 import SearchModal from "./SearchModal";
+import { SearchIcon } from "@/assets/icons/search.icon";
+import { LoginIcon } from "@/assets/icons/login.icon";
 
 export default function Header({ children }: PropsWithChildren) {
   const { generalData } = useGlobalContext();
@@ -102,24 +104,18 @@ export default function Header({ children }: PropsWithChildren) {
               <div className="flex items-center justify-center cursor-pointer"
                 onClick={() => setIsSigninModalOpen(true)}
               >
-                <Image
-                  src={'/login-icon.svg'}
-                  alt="Login Button"
+                <LoginIcon
                   width={18}
                   height={18}
-                  objectFit="contain"
+                  className="object-contain"
+                  aria-label="Login Button"
                 />
               </div>
-              <div className="flex items-center justify-center cursor-pointer"
+              <div className="flex items-center justify-center cursor-pointer w-5 h-5 sm:w-6 sm:h-6"
+
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
               >
-                <Image
-                  src={'/search-icon.svg'}
-                  alt="Search Button"
-                  width={25}
-                  height={25}
-                  objectFit="contain"
-                />
+                <SearchIcon className=" text-app-red" />
               </div>
             </>
           )}

@@ -111,7 +111,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                 </form>
 
                 {/* Navigation Menu */}
-                <NavigationMenu isMobile={true} className="flex-col gap-2" />
+                <NavigationMenu isMobile={true} setIsMobileMenuOpen={setIsMobileMenuOpen} className="flex-col gap-2" />
                 {
                     !isAuthenticated ? (
                         <div className="flex flex-col gap-2 mt-4">

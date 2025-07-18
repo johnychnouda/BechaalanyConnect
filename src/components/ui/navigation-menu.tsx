@@ -9,10 +9,11 @@ import Image from "next/image";
 type Props = {
   className?: string;
   isMobile?: boolean;
+  setIsMobileMenuOpen?: (open: boolean) => void;
 };
 
 
-export default function NavigationMenu({ className, isMobile }: Props) {
+export default function NavigationMenu({ className, isMobile, setIsMobileMenuOpen }: Props) {
   const pathname = usePathname();
   const { generalData } = useGlobalContext();
 
@@ -23,6 +24,7 @@ export default function NavigationMenu({ className, isMobile }: Props) {
         className
       )}
       style={{ minWidth: 0 }}
+      onClick={() => setIsMobileMenuOpen?.(false)}
     >
       {generalData?.menu_items.map((item, index) => (
         <Link
@@ -43,6 +45,8 @@ export default function NavigationMenu({ className, isMobile }: Props) {
               alt={item.title}
               width={20}
               height={20}
+              style={{ width: "100%", height: "auto" }} // or height: "100%", width: "auto"
+              className="object-contain"
             />
           </div>
           <p className={clsx(
