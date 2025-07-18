@@ -219,7 +219,7 @@ export default function CreateAccountModal({
               type="text"
               placeholder="Username"
               {...register("username", { required: "Username is required" })}
-              className="w-full border border-[#E73828] rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+              className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
             />
             {errors.username && (
               <span className="text-xs text-red-600">{errors.username.message as string}</span>
@@ -239,7 +239,7 @@ export default function CreateAccountModal({
               <span className="text-xs text-red-600">{errors.country.message as string}</span>
             )}
             <div className="flex items-center border border-[#E73828] rounded-full px-4 py-2 bg-transparent">
-              <span className="text-[#E73828] mr-2 min-w-[48px] text-sm sm:text-base">
+              <span className="text-[#E73828] mr-2 min-w-[48px] text-base">
                 {phonePrefix}
               </span>
               <input
@@ -249,7 +249,7 @@ export default function CreateAccountModal({
                   required: "Phone number is required",
                   validate: (val: string) => validatePhone(val) || `Please enter a valid phone number ${country ? `for ${country}` : ''} .`,
                 })}
-                className="w-full focus:outline-none text-sm sm:text-base text-black bg-transparent placeholder:text-black"
+                className="w-full focus:outline-none text-base text-black bg-transparent placeholder:text-black"
               />
             </div>
             {errors.phone && (
@@ -265,7 +265,7 @@ export default function CreateAccountModal({
                   message: "Please enter a valid email address (e.g. user@example.com).",
                 },
               })}
-              className="w-full border border-[#E73828] rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+              className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
             />
             {errors.email && (
               <span className="text-xs text-red-600">{errors.email.message as string}</span>
@@ -278,7 +278,7 @@ export default function CreateAccountModal({
                   required: "Password is required",
                   validate: (val: string) => validatePassword(val) || "Password must be at least 8 characters, include 1 uppercase letter, 1 number, and 1 special character.",
                 })}
-                className="w-full border border-[#E73828] rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+                className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
               />
               <div
                 className="absolute right-4 top-1/2 -translate-y-1/2"
@@ -298,7 +298,7 @@ export default function CreateAccountModal({
                   required: "Please confirm your password",
                   validate: (val: string) => val === watch("password") || "Passwords do not match.",
                 })}
-                className="w-full border border-[#E73828] rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+                className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
               />
               <div
                 className="absolute right-4 top-1/2 -translate-y-1/2"
@@ -338,7 +338,7 @@ export default function CreateAccountModal({
                   {...register("storeName", {
                     required: isBusiness ? "Store name is required" : false,
                   })}
-                  className="w-full border border-[#E73828] rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+                  className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
                 />
                 {errors.storeName && (
                   <span className="text-xs text-red-600">{errors.storeName.message as string}</span>
@@ -349,7 +349,7 @@ export default function CreateAccountModal({
                   {...register("location", {
                     required: isBusiness ? "Store location is required" : false,
                   })}
-                  className="w-full border border-[#E73828] rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+                  className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
                 />
                 {errors.location && (
                   <span className="text-xs text-red-600">{errors.location.message as string}</span>
@@ -358,7 +358,7 @@ export default function CreateAccountModal({
             )}
             <button
               type="submit"
-              className="w-full bg-[#E73828] text-white rounded-full py-2 sm:py-3 text-sm sm:text-base font-bold mt-4 hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200 no-wrap-account-btn"
+              className="w-full bg-[#E73828] text-white rounded-full py-2 sm:py-3 text-base font-bold mt-4 hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200 no-wrap-account-btn"
             >
               CREATE ACCOUNT
             </button>

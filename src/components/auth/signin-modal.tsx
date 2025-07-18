@@ -127,7 +127,7 @@ export default function SigninModal({ isOpen, setIsOpen, setCreateAccountOpen }:
               })}
               placeholder="Email"
               required
-              className="w-full border border-[#E73828] rounded-full px-4 py-2 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+              className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
               autoComplete="username"
             />
             {errors.email && (
@@ -146,7 +146,7 @@ export default function SigninModal({ isOpen, setIsOpen, setCreateAccountOpen }:
                 })}
                 placeholder="Password"
                 required
-                className="w-full border border-[#E73828] rounded-full px-4 py-2 pr-12 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+                className="w-full border border-[#E73828] rounded-full px-4 py-2 pr-12 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
                 autoComplete="current-password"
               />
               <button
