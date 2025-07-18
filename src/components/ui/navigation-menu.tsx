@@ -33,12 +33,11 @@ export default function NavigationMenu({ className, isMobile, setIsMobileMenuOpe
           className={clsx(
             "cursor-pointer font-semibold hover:text-app-red flex items-center gap-0.5 sm:gap-1.5 whitespace-nowrap",
             pathname === item.slug && "text-app-red",
-            isMobile ? "text-[10px] sm:text-xs" : "text-[11px] sm:text-[14px] lg:text-[16px]"
           )}
         >
           <div className={clsx(
-            "flex items-center justify-center",
-            isMobile ? "w-3 h-3 sm:w-4 sm:h-4" : "w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6"
+            "flex items-center justify-center me-2 md:me-0",
+            isMobile ? "w-5 h-5" : "w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6"
           )}>
             <Image
               src={item.full_path.icon}
@@ -51,7 +50,7 @@ export default function NavigationMenu({ className, isMobile, setIsMobileMenuOpe
           </div>
           <p className={clsx(
             "font-semibold",
-            isMobile ? "text-[10px] sm:text-xs" : "text-[11px] sm:text-[14px] lg:text-[16px]"
+            isMobile ? "text-[14px] sm:text-base" : "text-[14px] sm:text-[16px] lg:text-[18px]"
           )}>{item.title}</p>
         </Link>
       ))}

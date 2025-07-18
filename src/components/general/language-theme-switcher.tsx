@@ -45,9 +45,9 @@ export default function LanguageThemeSwitcher({ isMobileMenu, setIsMobileMenuOpe
           className={
             `${isEnActive
               ? isMobileMenu
-                ? "text-red-500 text-[10px] sm:text-xs md:text-sm"
-                : "text-app-white text-[10px] sm:text-xs md:text-sm"
-              : "text-app-black text-[10px] sm:text-xs md:text-sm"}`
+                ? "text-red-500 text-[14px]  md:text-sm"
+                : "text-app-white text-[12px]  md:text-sm"
+              : "text-app-black text-[14px]  md:text-sm"}`
           }
         >
           {generalData?.locale.en.title}
@@ -58,9 +58,9 @@ export default function LanguageThemeSwitcher({ isMobileMenu, setIsMobileMenuOpe
           className={
             `${!isEnActive
               ? isMobileMenu
-                ? "text-red-500 text-[10px] sm:text-xs md:text-sm"
-                : "text-app-white text-[10px] sm:text-xs md:text-sm"
-              : "text-app-black text-[10px] sm:text-xs md:text-sm"}`
+                ? "text-red-500 text-[14px] md:text-sm"
+                : "text-app-white text-[12px] md:text-sm"
+              : "text-app-black text-[14px] md:text-sm"}`
           }
         >
           {generalData?.locale.ar.title}
