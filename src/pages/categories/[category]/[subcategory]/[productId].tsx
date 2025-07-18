@@ -7,6 +7,10 @@ import Card from '@/components/ui/card';
 import Image from 'next/image';
 import { useGlobalContext } from '@/context/GlobalContext';
 import { fetchProductDetails } from '@/services/api.service';
+import ComingSoon from '@/components/ui/coming-soon';
+import { LogoIcon } from '@/assets/icons/logo.icon';
+import { LogoWhiteIcon } from '@/assets/icons/logo-white.icon';
+import { useAuth } from '@/context/AuthContext';
 
 interface ProductVariation {
   id: number;
@@ -31,6 +35,7 @@ interface Product {
     image: string;
   }
   related_products: Product[];
+  product_type_id: number;
 }
 
 // Type for the selected amount/variation
@@ -45,6 +50,7 @@ interface SelectedAmount {
 const ProductPage: React.FC = () => {
 
   const router = useRouter();
+  const { user, setIsSigninModalOpen } = useAuth();
   const { category: categorySlug, subcategory: subcategorySlug, productId: productSlug } = router.query;
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +67,7 @@ const ProductPage: React.FC = () => {
     id: variation.id || index,
     amount: variation.name,
     price: variation.price,
-    image: variation.full_path?.image || '',
+    image: variation.full_path?.image,
     description: variation.description
   }));
 
@@ -151,8 +157,12 @@ const ProductPage: React.FC = () => {
         <div className="w-full px-4 md:px-12 pt-6 pb-2">
           <Breadcrumb items={breadcrumbItems} />
         </div>
+        {/*Back Button*/}
+        <div className="w-full px-4 md:px-12 mb-4">
+          <BackButton href={`/categories/${categorySlug}/${subcategorySlug}`} />
+        </div>
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-red-600">{error || 'Product not found'}</div>
+          <ComingSoon />
         </div>
       </PageLayout>
     );
@@ -160,129 +170,177 @@ const ProductPage: React.FC = () => {
 
   const total = selectedAmount.price * quantity;
 
-  // Related products: all except the current one
-  const related = amounts.filter(a => a.id !== selectedAmount.id);
+  const handleBuyNow = () => {
+    if (!user) {
+      setIsSigninModalOpen(true);
+      return;
+    }
+    // log the user details and product details
+    console.log(user);
+    console.log(product);
+    console.log(selectedAmount);
+    console.log(quantity);
+    console.log(total);
+    console.log(productVariations);
+  };
 
   return (
-    <PageLayout className="flex flex-col min-h-screen px-0 md:px-0 py-0 bg-white">
-      {/* Breadcrumb */}
-      <div className="w-full px-4 md:px-12 pt-6 pb-2">
-        <Breadcrumb items={breadcrumbItems} />
-      </div>
-      <div className="w-full px-4 md:px-12 mb-4">
-        <BackButton href={`/categories/${categorySlug}/${subcategorySlug}`} />
-      </div>
-
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start w-full px-2 md:px-12 pb-8  mx-auto">
-        {/* Product Image */}
-        <div className="relative h-full w-full mx-auto col-span-1 aspect-square max-h-[600px] max-w-[600px]">
-          <div className="block overflow-hidden rounded-[25px] shadow-sm border border-transparent relative h-full w-full">
-            <div className="relative w-full h-full">
-              <Image
-                src={selectedAmount.image}
-                alt={selectedAmount.amount}
-                className="w-full h-full object-cover"
-                fill
-                objectFit='cover'
-              />
-            </div>
-          </div>
+    productVariations.length > 0 ? (
+      <PageLayout className="flex flex-col min-h-screen px-0 md:px-0 py-0 bg-white">
+        {/* Breadcrumb */}
+        <div className="w-full px-4 md:px-12 pt-6 pb-2">
+          <Breadcrumb items={breadcrumbItems} />
+        </div>
+        <div className="w-full px-4 md:px-12 mb-4">
+          <BackButton href={`/categories/${categorySlug}/${subcategorySlug}`} />
         </div>
 
-        {/* Product Details */}
-        <div className="w-full max-w-[400px] mx-auto flex flex-col gap-4 col-span-1">
-          <h1 className="text-[32px] font-bold text-app-red leading-tight">{selectedAmount.amount}</h1>
-          <p className="text-gray-700 text-[15px] mb-2 dark:text-white">{product?.description || selectedAmount.description}</p>
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start w-full px-2 md:px-12 pb-8  mx-auto">
+          {/* Product Image */}
+          <div className="relative h-full w-full mx-auto col-span-1 aspect-square max-h-[600px] max-w-[600px]">
+            <div className="block overflow-hidden rounded-[25px] shadow-sm border border-transparent relative h-full w-full">
+              <div className="relative w-full h-full">
+                {selectedAmount.image ? (
+                  <Image
+                    src={selectedAmount.image}
+                    alt={selectedAmount.amount}
+                    className="w-full h-full object-cover"
+                    fill
+                    objectFit='cover'
+                  />
+                ) : (
+                  <div className="flex items-center justify-center w-full h-full bg-slate-200">
+                    <LogoIcon className="w-full h-full object-cover p-6" />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
 
-          {/* Amount Select */}
-          <div className="mb-2">
-            <label className="block text-gray-800 font-semibold mb-1">Amount</label>
-            <div ref={dropdownRef} className="relative w-full">
-              <button
-                type="button"
-                className={`w-full flex justify-between items-center box-border bg-white border border-app-red rounded-full px-4 py-2 text-[16px] font-roboto font-normal uppercase text-app-red transition-all duration-200 cursor-pointer focus:outline-none ${dropdownOpen ? 'ring-2 ring-app-red' : ''} group`}
-                onClick={() => setDropdownOpen((open) => !open)}
-              >
-                <span className="text-black">{selectedAmount.amount}</span>
-                <span className="ml-2 flex items-center">
-                  <svg
-                    width="22"
-                    height="22"
-                    viewBox="0 0 22 22"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="transition-colors duration-200 text-gray-500 group-hover:text-app-red"
-                  >
-                    <path d="M6 9L11 14L16 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </span>
-              </button>
-              {dropdownOpen && (
-                <div className="absolute left-0 right-0 mt-2 z-20 bg-white border border-app-red rounded-[12px] py-2 flex flex-col" style={{ padding: '8px 0' }}>
-                  {amounts.map((amount: SelectedAmount) => (
-                    <button
-                      key={amount.id}
-                      type="button"
-                      className={`text-left px-4 py-2 text-[16px] font-roboto font-normal uppercase ${amount.id === selectedAmount.id ? 'bg-app-red/10 text-black font-bold' : 'text-black'} hover:bg-app-red/20 transition-all rounded-[8px]`}
-                      onClick={() => { setSelectedAmount(amount); setDropdownOpen(false); }}
+          {/* Product Details */}
+          <div className="w-full max-w-[400px] mx-auto flex flex-col gap-4 col-span-1">
+            <h1 className="text-[32px] font-bold text-app-red leading-tight">{selectedAmount.amount}</h1>
+            <p className="text-gray-700 text-[15px] mb-2 dark:text-white">{product?.description || selectedAmount.description}</p>
+
+            {/* Amount Select */}
+            <div className="mb-2">
+              <label className="block text-gray-800 font-semibold mb-1">Amount</label>
+              <div ref={dropdownRef} className="relative w-full">
+                <button
+                  type="button"
+                  className={`w-full flex justify-between items-center box-border bg-white border border-app-red rounded-full px-4 py-2 text-[16px] font-roboto font-normal uppercase text-app-red transition-all duration-200 cursor-pointer focus:outline-none ${dropdownOpen ? 'ring-2 ring-app-red' : ''} group`}
+                  onClick={() => setDropdownOpen((open) => !open)}
+                >
+                  <span className="text-black">{selectedAmount.amount}</span>
+                  <span className="ml-2 flex items-center">
+                    <svg
+                      width="22"
+                      height="22"
+                      viewBox="0 0 22 22"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="transition-colors duration-200 text-gray-500 group-hover:text-app-red"
                     >
-                      {amount.amount}
-                    </button>
-                  ))}
+                      <path d="M6 9L11 14L16 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                </button>
+                {dropdownOpen && (
+                  <div className="absolute left-0 right-0 mt-2 z-20 bg-white border border-app-red rounded-[12px] py-2 flex flex-col" style={{ padding: '8px 0' }}>
+                    {amounts.map((amount: SelectedAmount) => (
+                      <button
+                        key={amount.id}
+                        type="button"
+                        className={`text-left px-4 py-2 text-[16px] font-roboto font-normal uppercase ${amount.id === selectedAmount.id ? 'bg-app-red/10 text-black font-bold' : 'text-black'} hover:bg-app-red/20 transition-all rounded-[8px]`}
+                        onClick={() => { setSelectedAmount(amount); setDropdownOpen(false); }}
+                      >
+                        {amount.amount}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Quantity Selector */}
+            {product?.product_type_id !== 1 && (
+              <div className="mb-2">
+                <label className="block text-gray-800 font-semibold mb-1">Quantity</label>
+                <div className="flex items-center border border-app-red rounded-full px-2 py-1 w-full bg-white justify-between min-w-[160px]">
+                  <button
+                    className="w-8 h-8 flex items-center justify-center rounded-full border-none text-2xl text-black font-normal transition-transform duration-150 hover:scale-110 hover:bg-app-red/10 hover:text-black p-0"
+                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                    type="button"
+                  >-</button>
+                  <span className="text-lg font-normal w-8 text-center text-black select-none">{quantity}</span>
+                  <button
+                    className="w-8 h-8 flex items-center justify-center rounded-full border-none text-2xl text-black font-normal transition-transform duration-150 hover:scale-110 hover:bg-app-red/10 hover:text-black p-0"
+                    onClick={() => setQuantity(q => q + 1)}
+                    type="button"
+                  >+</button>
                 </div>
-              )}
+              </div>
+            )}
+
+            {/* Product Type */}
+            {/* If product type id is 1, add input to enter User ID */}
+            {product?.product_type_id === 1 && (
+              <div className="mb-2">
+                <label className="block text-gray-800 font-semibold mb-1">User ID</label>
+                <input type="text" className="w-full border border-app-red rounded-full px-2 py-1 bg-white" />
+              </div>
+            )}
+
+            {/* If product type id is 3, add input to enter User phone number */}
+            {product?.product_type_id === 3 && (
+              <div className="mb-2">
+                <label className="block text-gray-800 font-semibold mb-1">Phone Number</label>
+                <input type="text" className="w-full border border-app-red rounded-full px-2 py-1 bg-white" />
+              </div>
+            )}
+
+            {/* Total */}
+            <div className="flex justify-between items-center border-t border-gray-200 pt-3 mt-2 mb-2">
+              <span className="text-black text-lg font-bold">Total</span>
+              <span className="text-2xl font-bold text-app-red">${total.toFixed(2)}</span>
             </div>
-          </div>
 
-          {/* Quantity Selector */}
-          <div className="mb-2">
-            <label className="block text-gray-800 font-semibold mb-1">Quantity</label>
-            <div className="flex items-center border border-app-red rounded-full px-2 py-1 w-full bg-white justify-between min-w-[160px]">
-              <button
-                className="w-8 h-8 flex items-center justify-center rounded-full border-none text-2xl text-black font-normal transition-transform duration-150 hover:scale-110 hover:bg-app-red/10 hover:text-black p-0"
-                onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                type="button"
-              >-</button>
-              <span className="text-lg font-normal w-8 text-center text-black select-none">{quantity}</span>
-              <button
-                className="w-8 h-8 flex items-center justify-center rounded-full border-none text-2xl text-black font-normal transition-transform duration-150 hover:scale-110 hover:bg-app-red/10 hover:text-black p-0"
-                onClick={() => setQuantity(q => q + 1)}
-                type="button"
-              >+</button>
+            {/* Buy Button */}
+            <button
+              className="bg-app-red text-white font-bold py-2 px-6 rounded-full w-full mt-2 transition duration-300 text-lg hover:bg-white hover:text-app-red border border-app-red"
+              onClick={handleBuyNow}
+            >
+              BUY NOW
+            </button>
+          </div>
+        </div>
+
+        {/* Related Products */}
+        {
+          relatedProducts.length > 0 && (
+            <div className="w-full px-4 md:px-12 pt-6 pb-2">
+              <h2 className="text-app-red text-[20px] font-bold mb-4 mt-2">RELATED PRODUCTS</h2>
+              <div className="grid grid-cols-4 gap-2">
+                {relatedProducts.map((prod: Product, index: number) => (
+                  <Card
+                    key={index}
+                    id={prod.id.toString()}
+                    title={prod.name}
+                    image={prod.full_path.image}
+                    type="product"
+                    href={`/categories/${categorySlug}/${subcategorySlug}/${prod.slug}`}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-
-          {/* Total */}
-          <div className="flex justify-between items-center border-t border-gray-200 pt-3 mt-2 mb-2">
-            <span className="text-black text-lg font-bold">Total</span>
-            <span className="text-2xl font-bold text-app-red">${total.toFixed(2)}</span>
-          </div>
-
-          {/* Buy Button */}
-          <button className="bg-app-red text-white font-bold py-2 px-6 rounded-full w-full mt-2 transition duration-300 text-lg hover:bg-white hover:text-app-red border border-app-red">
-            BUY NOW
-          </button>
-        </div>
-      </div>
-
-      {/* Related Products */}
-      <div className="w-full px-4 md:px-12 pt-6 pb-2">
-        <h2 className="text-app-red text-[20px] font-bold mb-4 mt-2">RELATED PRODUCTS</h2>
-        <div className="grid grid-cols-4 gap-2">
-          {relatedProducts.map((prod: Product, index: number) => (
-            <Card
-              key={index}
-              id={prod.id.toString()}
-              title={prod.name}
-              image={prod.full_path.image}
-              type="product"
-              href={`/categories/${categorySlug}/${subcategorySlug}/${prod.slug}`}
-            />
-          ))}
-        </div>
-      </div>
-    </PageLayout>
+          )}
+      </PageLayout>
+    ) : (
+      <PageLayout className="flex flex-col min-h-screen px-0 md:px-0 py-0 bg-white">
+        <ComingSoon />
+      </PageLayout>
+    )
   );
 };
 

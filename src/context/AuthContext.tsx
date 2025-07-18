@@ -21,6 +21,10 @@ interface AuthContextType {
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
+  isSigninModalOpen: boolean;
+  isCreateAccountModalOpen: boolean;
+  setIsSigninModalOpen: (isOpen: boolean) => void;
+  setIsCreateAccountModalOpen: (isOpen: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,6 +32,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { data: session, status } = useSession();
   const [loading, setLoading] = useState(false);
+  const [isSigninModalOpen, setIsSigninModalOpen] = useState(false);
+  const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
+
 
   // Derive authentication state from NextAuth session only
   const isAuthenticated = status === "authenticated" && !!session;
@@ -89,7 +96,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       login, 
       loginWithGoogle, 
       logout, 
-      loading 
+      loading,
+      isSigninModalOpen,
+      isCreateAccountModalOpen,
+      setIsSigninModalOpen,
+      setIsCreateAccountModalOpen,
     }}>
       {children}
     </AuthContext.Provider>
