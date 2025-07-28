@@ -21,7 +21,14 @@ api.interceptors.request.use(
         return config;
     },
     (error) => {
-        return Promise.reject(error);
+        if (error) {
+            const { data } = error.response;
+            const backendMessage = data.message;
+            return Promise.reject(backendMessage || 'An unexpected error occurred.');
+
+        } else {
+            return Promise.reject(error);
+        }
     }
 );
 
@@ -30,54 +37,11 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-            const { status, data } = error.response;
+            const { data } = error.response;
+            const backendMessage = data.message;
 
-            switch (status) {
-                case 400:
-                    console.error('Bad Request:', data);
-                    // Handle validation errors
-                    if (data.errors) {
-                        return Promise.reject({
-                            type: 'validation',
-                            errors: data.errors
-                        });
-                    }
-                    break;
-                case 401:
-                    console.error('Unauthorized:', data);
-                    // Handle authentication errors via NextAuth signOut
-                    // This will be handled by NextAuth automatically
-                    return Promise.reject({
-                        type: 'auth',
-                        message: 'Session expired. Please login again.'
-                    });
-                case 403:
-                    console.error('Forbidden:', data);
-                    return Promise.reject({
-                        type: 'permission',
-                        message: 'You do not have permission to perform this action.'
-                    });
-                case 404:
-                    console.error('Not Found:', data);
-                    return Promise.reject({
-                        type: 'not_found',
-                        message: 'The requested resource was not found.'
-                    });
-                case 500:
-                    console.error('Server Error:', data);
-                    return Promise.reject({
-                        type: 'server',
-                        message: 'An unexpected error occurred. Please try again later.'
-                    });
-                default:
-                    console.error('API Error:', data);
-                    return Promise.reject({
-                        type: 'unknown',
-                        message: 'An unexpected error occurred.'
-                    });
-            }
+            return Promise.reject(backendMessage || 'An unexpected error occurreddd.');
+
         } else if (error.request) {
             // The request was made but no response was received
             console.error('No Response:', error.request);

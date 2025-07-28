@@ -42,8 +42,6 @@ export default NextAuth({
                 }
 
                 try {
-                    console.log('Attempting login with:', { email: credentials.email });
-                    
                     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/login`, {
                         method: 'POST',
                         headers: {
@@ -55,11 +53,8 @@ export default NextAuth({
                         }),
                     });
 
-                    console.log('Login response status:', response.status);
-
                     if (response.ok) {
                         const data = await response.json();
-                        console.log('Login response data:', data);
                         
                         const { token, user } = data;
                         

@@ -37,12 +37,28 @@ export type SettingsType = {
       direction: string;
     };
   };
+
+  export type UserType = {
+    id: number;
+    title: string;
+    slug: string;
+    discount_percentage: number;
+  };
+
+  export type CountryType = {
+    id: number;
+    title: string;
+    slug: string;
+    code: string;
+  };
   
   export type GeneralDataType = {
     settings: SettingsType;
     menu_items: MenuItemType[];
     social_links: SocialLinkType[];
     locale: LocaleType;
+    user_types: UserType[];
+    countries: CountryType[];
   };
   
   export type GlobalContextType = {

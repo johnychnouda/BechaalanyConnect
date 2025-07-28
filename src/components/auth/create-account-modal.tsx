@@ -3,32 +3,12 @@ import CustomDropdown from "@/components/ui/custom-dropdown";
 import GoogleButton from "@/components/ui/google-button";
 import Modal from "@/components/ui/modal";
 import VerifyEmailModal from "@/components/ui/verify-email-modal";
-import PendingApprovalModal from "@/components/ui/pending-approval-modal";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { useAuth } from "@/context/AuthContext";
-import { useForm, FieldErrors } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { authService } from "@/services/auth.service";
-
-const COUNTRIES = [
-  "LEBANON",
-  "SYRIA",
-  "UAE",
-  "JORDAN",
-  "SAUDI ARABIA",
-  "EGYPT",
-];
-
-const COUNTRY_PHONE_FORMATS = {
-  LEBANON: { code: "+961", regex: /^\+961\d{7,8}$/ },
-  SYRIA: { code: "+963", regex: /^\+963\d{9}$/ },
-  UAE: { code: "+971", regex: /^\+971\d{9}$/ },
-  JORDAN: { code: "+962", regex: /^\+962\d{8,9}$/ },
-  "SAUDI ARABIA": { code: "+966", regex: /^\+966\d{8,9}$/ },
-  EGYPT: { code: "+20", regex: /^\+20\d{9,10}$/ },
-};
-
-const USER_TYPES = ["Reseller", "Wholesale", "Wholesale API"];
+import { useGlobalContext } from "@/context/GlobalContext";
+import { getErrorMessage } from "@/utils/getErrorMessage";
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
@@ -80,10 +60,14 @@ export default function CreateAccountModal({
   const [verifyToken, setVerifyToken] = useState("");
   const [verifyError, setVerifyError] = useState("");
   const [verifyLoading, setVerifyLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [success, setSuccess] = useState("");
   const [regPassword, setRegPassword] = useState(""); // Store password for auto-login
+  const { generalData } = useGlobalContext();
+  const countries = generalData?.countries || [];
+  const userTypes = generalData?.user_types || [];
 
   const {
     register,
@@ -94,14 +78,25 @@ export default function CreateAccountModal({
     formState: { errors },
   } = useForm();
 
-  const country = watch("country") as keyof typeof COUNTRY_PHONE_FORMATS;
-  const phonePrefix = country ? COUNTRY_PHONE_FORMATS[country]?.code : "+";
+  const country = watch("country") as keyof typeof countries;
+  // const phonePrefix = country ? COUNTRY_PHONE_FORMATS[country]?.code : "+";
+  const phonePrefix = countries.find(c => c.slug === country)?.code || "+";
 
   const validatePhone = (phone: string) => {
-    const countryFormat = COUNTRY_PHONE_FORMATS[country];
-    const fullPhoneNumber = `${countryFormat?.code}${phone}`;
+    const countryFormat = countries.find(c => c.slug === country);
     if (!countryFormat) return false;
-    return countryFormat.regex.test(fullPhoneNumber);
+    // Basic validation: check if phone starts with country code and has a reasonable length
+    const fullPhoneNumber = `${countryFormat.code}${phone}`;
+    // Remove non-digit characters for length check
+    const digits = phone.replace(/\D/g, "");
+    // Example: Lebanon 7 or 8 digits, others 8-10
+    if (countryFormat.code === "+961") {
+      return digits.length === 7 || digits.length === 8;
+    }
+    if (["+963", "+971", "+962", "+966", "+20"].includes(countryFormat.code)) {
+      return digits.length >= 8 && digits.length <= 10;
+    }
+    return digits.length >= 7;
   };
 
   const validatePassword = (password: string) => {
@@ -111,6 +106,7 @@ export default function CreateAccountModal({
   const onSubmit = async (data: any) => {
     setError("");
     setSuccess("");
+    setSubmitLoading(true);
     try {
       // Use auth service for registration
       const response = await authService.register({
@@ -118,12 +114,13 @@ export default function CreateAccountModal({
         phone: data.phone,
         username: data.username,
         country: data.country,
-        userType: data.userType || 'Reseller',
+        userType: data.userType,
         storeName: data.storeName,
         location: data.location,
         password: data.password,
         confirmPassword: data.confirmPassword,
         isBusiness: data.isBusiness || false,
+
       });
       setIsOpen(false);
       setShowVerify(true);
@@ -132,7 +129,9 @@ export default function CreateAccountModal({
       setRegPassword(data.password); // Store password for auto-login
       reset();
     } catch (err: any) {
-      setError(err.message || "Registration failed. Please try again.");
+      setError(getErrorMessage(err, "Registration failed. Please try again."));
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
@@ -225,9 +224,12 @@ export default function CreateAccountModal({
               <span className="text-xs text-red-600">{errors.username.message as string}</span>
             )}
             <CustomDropdown
-              options={COUNTRIES}
-              value={country}
-              onChange={(val) => setValue("country", val, { shouldValidate: true })}
+              options={countries.map(c => c.title)}
+              value={countries.find(c => c.slug === watch("country"))?.title || ""}
+              onChange={(val) => {
+                const selected = countries.find(c => c.title === val);
+                setValue("country", selected?.slug || "", { shouldValidate: true });
+              }}
               placeholder="Country"
             />
             <input
@@ -247,7 +249,7 @@ export default function CreateAccountModal({
                 placeholder="Phone Number"
                 {...register("phone", {
                   required: "Phone number is required",
-                  validate: (val: string) => validatePhone(val) || `Please enter a valid phone number ${country ? `for ${country}` : ''} .`,
+                  validate: (val: string) => validatePhone(val) || `Please enter a valid phone number ${country ? `for ${countries.find(c => c.slug === country)?.title}` : ''} .`,
                 })}
                 className="w-full focus:outline-none text-base text-black bg-transparent placeholder:text-black"
               />
@@ -323,14 +325,23 @@ export default function CreateAccountModal({
             </div>
             {isBusiness && (
               <div className="flex flex-col gap-3 sm:gap-4 mt-2">
+                {/* Save user type id in the database */}
                 <CustomDropdown
-                  options={USER_TYPES}
-                  value={watch("userType")}
-                  onChange={(val) => setValue("userType", val, { shouldValidate: true })}
+                  options={userTypes.map(ut => ut.title)}
+                  value={userTypes.find(ut => ut.id === watch("userType"))?.title || ""}
+                  onChange={(val) => {
+                    const selected = userTypes.find(ut => ut.title === val);
+                    setValue("userType", selected?.id || 0, { shouldValidate: true });
+                  }}
                   placeholder="User Type"
                 />
+                <input
+                  type="hidden"
+                  {...register("userType", { required: isBusiness ? "User type is required" : false })}
+                  name="userType"
+                />
                 {errors.userType && (
-                  <span className="text-xs text-red-600">User type is required</span>
+                  <span className="text-xs text-red-600">{errors.userType.message as string}</span>
                 )}
                 <input
                   type="text"
@@ -356,12 +367,18 @@ export default function CreateAccountModal({
                 )}
               </div>
             )}
-            <button
-              type="submit"
-              className="w-full bg-[#E73828] text-white rounded-full py-2 sm:py-3 text-base font-bold mt-4 hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200 no-wrap-account-btn"
-            >
-              CREATE ACCOUNT
-            </button>
+            {submitLoading ? (
+              <div className="w-full flex justify-center items-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E73828]"></div>
+              </div>
+            ) : (
+              <button
+                type="submit"
+                className="w-full bg-[#E73828] text-white rounded-full py-2 sm:py-3 text-base font-bold mt-4 hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200 no-wrap-account-btn"
+              >
+                CREATE ACCOUNT
+              </button>
+            )}
             <div className="relative w-full my-4">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300"></div>

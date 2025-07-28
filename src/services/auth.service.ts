@@ -163,8 +163,8 @@ class AuthService {
   }
 
   private handleError(error: unknown): Error {
-    if (error instanceof AxiosError && error.response?.data?.message) {
-      return new Error(error.response.data.message);
+    if (error) {
+      return new Error(error as string);
     }
     return new Error('An unexpected error occurred');
   }

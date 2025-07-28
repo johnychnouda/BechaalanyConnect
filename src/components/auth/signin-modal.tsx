@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import GoogleButton from "@/components/ui/google-button";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
+import { getErrorMessage } from "@/utils/getErrorMessage";
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
@@ -76,8 +77,8 @@ export default function SigninModal({ isOpen, setIsOpen, setCreateAccountOpen }:
       setSuccess(true);
       setIsOpen(false);
     } catch (err: Error | unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Login failed. Please try again.";
-      setError(errorMessage);
+      // console.log(err);
+      setError(getErrorMessage(err, "Login failed. Please try again."));
     }
   };
 
@@ -87,8 +88,7 @@ export default function SigninModal({ isOpen, setIsOpen, setCreateAccountOpen }:
       // Use loginWithGoogle from AuthContext that uses NextAuth
       await loginWithGoogle();
     } catch (err: Error | unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Google login failed. Please try again.";
-      setError(errorMessage);
+      setError(getErrorMessage(err, "Google login failed. Please try again."));
     }
   };
 
