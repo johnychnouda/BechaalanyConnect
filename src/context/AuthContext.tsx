@@ -8,6 +8,13 @@ interface UserType {
   name: string;
   email: string;
   role: string;
+  country: string;
+  phone_number: string;
+  is_business_user: boolean;
+  business_name: string;
+  business_location: string;
+  user_types_id: number;
+  credits_balance: number;
   // Using a more specific type instead of any
   [key: string]: string | number | boolean | undefined;
 }
@@ -43,6 +50,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     name: session.user.name || '',
     email: session.user.email || '',
     role: session.user.role || 'user',
+    country: session.user.country || '',
+    phone_number: session.user.phone_number || '',
+    is_business_user: session.user.is_business_user || false,
+    business_name: session.user.business_name || '',
+    business_location: session.user.business_location || '',
+    user_types_id: session.user.user_types_id || 0,
+    credits_balance: session.user.credits_balance || 0,
   } : null;
   const token = session?.laravelToken || null;
   const isAdmin = user?.role === 'admin';

@@ -13,6 +13,13 @@ declare module "next-auth" {
             email: string;
             name: string;
             role: string;
+            country?: string;
+            phone_number?: string;
+            is_business_user?: boolean;
+            business_name?: string;
+            business_location?: string;
+            user_types_id?: number;
+            credits_balance?: number;
         };
     }
 }
@@ -62,11 +69,22 @@ export default NextAuth({
                             throw new Error('Invalid response structure');
                         }
                         
+                        // Debug: Log the user data from Laravel
+                        console.log('Laravel user data:', JSON.stringify(user, null, 2));
+                        
                         return {
                             id: user.id.toString(),
                             email: user.email,
                             name: user.name || user.username,
                             role: user.role,
+                            country: user.country,
+                            phone_number: user.phone_number,
+                            is_business_user: user.is_business_user,
+                            business_name: user.business_name,
+                            business_location: user.business_location,
+                            user_types_id: user.user_types_id,
+                            credits_balance: user.credits_balance || 0,
+
                             laravelToken: token,
                             laravelUser: user,
                         };
@@ -127,6 +145,9 @@ export default NextAuth({
             session.laravelToken = token.laravelToken;
             session.laravelUser = token.laravelUser;
             
+            // Debug: Log the token data
+            console.log('Token laravelUser data:', JSON.stringify(token.laravelUser, null, 2));
+            
             // Ensure user data is properly structured
             if (token.laravelUser) {
                 session.user = {
@@ -134,8 +155,18 @@ export default NextAuth({
                     email: token.laravelUser.email,
                     name: token.laravelUser.name || token.laravelUser.username,
                     role: token.laravelUser.role,
+                    country: token.laravelUser.country,
+                    phone_number: token.laravelUser.phone_number,
+                    is_business_user: token.laravelUser.is_business_user,
+                    business_name: token.laravelUser.business_name,
+                    business_location: token.laravelUser.business_location,
+                    user_types_id: token.laravelUser.user_types_id,
+                    credits_balance: token.laravelUser.credits_balance || 0,
                 };
             }
+            
+            // Debug: Log the final session user data
+            console.log('Final session user data:', JSON.stringify(session.user, null, 2));
             
             return session;
         }

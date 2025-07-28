@@ -6,11 +6,13 @@ import PageLayout from '@/components/ui/page-layout';
 import Card from '@/components/ui/card';
 import Image from 'next/image';
 import { useGlobalContext } from '@/context/GlobalContext';
-import { fetchProductDetails } from '@/services/api.service';
+import { fetchProductDetails, saveOrder } from '@/services/api.service';
 import ComingSoon from '@/components/ui/coming-soon';
 import { LogoIcon } from '@/assets/icons/logo.icon';
 import { LogoWhiteIcon } from '@/assets/icons/logo-white.icon';
 import { useAuth } from '@/context/AuthContext';
+import { showError, showSuccess } from '@/utils/toast';
+import CardSkeleton from '@/components/ui/card-skeleton';
 
 interface ProductVariation {
   id: number;
@@ -53,6 +55,7 @@ const ProductPage: React.FC = () => {
   const { user, setIsSigninModalOpen } = useAuth();
   const { category: categorySlug, subcategory: subcategorySlug, productId: productSlug } = router.query;
   const [isLoading, setIsLoading] = useState(true);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { generalData } = useGlobalContext();
   const [productVariations, setProductVariations] = useState<ProductVariation[]>([]);
@@ -61,6 +64,8 @@ const ProductPage: React.FC = () => {
   const [product, setProduct] = useState<Product>();
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [selectedAmount, setSelectedAmount] = useState<SelectedAmount | null>(null);
+  const [recipientPhoneNumber, setRecipientPhoneNumber] = useState('');
+  const [recipientUser, setRecipientUser] = useState('');
 
   // Convert product variations to amounts format
   const amounts: SelectedAmount[] = productVariations.map((variation, index) => ({
@@ -139,14 +144,11 @@ const ProductPage: React.FC = () => {
   // Show loading state
   if (isLoading) {
     return (
-      <PageLayout className="flex flex-col min-h-screen px-0 md:px-0 py-0 bg-white">
-        <div className="w-full px-4 md:px-12 pt-6 pb-2">
-          <Breadcrumb items={breadcrumbItems} />
-        </div>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading...</div>
-        </div>
-      </PageLayout>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-8">
+        {[...Array(4)].map((_, i) => (
+          <CardSkeleton key={i} />
+        ))}
+      </div>
     );
   }
 
@@ -170,18 +172,50 @@ const ProductPage: React.FC = () => {
 
   const total = selectedAmount.price * quantity;
 
-  const handleBuyNow = () => {
+  const selectedProductVariation = productVariations.find((variation) => variation.id === selectedAmount?.id);
+
+  const handleBuyNow = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     if (!user) {
       setIsSigninModalOpen(true);
       return;
     }
-    // log the user details and product details
-    console.log(user);
-    console.log(product);
-    console.log(selectedAmount);
-    console.log(quantity);
-    console.log(total);
-    console.log(productVariations);
+
+    // Validate required fields based on product type
+    if (product?.product_type_id === 1 && !recipientUser.trim()) {
+      showError('Please enter a User ID');
+      return;
+    }
+
+    if (product?.product_type_id === 3 && !recipientPhoneNumber.trim()) {
+      showError('Please enter a Phone Number');
+      return;
+    }
+
+    setSubmitLoading(true);
+    try {
+      await saveOrder({
+        users_id: user.id,
+        product_variation_id: selectedProductVariation?.id || 0,
+        quantity: quantity,
+        total_price: total,
+        recipient_phone_number: recipientPhoneNumber,
+        recipient_user: recipientUser,
+        statuses_id: 3
+      });
+
+      showSuccess('Order placed successfully!');
+      // Reset form fields after successful submission
+      setRecipientPhoneNumber('');
+      setRecipientUser('');
+      setQuantity(1);
+      setSubmitLoading(false);
+    } catch (error) {
+      showError('Failed to place order. Please try again.');
+      console.error('Error saving order:', error);
+      setSubmitLoading(false);
+    }
   };
 
   return (
@@ -219,7 +253,7 @@ const ProductPage: React.FC = () => {
           </div>
 
           {/* Product Details */}
-          <div className="w-full max-w-[400px] mx-auto flex flex-col gap-4 col-span-1">
+          <form onSubmit={handleBuyNow} className="w-full max-w-[400px] mx-auto flex flex-col gap-4 col-span-1">
             <h1 className="text-[32px] font-bold text-app-red leading-tight">{selectedAmount.amount}</h1>
             <p className="text-gray-700 text-[15px] mb-2 dark:text-white">{product?.description || selectedAmount.description}</p>
 
@@ -287,16 +321,32 @@ const ProductPage: React.FC = () => {
             {/* If product type id is 1, add input to enter User ID */}
             {product?.product_type_id === 1 && (
               <div className="mb-2">
-                <label className="block text-gray-800 font-semibold mb-1">User ID</label>
-                <input type="text" className="w-full border border-app-red rounded-full px-2 py-1 bg-white" />
+                <label className="block text-gray-800 font-semibold mb-1">User ID *</label>
+                <input
+                  name="recipient_user"
+                  type="text"
+                  // required
+                  value={recipientUser}
+                  onChange={(e) => setRecipientUser(e.target.value)}
+                  className="w-full border border-app-red rounded-full px-2 py-1 bg-white"
+                  placeholder="Enter User ID"
+                />
               </div>
             )}
 
             {/* If product type id is 3, add input to enter User phone number */}
             {product?.product_type_id === 3 && (
               <div className="mb-2">
-                <label className="block text-gray-800 font-semibold mb-1">Phone Number</label>
-                <input type="text" className="w-full border border-app-red rounded-full px-2 py-1 bg-white" />
+                <label className="block text-gray-800 font-semibold mb-1">Phone Number *</label>
+                <input
+                  name="recipient_phone_number"
+                  type="tel"
+                  // required
+                  value={recipientPhoneNumber}
+                  onChange={(e) => setRecipientPhoneNumber(e.target.value)}
+                  className="w-full border border-app-red rounded-full px-2 py-1 bg-white"
+                  placeholder="Enter Phone Number"
+                />
               </div>
             )}
 
@@ -307,13 +357,20 @@ const ProductPage: React.FC = () => {
             </div>
 
             {/* Buy Button */}
-            <button
-              className="bg-app-red text-white font-bold py-2 px-6 rounded-full w-full mt-2 transition duration-300 text-lg hover:bg-white hover:text-app-red border border-app-red"
-              onClick={handleBuyNow}
-            >
-              BUY NOW
-            </button>
-          </div>
+            {
+              submitLoading ?
+                <div className="w-full flex justify-center items-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E73828]"></div>
+                </div>
+                :
+                <button
+                  type="submit"
+                  className="bg-app-red text-white font-bold py-2 px-6 rounded-full w-full mt-2 transition duration-300 text-lg hover:bg-white hover:text-app-red border border-app-red"
+                >
+                  BUY NOW
+                </button>
+            }
+          </form>
         </div>
 
         {/* Related Products */}

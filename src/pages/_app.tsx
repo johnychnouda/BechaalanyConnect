@@ -17,6 +17,8 @@ import StyledComponentsRegistry from '@/lib/registry';
 import { GlobalProvider } from "@/context/GlobalContext";
 import { useRouter } from 'next/router';
 import PageLoader from '@/components/ui/PageLoader';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function App({
   Component,
@@ -112,6 +114,18 @@ export default function App({
                       {/* Footer */}
                       <Footer />
                     </main>
+                    {/* Global Toast Container */}
+                    <ToastContainer
+                      position={isRTL ? 'top-left' : 'top-right'}
+                      autoClose={3000}
+                      hideProgressBar={false}
+                      newestOnTop={false}
+                      closeOnClick
+                      rtl={false}
+                      pauseOnFocusLoss
+                      pauseOnHover
+                      theme={"colored"}
+                    />
                   </NextIntlClientProvider>
                 </QueryClientProvider>
               </GlobalState.Provider>

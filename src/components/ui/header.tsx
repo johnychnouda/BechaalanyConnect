@@ -36,6 +36,7 @@ export default function Header({ children }: PropsWithChildren) {
 
   if (!isMounted) return null;
 
+  console.log("user", user);
 
   return (
     <>
@@ -76,6 +77,7 @@ export default function Header({ children }: PropsWithChildren) {
           <NavigationMenu />
         </div>
 
+
         {/* Right: User Actions or Auth Buttons */}
         <div className="hidden lg:flex items-center  gap-1 sm:gap-2 lg:gap-4 ml-auto flex-nowrap min-w-0 max-w-full overflow-x-auto whitespace-nowrap">
           {isAuthenticated ? (
@@ -84,7 +86,7 @@ export default function Header({ children }: PropsWithChildren) {
                 count={count}
                 onClick={() => console.log("Open notifications")}
               />
-              {user && <BlurredPrice price={50.0} />}
+              {user && <BlurredPrice price={Number(user.credits_balance)} />}
               <ButtonLink
                 href="/account-dashboard"
                 className="transition-all duration-200 hover:bg-app-red p-1 sm:p-2 rounded-full group min-w-0"

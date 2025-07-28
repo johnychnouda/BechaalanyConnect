@@ -89,3 +89,20 @@ export const submitContactForm = async (formData: {
         throw error;
     }
 };
+
+export const saveOrder = async (orderData: {
+    users_id: string;
+    product_variation_id: number;
+    quantity: number;
+    total_price: number;
+    recipient_phone_number: string;
+    recipient_user: string;
+    statuses_id: number;
+}) => {
+    try {
+        const { data } = await api.post('/save-order', orderData);
+        return data;
+    } catch (error) {
+        throw error;
+    }
+};
