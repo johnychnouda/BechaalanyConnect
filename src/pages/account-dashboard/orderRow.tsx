@@ -34,32 +34,35 @@ const statusMeta = {
 function orderRow({ order }: { order: ProcessedOrder }) {
   const meta = statusMeta[order.status];
   return (
-    <div className="flex flex-row justify-between items-center p-[12px_16px] gap-[10px] w-full h-[61px] bg-[rgba(7,7,7,0.05)] rounded-[50.5px] mb-2">
+    <div className="flex flex-row justify-between items-center p-[12px_16px] gap-[10px] w-full bg-[rgba(7,7,7,0.05)] rounded-[50.5px] mb-2">
       {/* Left Section - Icon, Title, Date */}
-      <div className="flex flex-row items-center p-0 gap-4 h-[37px]">
+      <div className="flex flex-row items-center p-0 gap-4 ">
         {/* Icon Circle */}
         <div className="relative w-9 h-9">
           <div className={`absolute w-9 h-9 rounded-full`} style={{ background: meta.color }}></div>
           <span className="absolute left-[6px] top-[6px]">{meta.icon}</span>
         </div>
         {/* Title and Date */}
-        <div className="flex flex-col justify-center items-start p-0 gap-1 h-[37px]">
-          <div className="flex flex-row items-center p-0 gap-1 h-[19px]">
-            <span className="h-[19px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white">
+
+        <div className="flex flex-col justify-center items-start p-0 gap-1">
+          <div className="flex flex-col md:flex-row flex-wrap items-start md:items-center p-0 gap-1 text-wrap">
+            <span className=" font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white">
               {order.title.split(' | ')[0]}
             </span>
             {order.title.includes(' | ') && (
               <>
-                <span className="w-[1px] h-3 bg-[#E73828]"></span>
-                <span className="h-[19px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white">
+                <span className="hidden md:block w-[1px] h-3 bg-[#E73828]"></span>
+                <span className="font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white">
                   {order.title.split(' | ')[1]}
                 </span>
               </>
             )}
           </div>
-          <span className="h-[14px] font-['Roboto'] font-normal text-xs leading-[14px] text-[#8E8E8E]">
-            {formatDate(order.date)}
-          </span>
+          <div>
+            <span className="h-[14px] font-['Roboto'] font-normal text-xs leading-[14px] text-[#8E8E8E]">
+              {formatDate(order.date)}
+            </span>
+          </div>
         </div>
       </div>
       {/* Right Section - Price */}

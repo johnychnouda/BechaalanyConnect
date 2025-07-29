@@ -81,7 +81,7 @@ export default function MyOrders() {
       else if (order.statuses_id === 3) status = 'pending';
 
       // Create title based on product variation (you might need to fetch product details)
-      const title = `${order.product_variation.name}`;
+      const title = `${order.product_variation.product.name} | ${order.product_variation.name}`;
       
       // Format price
       const value = `$${parseFloat(order.total_price).toFixed(2)}`;

@@ -20,7 +20,18 @@ export interface Order {
     name: string;
     price: string;
     image: string;
+    product: Product;
   };
+}
+
+export interface Product {
+  id: number;
+  name: string;
+  description: string;
+  slug: string;
+  full_path: {
+    image: string;
+  }
 }
 
 interface UserType {
