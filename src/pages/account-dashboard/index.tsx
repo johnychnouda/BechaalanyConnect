@@ -106,7 +106,7 @@ export default function AccountDashboard() {
                     Your Balance
                   </span>
                   <span className="font-['Roboto'] font-semibold text-xl md:text-2xl leading-[28px] text-[#5FD568]">
-                    50.00 $
+                    {user?.credits_balance} $
                   </span>
                 </div>
               </div>
@@ -118,7 +118,7 @@ export default function AccountDashboard() {
                     Total Purchases
                   </span>
                   <span className="font-['Roboto'] font-semibold text-xl md:text-2xl leading-[28px] text-[#E73828]">
-                    320.00 $
+                    {user?.total_purchases} $
                   </span>
                 </div>
               </div>

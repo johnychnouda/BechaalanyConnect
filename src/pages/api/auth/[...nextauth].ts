@@ -20,6 +20,7 @@ declare module "next-auth" {
             business_location?: string;
             user_types_id?: number;
             credits_balance?: number;
+            total_purchases?: number;
         };
     }
 }
@@ -84,7 +85,7 @@ export default NextAuth({
                             business_location: user.business_location,
                             user_types_id: user.user_types_id,
                             credits_balance: user.credits_balance || 0,
-
+                            total_purchases: user.total_purchases || 0,
                             laravelToken: token,
                             laravelUser: user,
                         };
@@ -185,6 +186,7 @@ export default NextAuth({
                     business_location: token.laravelUser.business_location,
                     user_types_id: token.laravelUser.user_types_id,
                     credits_balance: token.laravelUser.credits_balance || 0,
+                    total_purchases: token.laravelUser.total_purchases || 0,
                 };
             }
             

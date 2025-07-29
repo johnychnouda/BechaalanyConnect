@@ -46,6 +46,7 @@ interface UserType {
   business_location: string;
   user_types_id: number;
   credits_balance: number;
+  total_purchases: number;
   orders?: Order[];
   // Using a more specific type instead of any
   [key: string]: string | number | boolean | undefined | Order[];
@@ -105,6 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     business_location: session.user.business_location || '',
     user_types_id: session.user.user_types_id || 0,
     credits_balance: userData?.credits_balance || session.user.credits_balance || 0,
+    total_purchases: userData?.total_purchases || session.user.total_purchases || 0,
     orders: session.laravelUser?.orders || [],
   } : null;
   const token = session?.laravelToken || null;
