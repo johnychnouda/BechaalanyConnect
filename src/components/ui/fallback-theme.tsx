@@ -65,9 +65,6 @@ export default function FallbackTheme() {
         }
       `;
       document.head.appendChild(style);
-
-      // Log for debugging
-      console.log('Fallback theme applied for Android browser');
     }
   }, []);
 

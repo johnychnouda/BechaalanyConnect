@@ -70,7 +70,7 @@ export default NextAuth({
                         }
                         
                         // Debug: Log the user data from Laravel
-                        console.log('Laravel user data:', JSON.stringify(user, null, 2));
+                        // console.log('Laravel user data:', JSON.stringify(user, null, 2));
                         
                         return {
                             id: user.id.toString(),
@@ -146,7 +146,7 @@ export default NextAuth({
             session.laravelUser = token.laravelUser;
             
             // Debug: Log the token data
-            console.log('Token laravelUser data:', JSON.stringify(token.laravelUser, null, 2));
+            // console.log('Token laravelUser data:', JSON.stringify(token.laravelUser, null, 2));
             
             // Ensure user data is properly structured
             if (token.laravelUser) {
@@ -166,7 +166,7 @@ export default NextAuth({
             }
             
             // Debug: Log the final session user data
-            console.log('Final session user data:', JSON.stringify(session.user, null, 2));
+            // console.log('Final session user data:', JSON.stringify(session.user, null, 2));
             
             return session;
         }

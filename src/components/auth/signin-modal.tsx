@@ -77,7 +77,6 @@ export default function SigninModal({ isOpen, setIsOpen, setCreateAccountOpen }:
       setSuccess(true);
       setIsOpen(false);
     } catch (err: Error | unknown) {
-      // console.log(err);
       setError(getErrorMessage(err, "Login failed. Please try again."));
     }
   };

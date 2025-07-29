@@ -1,6 +1,5 @@
 // src/utils/getErrorMessage.ts
 export function getErrorMessage(err: any, fallback = "An unexpected error occurred.") {
-    // console.log(err);
     // If the error is a string (from api.ts), return it directly
     if (typeof err === "string") return err;
     // Axios error with response data (prioritize this)

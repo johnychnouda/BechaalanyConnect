@@ -25,8 +25,6 @@ export default function MyOrders() {
       }
       setError(null);
       const response = await fetchUserOrders();
-
-      console.log("response", response);
       
       // If API returns empty orders and we have session orders, use session orders
       if ((!response.orders || response.orders.length === 0) && user?.orders && Array.isArray(user.orders) && user.orders.length > 0) {

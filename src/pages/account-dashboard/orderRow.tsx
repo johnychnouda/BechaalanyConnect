@@ -32,7 +32,6 @@ const statusMeta = {
 };
 
 function orderRow({ order }: { order: ProcessedOrder }) {
-  console.log("order", order);
   const meta = statusMeta[order.status];
   return (
     <div className="flex flex-row justify-between items-center p-[12px_16px] gap-[10px] w-full h-[61px] bg-[rgba(7,7,7,0.05)] rounded-[50.5px] mb-2">

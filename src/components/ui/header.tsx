@@ -36,8 +36,6 @@ export default function Header({ children }: PropsWithChildren) {
 
   if (!isMounted) return null;
 
-  console.log("user", user);
-
   return (
     <>
       {/* Main Header */}
@@ -84,7 +82,6 @@ export default function Header({ children }: PropsWithChildren) {
             <>
               <Notification
                 count={count}
-                onClick={() => console.log("Open notifications")}
               />
               {user && <BlurredPrice price={Number(user.credits_balance)} />}
               <ButtonLink
