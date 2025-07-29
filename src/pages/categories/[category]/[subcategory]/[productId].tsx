@@ -5,7 +5,6 @@ import Breadcrumb from '@/components/ui/breadcrumb';
 import PageLayout from '@/components/ui/page-layout';
 import Card from '@/components/ui/card';
 import Image from 'next/image';
-import { useGlobalContext } from '@/context/GlobalContext';
 import { fetchProductDetails, saveOrder } from '@/services/api.service';
 import ComingSoon from '@/components/ui/coming-soon';
 import { LogoIcon } from '@/assets/icons/logo.icon';
@@ -13,6 +12,7 @@ import { LogoWhiteIcon } from '@/assets/icons/logo-white.icon';
 import { useAuth } from '@/context/AuthContext';
 import { showError, showSuccess } from '@/utils/toast';
 import CardSkeleton from '@/components/ui/card-skeleton';
+import { useGlobalContext } from "@/context/GlobalContext";
 
 interface ProductVariation {
   id: number;
@@ -53,11 +53,11 @@ const ProductPage: React.FC = () => {
 
   const router = useRouter();
   const { user, setIsSigninModalOpen } = useAuth();
+  const { refreshOrders, generalData } = useGlobalContext();
   const { category: categorySlug, subcategory: subcategorySlug, productId: productSlug } = router.query;
   const [isLoading, setIsLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { generalData } = useGlobalContext();
   const [productVariations, setProductVariations] = useState<ProductVariation[]>([]);
   const [currentCategory, setCurrentCategory] = useState<string>('');
   const [currentSubcategory, setCurrentSubcategory] = useState<string>('');
@@ -206,6 +206,8 @@ const ProductPage: React.FC = () => {
       });
 
       showSuccess('Order placed successfully!');
+      // Refresh orders after successful placement
+      refreshOrders();
       // Reset form fields after successful submission
       setRecipientPhoneNumber('');
       setRecipientUser('');

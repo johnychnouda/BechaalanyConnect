@@ -1,81 +1,113 @@
 import DashboardLayout from "@/components/ui/dashboard-layout";
-import React, { useState } from "react";
-import { formatDate } from "@/utils/date";
+import React, { useState, useMemo, useEffect } from "react";
 import BackButton from "@/components/ui/back-button";
-
-const orders: Array<{
-  id: number;
-  status: 'accepted' | 'rejected' | 'pending';
-  title: string;
-  value: string;
-  date: string;
-}> = [
-  { id: 1, status: "accepted", title: "Pubg Mobile | 600 UC", value: "10$", date: "2025-03-14 18:37:07" },
-  { id: 2, status: "rejected", title: "Pubg Mobile | 600 UC", value: "10$", date: "2025-03-14 18:37:07" },
-  { id: 3, status: "accepted", title: "Pubg Mobile | 600 UC", value: "10$", date: "2025-03-14 18:37:07" },
-  { id: 4, status: "accepted", title: "Pubg Mobile | 600 UC", value: "10$", date: "2025-03-14 18:37:07" },
-  { id: 5, status: "rejected", title: "Pubg Mobile | 600 UC", value: "10$", date: "2025-03-14 18:37:07" },
-  { id: 6, status: "accepted", title: "Pubg Mobile | 600 UC", value: "10$", date: "2025-03-14 18:37:07" },
-  { id: 7, status: "pending", title: "Pubg Mobile | 600 UC", value: "10$", date: "2025-03-14 18:37:07" },
-  { id: 8, status: "accepted", title: "Pubg Mobile | 600 UC", value: "10$", date: "2025-03-14 18:37:07" },
-  { id: 9, status: "rejected", title: "Pubg Mobile | 600 UC", value: "10$", date: "2025-03-14 18:37:07" },
-  { id: 10, status: "accepted", title: "Pubg Mobile | 600 UC", value: "10$", date: "2025-03-14 18:37:07" },
-];
-
-const statusMeta = {
-  accepted: { color: "#5FD568", label: "Accepted", icon: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#5FD568"/><path d="M7 13.5L11 17L17 11" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-  ) },
-  rejected: { color: "#E73828", label: "Rejected", icon: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#E73828"/><path d="M8 8L16 16M16 8L8 16" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-  ) },
-  pending: { color: "#FB923C", label: "Pending", icon: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FB923C"/><path d="M12 7V12L15 14" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-  ) },
-};
-
-function OrderRow({ order }: { order: typeof orders[number] }) {
-  const meta = statusMeta[order.status];
-  return (
-    <div className="flex flex-row justify-between items-center p-[12px_16px] gap-[10px] w-full h-[61px] bg-[rgba(7,7,7,0.05)] rounded-[50.5px] mb-2">
-      {/* Left Section - Icon, Title, Date */}
-      <div className="flex flex-row items-center p-0 gap-4 w-[285.56px] h-[37px]">
-        {/* Icon Circle */}
-        <div className="relative w-9 h-9">
-          <div className={`absolute w-9 h-9 rounded-full`} style={{ background: meta.color }}></div>
-          <span className="absolute left-[6px] top-[6px]">{meta.icon}</span>
-        </div>
-        {/* Title and Date */}
-        <div className="flex flex-col justify-center items-start p-0 gap-1 w-[151px] h-[37px]">
-          <div className="flex flex-row items-center p-0 gap-1 w-[151px] h-[19px]">
-            <span className="w-[90px] h-[19px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white">
-              {order.title.split(' | ')[0]}
-            </span>
-            {order.title.includes(' | ') && (
-              <>
-                <span className="w-[1px] h-3 bg-[#E73828]"></span>
-                <span className="w-[52px] h-[19px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white">
-                  {order.title.split(' | ')[1]}
-                </span>
-              </>
-            )}
-          </div>
-          <span className="w-[150px] h-[14px] font-['Roboto'] font-normal text-xs leading-[14px] text-[#8E8E8E]">
-            {formatDate(order.date)}
-          </span>
-        </div>
-      </div>
-      {/* Right Section - Price */}
-      <div className="flex flex-row justify-end items-center gap-2 w-[90px]">
-        <span className="w-[31px] h-[19px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white text-right">
-          {order.value}
-        </span>
-      </div>
-    </div>
-  );
-}
+import { Order, useAuth } from "@/context/AuthContext";
+import { ProcessedOrder } from "./orderRow";
+import OrderRow from "./orderRow";
+import { fetchUserOrders } from "@/services/api.service";
+import { useGlobalContext } from "@/context/GlobalContext";
 
 export default function MyOrders() {
+  const { user } = useAuth();
+  const { setRefreshOrdersCallback } = useGlobalContext();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [autoRefreshing, setAutoRefreshing] = useState(false);
+  
+  // Fetch orders from API
+  const fetchOrders = async (isAutoRefresh = false) => {
+    try {
+      if (isAutoRefresh) {
+        setAutoRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      setError(null);
+      const response = await fetchUserOrders();
+
+      console.log("response", response);
+      
+      // If API returns empty orders and we have session orders, use session orders
+      if ((!response.orders || response.orders.length === 0) && user?.orders && Array.isArray(user.orders) && user.orders.length > 0) {
+        setOrders(user.orders);
+        if (!isAutoRefresh) {
+          setError('Using cached orders. Some orders may not be up to date.');
+        }
+      } else {
+        setOrders(response.orders || []);
+      }
+    } catch (err) {
+      console.error('Error fetching orders:', err);
+      setError('Failed to load orders. Using cached data.');
+      // Fallback to session orders if API fails
+      if (user?.orders && Array.isArray(user.orders)) {
+        setOrders(user.orders);
+      }
+    } finally {
+      setLoading(false);
+      setAutoRefreshing(false);
+    }
+  };
+
+  // Fetch orders on component mount
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  // Register refresh function with global context
+  useEffect(() => {
+    setRefreshOrdersCallback(() => fetchOrders);
+  }, [setRefreshOrdersCallback]);
+
+  // Auto-refresh orders every 30 seconds when user is on the page
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchOrders(true);
+    }, 180000); //3min
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Process orders from API data
+  const processedOrders: ProcessedOrder[] = useMemo(() => {
+    if (!orders || !Array.isArray(orders)) {
+      return [];
+    }
+
+    return orders.map((order: Order) => {
+      // Map statuses_id to status string
+      let status: 'accepted' | 'rejected' | 'pending' = 'pending';
+      if (order.statuses_id === 1) status = 'accepted';
+      else if (order.statuses_id === 2) status = 'rejected';
+      else if (order.statuses_id === 3) status = 'pending';
+
+      // Create title based on product variation (you might need to fetch product details)
+      const title = `${order.product_variation.name}`;
+      
+      // Format price
+      const value = `$${parseFloat(order.total_price).toFixed(2)}`;
+      
+      // Create recipient info
+      let recipient_info = '';
+      if (order.recipient_user) {
+        recipient_info = `User ID: ${order.recipient_user}`;
+      } else if (order.recipient_phone_number) {
+        recipient_info = `Phone: ${order.recipient_phone_number}`;
+      }
+
+      return {
+        id: order.id,
+        status,
+        title,
+        value,
+        date: order.created_at,
+        quantity: order.quantity,
+        recipient_info
+      };
+    });
+  }, [orders]);
+
   const [activeFilter, setActiveFilter] = useState<string>("all");
 
   const filterButtons = [
@@ -140,7 +172,7 @@ export default function MyOrders() {
     },
   ];
 
-  const filteredOrders = activeFilter === "all" ? orders : orders.filter(o => o.status === activeFilter);
+  const filteredOrders = activeFilter === "all" ? processedOrders : processedOrders.filter((o: ProcessedOrder) => o.status === activeFilter);
 
   return (
     <DashboardLayout>
@@ -169,10 +201,54 @@ export default function MyOrders() {
           ))}
         </div>
       </div>
+      
+      {/* Refresh Button */}
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={() => fetchOrders()}
+          disabled={loading}
+          className="flex items-center gap-2 px-4 py-2 bg-[#E73828] text-white rounded-lg hover:bg-[#d32f2f] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/>
+            </svg>
+          )}
+          Refresh Orders
+        </button>
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          {error}
+        </div>
+      )}
+
+      {/* Auto-refresh indicator */}
+      {autoRefreshing && (
+        <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm flex items-center gap-2">
+          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+          Auto-refreshing orders...
+        </div>
+      )}
+
       <div className="flex flex-col gap-4 w-full">
-        {filteredOrders.map((order) => (
-          <OrderRow key={order.id} order={order} />
-        ))}
+        {loading ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E73828]"></div>
+          </div>
+        ) : filteredOrders.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            No orders found.
+          </div>
+        ) : (
+          filteredOrders.map((order: ProcessedOrder) => (
+            <OrderRow key={order.id} order={order} />
+          ))
+        )}
       </div>
     </DashboardLayout>
   );

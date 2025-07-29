@@ -3,6 +3,26 @@
 import React, { createContext, useContext, useState } from 'react';
 import { useSession, signOut, signIn } from "next-auth/react";
 
+export interface Order {
+  id: number;
+  cms_draft_flag: number;
+  users_id: number;
+  product_variation_id: number;
+  quantity: number;
+  total_price: string;
+  recipient_user: string | null;
+  recipient_phone_number: string | null;
+  statuses_id: number;
+  created_at: string;
+  updated_at: string;
+  product_variation: {
+    id: number;
+    name: string;
+    price: string;
+    image: string;
+  };
+}
+
 interface UserType {
   id: string;
   name: string;
@@ -15,8 +35,9 @@ interface UserType {
   business_location: string;
   user_types_id: number;
   credits_balance: number;
+  orders?: Order[];
   // Using a more specific type instead of any
-  [key: string]: string | number | boolean | undefined;
+  [key: string]: string | number | boolean | undefined | Order[];
 }
 
 interface AuthContextType {
@@ -43,6 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
 
 
+
   // Derive authentication state from NextAuth session only
   const isAuthenticated = status === "authenticated" && !!session;
   const user = session?.user ? {
@@ -57,6 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     business_location: session.user.business_location || '',
     user_types_id: session.user.user_types_id || 0,
     credits_balance: session.user.credits_balance || 0,
+    orders: session.laravelUser?.orders || [],
   } : null;
   const token = session?.laravelToken || null;
   const isAdmin = user?.role === 'admin';

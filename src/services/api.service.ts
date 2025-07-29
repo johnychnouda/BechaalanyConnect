@@ -106,3 +106,15 @@ export const saveOrder = async (orderData: {
         throw error;
     }
 };
+
+export const fetchUserOrders = async () => {
+    try {
+        const { data } = await api.get('/user/orders');
+        return data;
+    } catch (error) {
+        // If the API endpoint doesn't exist yet, return empty orders
+        // This allows the frontend to work while the backend is being developed
+        console.warn('User orders API endpoint not available yet:', error);
+        return { orders: [] };
+    }
+};
