@@ -118,3 +118,13 @@ export const fetchUserOrders = async () => {
         return { orders: [] };
     }
 };
+
+export const fetchCurrentUser = async () => {
+    try {
+        const { data } = await api.get('/user/profile');
+        return data;
+    } catch (error) {
+        console.error('Error fetching current user:', error);
+        throw error;
+    }
+};

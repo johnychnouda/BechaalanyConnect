@@ -24,7 +24,7 @@ import { SearchIcon } from "@/assets/icons/search.icon";
 import { LoginIcon } from "@/assets/icons/login.icon";
 
 export default function Header({ children }: PropsWithChildren) {
-  const { generalData } = useGlobalContext();
+  const { generalData, refreshUserSession } = useGlobalContext();
   const { theme } = useAppTheme();
   const isMounted = useIsMounted();
   const { isAuthenticated, user, isSigninModalOpen, isCreateAccountModalOpen, setIsSigninModalOpen, setIsCreateAccountModalOpen } = useAuth();
@@ -32,9 +32,21 @@ export default function Header({ children }: PropsWithChildren) {
   const { isRTL } = useLanguage();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
 
   if (!isMounted) return null;
+
+  const handleRefreshCredits = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshUserSession();
+    } catch (error) {
+      console.error('Error refreshing credits:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   return (
     <>
@@ -83,7 +95,31 @@ export default function Header({ children }: PropsWithChildren) {
               <Notification
                 count={count}
               />
-              {user && <BlurredPrice price={Number(user.credits_balance)} />}
+              {user && (
+                <div className="flex items-center gap-2">
+                  <BlurredPrice price={Number(user.credits_balance)} />
+                  <button
+                    onClick={handleRefreshCredits}
+                    disabled={isRefreshing}
+                    className="p-1 rounded-full hover:bg-app-red/10 transition-colors duration-200 disabled:opacity-50"
+                    title="Refresh credits balance"
+                  >
+                    <svg
+                      className={`w-4 h-4 text-app-red ${isRefreshing ? 'animate-spin' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              )}
               <ButtonLink
                 href="/account-dashboard"
                 className="transition-all duration-200 hover:bg-app-red p-1 sm:p-2 rounded-full group min-w-0"

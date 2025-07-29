@@ -106,7 +106,7 @@ export default NextAuth({
         }),
     ],
     callbacks: {
-        async jwt({ token, user, account }) {
+        async jwt({ token, user, account, trigger }) {
             // Handle Google OAuth
             if (account?.provider === "google" && user) {
                 try {
@@ -136,6 +136,29 @@ export default NextAuth({
             if (account?.provider === "credentials" && user) {
                 token.laravelToken = (user as any).laravelToken;
                 token.laravelUser = (user as any).laravelUser;
+            }
+
+            // Handle session refresh trigger
+            if (trigger === "update" && token.laravelToken) {
+                try {
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/profile`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token.laravelToken}`,
+                            'Content-Type': 'application/json',
+                        },
+                    });
+
+                    if (response.ok) {
+                        const freshUserData = await response.json();
+                        token.laravelUser = {
+                            ...token.laravelUser,
+                            ...freshUserData,
+                        };
+                    }
+                } catch (error) {
+                    console.error('Error refreshing user data:', error);
+                }
             }
 
             return token;

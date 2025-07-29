@@ -9,12 +9,24 @@ import { useGlobalContext } from "@/context/GlobalContext";
 
 export default function MyOrders() {
   const { user } = useAuth();
-  const { setRefreshOrdersCallback } = useGlobalContext();
+  const { setRefreshOrdersCallback, startOrderStatusPolling, stopOrderStatusPolling } = useGlobalContext();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [autoRefreshing, setAutoRefreshing] = useState(false);
   
+  // Start polling for order status changes when component mounts
+  useEffect(() => {
+    if (user) {
+      startOrderStatusPolling(user.id);
+    }
+
+    // Clean up polling when component unmounts
+    return () => {
+      stopOrderStatusPolling();
+    };
+  }, [user, startOrderStatusPolling, stopOrderStatusPolling]);
+
   // Fetch orders from API
   const fetchOrders = async (isAutoRefresh = false) => {
     try {

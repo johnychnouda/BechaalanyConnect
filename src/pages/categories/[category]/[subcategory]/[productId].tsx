@@ -53,7 +53,7 @@ const ProductPage: React.FC = () => {
 
   const router = useRouter();
   const { user, setIsSigninModalOpen } = useAuth();
-  const { refreshOrders, generalData } = useGlobalContext();
+  const { refreshOrders, refreshUserSession, generalData } = useGlobalContext();
   const { category: categorySlug, subcategory: subcategorySlug, productId: productSlug } = router.query;
   const [isLoading, setIsLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);

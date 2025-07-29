@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import DashboardLayout from "@/components/ui/dashboard-layout";
 import WhatsAppButton from "@/components/ui/whatsapp-button";
 import TransactionFilter from "@/components/general/TransactionFilter";
 import { useAuth } from '@/context/AuthContext';
+import { useGlobalContext } from "@/context/GlobalContext";
 import { formatDate } from "@/utils/date";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -28,11 +29,24 @@ const statusMeta = {
 
 export default function AccountDashboard() {
   const { user } = useAuth();
+  const { startOrderStatusPolling, stopOrderStatusPolling } = useGlobalContext();
   const { theme } = useAppTheme();
   const [activeSection, setActiveSection] = useState("dashboard");
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [activeFilter, setActiveFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Start polling for order status changes when component mounts
+  useEffect(() => {
+    if (user) {
+      startOrderStatusPolling(user.id);
+    }
+
+    // Clean up polling when component unmounts
+    return () => {
+      stopOrderStatusPolling();
+    };
+  }, [user, startOrderStatusPolling, stopOrderStatusPolling]);
 
   const handleDateChange = (from: string, to: string) => {
     setIsLoading(true);

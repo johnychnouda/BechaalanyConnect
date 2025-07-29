@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useSession, signOut, signIn } from "next-auth/react";
 
 export interface Order {
@@ -73,8 +73,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(false);
   const [isSigninModalOpen, setIsSigninModalOpen] = useState(false);
   const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
 
+  // Listen for session updates
+  useEffect(() => {
+    const handleSessionUpdate = (event: CustomEvent) => {
+      const { freshUserData } = event.detail;
+      if (freshUserData) {
+        setUserData(freshUserData);
+      }
+    };
 
+    window.addEventListener('sessionUpdated', handleSessionUpdate as EventListener);
+    
+    return () => {
+      window.removeEventListener('sessionUpdated', handleSessionUpdate as EventListener);
+    };
+  }, []);
 
   // Derive authentication state from NextAuth session only
   const isAuthenticated = status === "authenticated" && !!session;
@@ -89,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     business_name: session.user.business_name || '',
     business_location: session.user.business_location || '',
     user_types_id: session.user.user_types_id || 0,
-    credits_balance: session.user.credits_balance || 0,
+    credits_balance: userData?.credits_balance || session.user.credits_balance || 0,
     orders: session.laravelUser?.orders || [],
   } : null;
   const token = session?.laravelToken || null;
