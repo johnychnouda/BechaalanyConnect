@@ -8,6 +8,7 @@ import { formatDate } from "@/utils/date";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppTheme } from "@/hooks/use-app-theme";
 import BackButton from "@/components/ui/back-button";
+import { useUserData } from "@/hooks/useUserData";
 
 const transactions = [
   { direction: 'up', title: "Pubg Mobile | 600 UC", date: "2025-03-14 18:37:07", status: 'Purchased' },
@@ -28,7 +29,7 @@ const statusMeta = {
 };
 
 export default function AccountDashboard() {
-  const { user } = useAuth();
+  const { user } = useUserData(true, 30000); // Auto-refresh every 30 seconds
   const { startOrderStatusPolling, stopOrderStatusPolling } = useGlobalContext();
   const { theme } = useAppTheme();
   const [activeSection, setActiveSection] = useState("dashboard");

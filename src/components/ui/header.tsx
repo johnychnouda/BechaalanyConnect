@@ -24,28 +24,19 @@ import { SearchIcon } from "@/assets/icons/search.icon";
 import { LoginIcon } from "@/assets/icons/login.icon";
 
 export default function Header({ children }: PropsWithChildren) {
-  const { generalData, refreshUserSession } = useGlobalContext();
+  const { generalData } = useGlobalContext();
   const { theme } = useAppTheme();
   const isMounted = useIsMounted();
-  const { isAuthenticated, user, isSigninModalOpen, isCreateAccountModalOpen, setIsSigninModalOpen, setIsCreateAccountModalOpen } = useAuth();
+  const { isAuthenticated, user, isSigninModalOpen, isCreateAccountModalOpen, setIsSigninModalOpen, setIsCreateAccountModalOpen, refreshUserData, isRefreshing } = useAuth();
   const { count } = useNotificationStore();
   const { isRTL } = useLanguage();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
 
   if (!isMounted) return null;
 
   const handleRefreshCredits = async () => {
-    setIsRefreshing(true);
-    try {
-      await refreshUserSession();
-    } catch (error) {
-      console.error('Error refreshing credits:', error);
-    } finally {
-      setIsRefreshing(false);
-    }
+    await refreshUserData();
   };
 
   return (

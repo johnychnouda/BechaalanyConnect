@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useSession, signOut, signIn } from "next-auth/react";
 
 export interface Order {
@@ -65,6 +65,8 @@ interface AuthContextType {
   isCreateAccountModalOpen: boolean;
   setIsSigninModalOpen: (isOpen: boolean) => void;
   setIsCreateAccountModalOpen: (isOpen: boolean) => void;
+  refreshUserData: () => Promise<void>;
+  isRefreshing: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -72,6 +74,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { data: session, status } = useSession();
   const [loading, setLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSigninModalOpen, setIsSigninModalOpen] = useState(false);
   const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
   const [userData, setUserData] = useState<any>(null);
@@ -94,6 +97,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Derive authentication state from NextAuth session only
   const isAuthenticated = status === "authenticated" && !!session;
+
+  // Refresh user data function
+  const refreshUserData = useCallback(async () => {
+    if (!session?.laravelToken) return;
+    
+    setIsRefreshing(true);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/profile`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.laravelToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const freshUserData = await response.json();
+        setUserData(freshUserData);
+        
+        // Dispatch event for other components that might be listening
+        window.dispatchEvent(new CustomEvent('sessionUpdated', { 
+          detail: { freshUserData } 
+        }));
+      }
+    } catch (error) {
+      console.error('Error refreshing user data:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [session?.laravelToken]);
+
+  // Remove the automatic refresh useEffect to prevent infinite loops
+  // Components can call refreshUserData manually when needed
+
   const user = session?.user ? {
     id: session.user.id,
     name: session.user.name || '',
@@ -166,6 +203,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isCreateAccountModalOpen,
       setIsSigninModalOpen,
       setIsCreateAccountModalOpen,
+      refreshUserData,
+      isRefreshing,
     }}>
       {children}
     </AuthContext.Provider>
