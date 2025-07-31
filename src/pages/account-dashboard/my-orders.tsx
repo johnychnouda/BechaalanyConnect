@@ -14,7 +14,7 @@ export default function MyOrders() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [autoRefreshing, setAutoRefreshing] = useState(false);
-  
+
   // Start polling for order status changes when component mounts
   useEffect(() => {
     if (user) {
@@ -37,7 +37,7 @@ export default function MyOrders() {
       }
       setError(null);
       const response = await fetchUserOrders();
-      
+
       // If API returns empty orders and we have session orders, use session orders
       if ((!response.orders || response.orders.length === 0) && user?.orders && Array.isArray(user.orders) && user.orders.length > 0) {
         setOrders(user.orders);
@@ -94,10 +94,10 @@ export default function MyOrders() {
 
       // Create title based on product variation (you might need to fetch product details)
       const title = `${order.product_variation.product.name} | ${order.product_variation.name}`;
-      
+
       // Format price
       const value = `$${parseFloat(order.total_price).toFixed(2)}`;
-      
+
       // Create recipient info
       let recipient_info = '';
       if (order.recipient_user) {
@@ -123,61 +123,57 @@ export default function MyOrders() {
   const filterButtons = [
     {
       key: "all",
-      label: "All Orders",
-      className:
-        activeFilter === "all"
-          ? "bg-[#F3F3F3] border border-[#E0E0E0] text-[#070707] w-[160px]"
-          : "bg-white border border-[#E0E0E0] text-[#070707] w-[160px]",
+      label: "All Payments",
+      className: activeFilter === "all"
+        ? "bg-[#F3F3F3] border border-[#E0E0E0] text-[#070707]"
+        : "bg-white border border-[#E0E0E0] text-[#070707]",
       icon: null,
     },
     {
       key: "accepted",
       label: "Accepted",
-      className:
-        activeFilter === "accepted"
-          ? "bg-[#5FD568] border border-[#5FD568] text-white w-[140px]"
-          : "bg-white border border-[#5FD568] text-[#5FD568] w-[140px]",
+      className: activeFilter === "accepted"
+        ? "bg-[#5FD568] border border-[#5FD568] text-white"
+        : "bg-white border border-[#5FD568] text-[#5FD568]",
       icon: (
-        <div className="relative w-[19px] h-[19px]">
-          <span className="absolute inset-0 bg-[#5FD568] rounded-full"></span>
-          <svg width="12.67" height="12.67" viewBox="0 0 12.67 12.67" fill="none" className="absolute left-[3.17px] top-[3.17px]">
+        <span className="absolute left-[12px] flex items-center justify-center" style={{ width: '19px', height: '19px', top: '50%', transform: 'translateY(-50%)' }}>
+          <span style={{ background: '#5FD568', borderRadius: '50%', width: '19px', height: '19px', display: 'block', position: 'absolute', left: 0, top: 0 }}></span>
+          <svg width="12.67" height="12.67" viewBox="0 0 12.67 12.67" fill="none" style={{ position: 'absolute', left: '3.17px', top: '3.17px' }}>
             <path d="M3.5 7.5L6 10L10 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-        </div>
+        </span>
       ),
     },
     {
       key: "rejected",
       label: "Rejected",
-      className:
-        activeFilter === "rejected"
-          ? "bg-[#E73828] border border-[#E73828] text-white w-[140px]"
-          : "bg-white border border-[#E73828] text-[#E73828] w-[140px]",
+      className: activeFilter === "rejected"
+        ? "bg-[#E73828] border border-[#E73828] text-white"
+        : "bg-white border border-[#E73828] text-[#E73828]",
       icon: (
-        <div className="relative w-[19px] h-[19px]">
-          <span className="absolute inset-0 bg-[#E73828] rounded-full"></span>
-          <svg width="12.67" height="12.67" viewBox="0 0 12.67 12.67" fill="none" className="absolute left-[3.17px] top-[3.17px]">
+        <span className="absolute left-[12px] flex items-center justify-center" style={{ width: '19px', height: '19px', top: '50%', transform: 'translateY(-50%)' }}>
+          <span style={{ background: '#E73828', borderRadius: '50%', width: '19px', height: '19px', display: 'block', position: 'absolute', left: 0, top: 0 }}></span>
+          <svg width="12.67" height="12.67" viewBox="0 0 12.67 12.67" fill="none" style={{ position: 'absolute', left: '3.17px', top: '3.17px' }}>
             <rect x="3" y="5.5" width="7" height="1.67" rx="0.8" fill="white" transform="rotate(45 6.335 6.335)" />
             <rect x="3" y="5.5" width="7" height="1.67" rx="0.8" fill="white" transform="rotate(-45 6.335 6.335)" />
           </svg>
-        </div>
+        </span>
       ),
     },
     {
       key: "pending",
       label: "Pending",
-      className:
-        activeFilter === "pending"
-          ? "bg-[#FB923C] border border-[#FB923C] text-white w-[140px]"
-          : "bg-white border border-[#FB923C] text-[#FB923C] w-[140px]",
+      className: activeFilter === "pending"
+        ? "bg-[#FB923C] border border-[#FB923C] text-white"
+        : "bg-white border border-[#FB923C] text-[#FB923C]",
       icon: (
-        <div className="relative w-[19px] h-[19px]">
-          <span className="absolute inset-0 bg-[#FB923C] rounded-full"></span>
-          <svg width="12.67" height="12.67" viewBox="0 0 12.67 12.67" fill="none" className="absolute left-[3.17px] top-[3.17px]">
+        <span className="absolute left-[12px] flex items-center justify-center" style={{ width: '19px', height: '19px', top: '50%', transform: 'translateY(-50%)' }}>
+          <span style={{ background: '#FF9D00', borderRadius: '50%', width: '19px', height: '19px', display: 'block', position: 'absolute', left: 0, top: 0 }}></span>
+          <svg width="12.67" height="12.67" viewBox="0 0 12.67 12.67" fill="none" style={{ position: 'absolute', left: '3.17px', top: '3.17px' }}>
             <rect x="5.5" y="3" width="1.67" height="5.5" rx="0.8" fill="white" />
             <rect x="5.5" y="9.2" width="1.67" height="1.67" rx="0.8" fill="white" />
           </svg>
-        </div>
+        </span>
       ),
     },
   ];
@@ -192,43 +188,46 @@ export default function MyOrders() {
         </div>
         <div className="text-[#E73828] text-[36px] font-semibold font-['Roboto'] leading-[42px] uppercase mt-0 tracking-tight">MY ORDERS</div>
       </div>
-      <div className="flex flex-col items-start w-full pb-1 md:pb-2 gap-[6px] md:gap-[10px] border-b border-[rgba(0,0,0,0.1)] mb-2 md:mb-3" style={{ boxSizing: 'border-box' }}>
-        <div className="flex flex-row gap-1 md:gap-2 lg:gap-4 items-center w-full min-w-0 overflow-x-auto" style={{ minHeight: '35px' }}>
+      <div className="flex flex-col lg:flex-row items-start md:justify-between w-full pb-6 gap-[25px] border-b border-[rgba(0,0,0,0.1)] mb-8" style={{ boxSizing: 'border-box' }}>
+        <div className="flex flex-row w-full lg:w-auto gap-2 overflow-x-auto whitespace-nowrap" style={{ minHeight: '35px' }}>
           {filterButtons.map(btn => (
             <button
               key={btn.key}
-              className={`flex-1 min-w-[120px] flex flex-row items-center rounded-[50.5px] px-3 md:px-3 py-1 md:py-2 font-['Roboto'] font-semibold text-[16px] h-[32px] md:h-[35px] justify-center relative ${btn.className}`}
+              className={`flex items-center rounded-[50.5px] px-3 py-2 font-['Roboto'] font-semibold text-[15px] h-[35px] ${btn.className}`}
+              style={{ minWidth: '140px', maxWidth: '160px' }}
               onClick={() => setActiveFilter(btn.key)}
               type="button"
             >
               {btn.icon && (
-                <div className="flex items-center justify-center w-[19px] h-[19px] mr-2">
+                <span className="flex items-center justify-center mr-3" style={{ width: 19, height: 19, position: 'relative' }}>
                   {btn.icon}
-                </div>
+                </span>
               )}
-              <span className="flex-1 text-center">{btn.label}</span>
+              <span className="flex-1 text-center truncate">{btn.label}</span>
             </button>
           ))}
         </div>
+
+        {/* Refresh Button */}
+        <div >
+          <button
+            onClick={() => fetchOrders()}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-[#E73828] text-white rounded-lg hover:bg-[#d32f2f] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16" />
+              </svg>
+            )}
+            Refresh Orders
+          </button>
+        </div>
       </div>
-      
-      {/* Refresh Button */}
-      <div className="flex justify-end mb-4">
-        <button
-          onClick={() => fetchOrders()}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-[#E73828] text-white rounded-lg hover:bg-[#d32f2f] disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? (
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-          ) : (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/>
-            </svg>
-          )}
-          Refresh Orders
-        </button>
-      </div>
+
+
 
       {/* Error Message */}
       {error && (

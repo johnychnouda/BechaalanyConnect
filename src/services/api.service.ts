@@ -119,12 +119,56 @@ export const fetchUserOrders = async () => {
     }
 };
 
+export const fetchUserPayments = async () => {
+  try {
+    const { data } = await api.get('/user/credits');
+    return data;
+  } catch (error) {
+    console.warn('User payments API endpoint not available yet:', error);
+    return { payments: [] };
+  }
+};
+
 export const fetchCurrentUser = async () => {
     try {
         const { data } = await api.get('/user/profile');
         return data;
     } catch (error) {
         console.error('Error fetching current user:', error);
+        throw error;
+    }
+};
+
+export const fetchCreditTypes = async (locale: string) => {
+    try {
+        const { data } = await api.get(`/${locale}/credit-types`);
+        return data;
+    } catch (error) {
+        console.error('Error fetching credit types:', error);
+        throw error;
+    }
+};
+
+export const fetchSingleCreditType = async (locale: string, slug: string) => {
+    try {
+        const { data } = await api.get(`/${locale}/credit-types/${slug}`);
+        return data;
+    } catch (error) {
+        console.error('Error fetching single credit type:', error);
+        throw error;
+    }
+};
+
+export const submitCreditRequest = async (formData: FormData) => {
+    try {
+        const { data } = await api.post('/transfer-credit-request', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return data;
+    } catch (error) {
+        console.error('Error submitting credit request:', error);
         throw error;
     }
 };
