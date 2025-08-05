@@ -10,12 +10,7 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import BackButton from "@/components/ui/back-button";
 import { useOnDemandData } from "@/hooks/useOnDemandData";
 import { DataStaleIndicator } from "@/components/ui/data-stale-indicator";
-
-const transactions = [
-  { direction: 'up', title: "Pubg Mobile | 600 UC", date: "2025-03-14 18:37:07", status: 'Purchased' },
-  { direction: 'down', title: "Payment", date: "2025-03-14 18:37:07", status: 'Received' },
-  // ... more transactions ...
-];
+import { fetchUserOrders, fetchUserPayments } from "@/services/api.service";
 
 const statusMeta = {
   accepted: { color: "#5FD568", label: "Accepted", icon: (
@@ -37,14 +32,80 @@ export default function AccountDashboard() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [payments, setPayments] = useState<any[]>([]);
 
   // Initial data fetch on mount
   useEffect(() => {
     if (user && !hasInitialized) {
       setHasInitialized(true);
       refreshData();
+      fetchOrdersAndPayments();
     }
   }, [user, hasInitialized, refreshData]);
+
+  const fetchOrdersAndPayments = async () => {
+    try {
+      // Fetch orders
+      const ordersResponse = await fetchUserOrders();
+      const processedOrders = (ordersResponse.orders || [])
+        .filter((order: any) => order.statuses_id === 1) // Only show approved orders
+        .map((order: any) => {
+          let status: 'accepted' | 'rejected' | 'pending' = 'pending';
+          if (order.statuses_id === 1) status = 'accepted';
+          else if (order.statuses_id === 2) status = 'rejected';
+          else if (order.statuses_id === 3) status = 'pending';
+
+          return {
+            direction: 'up' as const,
+            title: `${order.product_variation?.product?.name || 'Product'} | ${order.product_variation?.name || 'Variation'}`,
+            date: order.created_at,
+            status: 'Purchased',
+            value: `$${parseFloat(order.total_price).toFixed(2)}`,
+            originalStatus: status
+          };
+        });
+
+      // Fetch payments
+      const paymentsResponse = await fetchUserPayments();
+      const processedPayments = (paymentsResponse.credits || [])
+        .filter((payment: any) => payment.statuses_id === 1) // Only show approved payments
+        .map((payment: any) => {
+          let status: 'accepted' | 'rejected' | 'pending' = 'pending';
+          if (payment.statuses_id === 1) status = 'accepted';
+          else if (payment.statuses_id === 2) status = 'rejected';
+          else if (payment.statuses_id === 3) status = 'pending';
+
+          return {
+            direction: 'down' as const,
+            title: `${payment.credits_types?.title || 'Payment'} | ${payment.amount} $`,
+            date: payment.created_at,
+            status: 'Received',
+            value: `${payment.amount} $`,
+            originalStatus: status
+          };
+        });
+
+      setOrders(processedOrders);
+      setPayments(processedPayments);
+    } catch (error) {
+      console.error('Error fetching orders and payments:', error);
+      // Fallback to user session data if available
+      if (user?.orders) {
+        const processedOrders = user.orders
+          .filter((order: any) => order.statuses_id === 1) // Only show approved orders
+          .map((order: any) => ({
+            direction: 'up' as const,
+            title: `${order.product_variation?.product?.name || 'Product'} | ${order.product_variation?.name || 'Variation'}`,
+            date: order.created_at,
+            status: 'Purchased',
+            value: `$${parseFloat(order.total_price).toFixed(2)}`,
+            originalStatus: 'accepted'
+          }));
+        setOrders(processedOrders);
+      }
+    }
+  };
 
   const handleDateChange = (from: string, to: string) => {
     setIsLoading(true);
@@ -60,28 +121,22 @@ export default function AccountDashboard() {
 
   const handleManualRefresh = () => {
     refreshData();
+    fetchOrdersAndPayments();
   };
 
-  // const formatTimeSinceLastFetch = () => {
-  //   if (!timeSinceLastFetch) return 'Never';
-    
-  //   const minutes = Math.floor(timeSinceLastFetch / (1000 * 60));
-  //   if (minutes < 1) return 'Just now';
-  //   if (minutes < 60) return `${minutes}m ago`;
-    
-  //   const hours = Math.floor(minutes / 60);
-  //   if (hours < 24) return `${hours}h ago`;
-    
-  //   const days = Math.floor(hours / 24);
-  //   return `${days}d ago`;
-  // };
-
-  const filteredTransactions = useMemo(() => {
+  const filteredItems = useMemo(() => {
+    let items = [];
     if (activeFilter === 'all') {
-      return transactions;
+      items = [...orders, ...payments];
+    } else if (activeFilter === 'purchased') {
+      items = orders;
+    } else if (activeFilter === 'received') {
+      items = payments;
     }
-    return transactions.filter(tx => tx.status.toLowerCase() === activeFilter.toLowerCase());
-  }, [activeFilter]);
+    
+    // Sort by date from newest to oldest
+    return items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [activeFilter, orders, payments]);
 
   return (
     <DashboardLayout>
@@ -120,35 +175,6 @@ export default function AccountDashboard() {
               isRefreshing={isRefreshing}
               staleThreshold={2 * 60 * 1000} // 2 minutes
             />
-
-            {/* Refresh Button with Last Updated Info */}
-            {/* <div className="flex justify-between items-center">
-              <div className="text-sm text-gray-500">
-                Last updated: {formatTimeSinceLastFetch()}
-              </div>
-              <button
-                onClick={handleManualRefresh}
-                disabled={isRefreshing}
-                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {isRefreshing ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                    </svg>
-                    Refreshing...
-                  </>
-                ) : (
-                  <>
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Refresh Data
-                  </>
-                )}
-              </button>
-            </div> */}
 
             {/* Summary Cards */}
             <div className="flex flex-col lg:flex-row gap-4 w-full">
@@ -195,14 +221,14 @@ export default function AccountDashboard() {
               onFilterChange={handleFilterChange}
             />
 
-            {/* Transaction List */}
+            {/* Orders and Payments List */}
             <div className="flex flex-col items-start p-0 gap-2 max-w-full w-full">
               {isLoading ? (
                 <div className="w-full flex justify-center items-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E73828]"></div>
                 </div>
               ) : (
-                filteredTransactions.map((tx, i) => (
+                filteredItems.map((item, i) => (
                   <motion.div
                     key={i}
                     initial={{ opacity: 0, y: 20 }}
@@ -214,13 +240,13 @@ export default function AccountDashboard() {
                     <div className="flex flex-row items-center p-0 gap-4 min-w-0 flex-1">
                       {/* Icon Circle */}
                       <div className="relative w-9 h-9 flex-shrink-0">
-                        <div className={`absolute w-9 h-9 rounded-full ${tx.direction === 'up' ? 'bg-[#E73828]' : 'bg-[#5FD568]'}`}></div>
+                        <div className={`absolute w-9 h-9 rounded-full ${item.direction === 'up' ? 'bg-[#E73828]' : 'bg-[#5FD568]'}`}></div>
                         <svg 
                           width="24" 
                           height="24" 
                           viewBox="0 0 24 24" 
                           fill="none" 
-                          className={`absolute left-[6px] top-[6px] ${tx.direction === 'down' ? 'transform rotate-180' : ''}`}
+                          className={`absolute left-[6px] top-[6px] ${item.direction === 'down' ? 'transform rotate-180' : ''}`}
                         >
                           <path 
                             d="M12 5V19M12 5L5 12M12 5L19 12" 
@@ -235,29 +261,29 @@ export default function AccountDashboard() {
                       <div className="flex flex-col justify-center items-start p-0 gap-1 min-w-0">
                         <div className="flex flex-row items-center p-0 gap-1 w-full">
                           <span className="font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white truncate">
-                            {tx.title.split(' | ')[0]}
+                            {item.title.split(' | ')[0]}
                           </span>
-                          {tx.title.includes(' | ') && (
+                          {item.title.includes(' | ') && (
                             <>
                               <span className="w-[1px] h-3 bg-[#E73828] flex-shrink-0"></span>
                               <span className="font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white truncate">
-                                {tx.title.split(' | ')[1]}
+                                {item.title.split(' | ')[1]}
                               </span>
                             </>
                           )}
                         </div>
                         <span className="font-['Roboto'] font-normal text-xs leading-[14px] text-[#8E8E8E] dark:text-[#a0a0a0]">
-                          {formatDate(tx.date)}
+                          {formatDate(item.date)}
                         </span>
                       </div>
                     </div>
-                    {/* Right Section - Prices */}
+                    {/* Right Section - Status and Prices */}
                     <div className="flex flex-row justify-end items-center gap-2 flex-shrink-0">
-                      <span className="font-['Roboto'] font-normal text-base leading-[19px] line-through text-[#E73828] text-right">
-                        10 $
-                      </span>
-                      <span className="font-['Roboto'] font-normal text-base leading-[19px] text-[#5FD568] text-right">
-                        50 $
+                      {/* <span className="font-['Roboto'] font-normal text-sm leading-[16px] text-[#8E8E8E] dark:text-[#a0a0a0] text-right">
+                        {item.status}
+                      </span> */}
+                      <span className={`font-['Roboto'] font-normal text-base leading-[19px] ${item.direction === 'up' ? 'text-[#E73828]' : 'text-[#5FD568]'} text-right`}>
+                        {item.value}
                       </span>
                     </div>
                   </motion.div>
