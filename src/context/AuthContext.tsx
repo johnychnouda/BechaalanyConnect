@@ -44,12 +44,17 @@ interface UserType {
   is_business_user: boolean;
   business_name: string;
   business_location: string;
-  user_types_id: number;
+  // user_types_id: number;
   credits_balance: number;
   total_purchases: number;
   orders?: Order[];
-  // Using a more specific type instead of any
-  [key: string]: string | number | boolean | undefined | Order[];
+  user_types: UserSalesType; // Changed from UserSalesType[] to UserSalesType (single object)
+}
+
+interface UserSalesType {
+  id: number;
+  title: string;
+  slug: string;
 }
 
 interface AuthContextType {
@@ -141,7 +146,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     is_business_user: session.user.is_business_user || false,
     business_name: session.user.business_name || '',
     business_location: session.user.business_location || '',
-    user_types_id: session.user.user_types_id || 0,
+    // user_types_id: session.user.user_types_id || 0,
+    user_types: session.laravelUser?.user_types || [],
     credits_balance: userData?.credits_balance || session.user.credits_balance || 0,
     total_purchases: userData?.total_purchases || session.user.total_purchases || 0,
     orders: session.laravelUser?.orders || [],

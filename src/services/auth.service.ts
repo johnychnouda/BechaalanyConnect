@@ -1,5 +1,4 @@
 import api from '@/utils/api';
-import { AxiosError } from 'axios';
 import { signIn, signOut, getSession } from 'next-auth/react';
 
 export interface LoginCredentials {

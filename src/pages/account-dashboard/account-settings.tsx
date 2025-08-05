@@ -1,6 +1,8 @@
 import DashboardLayout from "@/components/ui/dashboard-layout";
 import React, { useState, useRef, useEffect } from "react";
 import BackButton from "@/components/ui/back-button";
+import { useAuth } from "@/context/AuthContext";
+import { useGlobalContext } from "@/context/GlobalContext";
 
 interface DropdownOption {
   value: string;
@@ -56,11 +58,10 @@ const CustomDropdown: React.FC<{
           {options.map((option) => (
             <div
               key={option.value}
-              className={`px-6 py-3 cursor-pointer transition-colors duration-200 ${
-                option.value === value 
-                  ? "bg-[#E73828] text-white" 
-                  : "hover:bg-[#E73828] hover:text-white dark:hover:bg-[#E73828] dark:hover:text-white" 
-              } dark:text-white`}
+              className={`px-6 py-3 cursor-pointer transition-colors duration-200 ${option.value === value
+                ? "bg-[#E73828] text-white"
+                : "hover:bg-[#E73828] hover:text-white dark:hover:bg-[#E73828] dark:hover:text-white"
+                } dark:text-white`}
               onClick={() => {
                 onChange(option.value);
                 setIsOpen(false);
@@ -78,24 +79,41 @@ const CustomDropdown: React.FC<{
 };
 
 export default function AccountSettings() {
-  // Account Info state
+
+  const { user } = useAuth();
+  const { generalData } = useGlobalContext();
+  const countries = generalData?.countries || [];
+  const userTypes = generalData?.user_types || [];
+
+  // Form state for account info
   const [accountInfo, setAccountInfo] = useState({
-    username: "Charbel Bechaalany",
-    email: "Charbelb@gmail.com",
-    phone: "",
-    country: "LEBANON",
-    userType: "Wholesale",
-    storeName: "Bechaalany Connect",
-    storeLocation: "Jounieh Lebanon",
+    username: user?.name || "",
+    email: user?.email || "",
+    phone: user?.phone_number || "",
+    country: user?.country || "",
+    userType: user?.user_types?.title || "",
+    storeName: user?.business_name || "",
+    storeLocation: user?.business_location || "",
   });
 
-  // Country code mapping
-  const countryCodes: Record<string, string> = {
-    LEBANON: "+961",
-    JORDAN: "+962",
-    "SAUDI ARABIA": "+966",
-    EGYPT: "+20",
-  };
+  // Update form state when user data changes
+  useEffect(() => {
+    if (user) {
+      setAccountInfo({
+        username: user.name || "",
+        email: user.email || "",
+        phone: user.phone_number || "",
+        country: user.country || "",
+        userType: user.user_types?.title || "",
+        storeName: user.business_name || "",
+        storeLocation: user.business_location || "",
+      });
+    }
+  }, [user]);
+
+  const country = accountInfo.country as keyof typeof countries;
+  const phonePrefix = countries.find(c => c.slug === country)?.code || "+";
+
 
   // Account Security state
   const [security, setSecurity] = useState({
@@ -107,38 +125,41 @@ export default function AccountSettings() {
   // Show/hide Account Security
   const [showSecurity, setShowSecurity] = useState(false);
 
-  // Country options
-  const countryOptions: DropdownOption[] = [
-    { value: "LEBANON", label: "LEBANON" },
-    { value: "JORDAN", label: "JORDAN" },
-    { value: "SAUDI ARABIA", label: "SAUDI ARABIA" },
-    { value: "EGYPT", label: "EGYPT" },
-  ];
-
-  const userTypeOptions: DropdownOption[] = [
-    { value: "Wholesale", label: "Wholesale" },
-    { value: "Wholesale API", label: "Wholesale API" },
-    { value: "Reseller", label: "Reseller" },
-  ];
-
   // Handlers
-  const handleInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setAccountInfo({ ...accountInfo, [e.target.name]: e.target.value });
+  const handleInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setAccountInfo(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
+
+  const handleDropdownChange = (field: string, value: string) => {
+    setAccountInfo(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   const handleSecurityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSecurity({ ...security, [e.target.name]: e.target.value });
   };
+
   const handleInfoSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Save account info logic
+    console.log("Saving account info:", accountInfo);
     alert("Account info saved!");
   };
+
   const handleSecuritySubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Save password logic
+    console.log("Changing password:", security);
     alert("Password changed!");
     setShowSecurity(false);
   };
+
   const handleDiscard = () => {
     setSecurity({ oldPassword: "", newPassword: "", confirmPassword: "" });
     setShowSecurity(false);
@@ -175,7 +196,7 @@ export default function AccountSettings() {
               <div className="flex flex-col items-start gap-1 w-full">
                 <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Phone Number</label>
                 <div className="flex flex-row items-center p-[12px_24px] gap-2 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
-                  <span className="font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white select-none">{countryCodes[accountInfo.country] || ''}</span>
+                  <span className="font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white select-none">{phonePrefix || ''}</span>
                   <input
                     name="phone"
                     value={accountInfo.phone}
@@ -190,13 +211,12 @@ export default function AccountSettings() {
               <div className="flex flex-col items-start gap-1 w-full">
                 <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Country</label>
                 <CustomDropdown
-                  options={countryOptions}
+                  options={countries.map(country => ({
+                    value: country.slug,
+                    label: country.title
+                  }))}
                   value={accountInfo.country}
-                  onChange={(value) =>
-                    handleInfoChange({
-                      target: { name: 'country', value }
-                    } as React.ChangeEvent<HTMLInputElement>)
-                  }
+                  onChange={(value) => handleDropdownChange('country', value)}
                   className="w-full"
                 />
               </div>
@@ -204,13 +224,12 @@ export default function AccountSettings() {
               <div className="flex flex-col items-start gap-1 w-full">
                 <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">User Type</label>
                 <CustomDropdown
-                  options={userTypeOptions}
+                  options={userTypes.map(userType => ({
+                    value: userType.title,
+                    label: userType.title
+                  }))}
                   value={accountInfo.userType}
-                  onChange={(value) =>
-                    handleInfoChange({
-                      target: { name: 'userType', value }
-                    } as React.ChangeEvent<HTMLInputElement>)
-                  }
+                  onChange={(value) => handleDropdownChange('userType', value)}
                   className="w-full"
                 />
               </div>
@@ -230,8 +249,8 @@ export default function AccountSettings() {
                 <span className="text-[#E73828] font-semibold whitespace-nowrap min-w-0">
                   Account Security
                 </span>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="bg-[#E73828] text-white rounded-full px-6 py-2 font-bold whitespace-nowrap hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200 text-base min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0"
                   style={{ flexShrink: 1, maxWidth: '200px' }}
                   onClick={() => setShowSecurity(true)}
@@ -240,8 +259,8 @@ export default function AccountSettings() {
                 </button>
               </div>
               <div className="flex flex-row flex-nowrap w-full gap-4 overflow-x-auto mb-4">
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="bg-[#E73828] text-white rounded-full py-3 font-bold text-lg hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap"
                   style={{ flexShrink: 1, maxWidth: '200px' }}
                 >
@@ -271,15 +290,15 @@ export default function AccountSettings() {
                   </div>
                 </div>
                 <div className="flex flex-row flex-nowrap w-full gap-4 overflow-x-auto">
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="bg-[#E73828] text-white rounded-full py-3 font-bold text-lg hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap"
                     style={{ flexShrink: 1, maxWidth: '200px' }}
                   >
                     SAVE PASSWORD
                   </button>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="border-2 border-[#E73828] text-[#E73828] rounded-full py-3 font-bold text-lg hover:bg-[#E73828] hover:text-white transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap"
                     style={{ flexShrink: 1, maxWidth: '200px' }}
                     onClick={handleDiscard}

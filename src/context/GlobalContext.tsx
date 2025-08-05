@@ -59,7 +59,6 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
 
       if (response.ok) {
         const freshUserData = await response.json();
-        console.log('Fresh user data fetched:', freshUserData);
         
         // Update the session data directly
         if (session.laravelUser && freshUserData) {
@@ -90,8 +89,6 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
     // Only start polling if user is authenticated
     if (!userId) return;
 
-    console.log('Starting order status polling for user:', userId);
-
     // Clear any existing polling
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current);
@@ -100,8 +97,6 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
     // Poll every 30 seconds to check for order status changes
     const interval = setInterval(async () => {
       try {
-        console.log('Polling for order status changes...');
-        
         // Refresh orders to check for status changes
         if (refreshOrdersCallback) {
           refreshOrdersCallback();
