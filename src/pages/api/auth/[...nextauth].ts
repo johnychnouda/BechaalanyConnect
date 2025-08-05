@@ -21,6 +21,7 @@ declare module "next-auth" {
             user_types_id?: number;
             credits_balance?: number;
             total_purchases?: number;
+            received_amount?: number;
         };
     }
 }
@@ -187,6 +188,7 @@ export default NextAuth({
                     user_types_id: token.laravelUser.user_types_id,
                     credits_balance: token.laravelUser.credits_balance || 0,
                     total_purchases: token.laravelUser.total_purchases || 0,
+                    received_amount: token.laravelUser.received_amount || 0,
                 };
             }
             

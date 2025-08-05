@@ -47,6 +47,7 @@ interface UserType {
   // user_types_id: number;
   credits_balance: number;
   total_purchases: number;
+  received_amount: number;
   orders?: Order[];
   user_types: UserSalesType; // Changed from UserSalesType[] to UserSalesType (single object)
 }
@@ -150,6 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user_types: session.laravelUser?.user_types || [],
     credits_balance: userData?.credits_balance || session.user.credits_balance || 0,
     total_purchases: userData?.total_purchases || session.user.total_purchases || 0,
+    received_amount: userData?.received_amount || session.user.received_amount || 0,
     orders: session.laravelUser?.orders || [],
   } : null;
   const token = session?.laravelToken || null;

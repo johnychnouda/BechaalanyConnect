@@ -131,7 +131,7 @@ export default function AccountDashboard() {
                     Received
                   </span>
                   <span className="font-['Roboto'] font-semibold text-xl md:text-2xl leading-[28px] text-[#5FD568]">
-                    370.00 $
+                    {user?.received_amount} $
                   </span>
                 </div>
               </div>
