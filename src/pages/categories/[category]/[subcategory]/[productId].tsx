@@ -214,7 +214,7 @@ const ProductPage: React.FC = () => {
       setQuantity(1);
       setSubmitLoading(false);
     } catch (error) {
-      showError('Failed to place order. Please try again.');
+      showError(`${error ? error : 'Failed to place order. Please try again.'}`);
       console.error('Error saving order:', error);
       setSubmitLoading(false);
     }
