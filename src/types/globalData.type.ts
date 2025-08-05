@@ -59,6 +59,7 @@ export type SettingsType = {
     locale: LocaleType;
     user_types: UserType[];
     countries: CountryType[];
+    user_current_balance: number;
   };
   
   export type GlobalContextType = {

@@ -71,10 +71,8 @@ export default NextAuth({
                             throw new Error('Invalid response structure');
                         }
                         
-                        // Debug: Log the user data from Laravel
-                        // console.log('Laravel user data:', JSON.stringify(user, null, 2));
-                        
-                        return {
+                        // Only store essential user data in JWT to prevent token size issues
+                        const essentialUserData = {
                             id: user.id.toString(),
                             email: user.email,
                             name: user.name || user.username,
@@ -87,8 +85,13 @@ export default NextAuth({
                             user_types_id: user.user_types_id,
                             credits_balance: user.credits_balance || 0,
                             total_purchases: user.total_purchases || 0,
+                            received_amount: user.received_amount || 0,
+                        };
+                        
+                        return {
+                            ...essentialUserData,
                             laravelToken: token,
-                            laravelUser: user,
+                            laravelUser: essentialUserData, // Store minimal user data
                         };
                     } else {
                         // Try to extract error message from Laravel
@@ -127,7 +130,22 @@ export default NextAuth({
                     if (response.ok) {
                         const { token: laravelToken, user: laravelUser } = await response.json();
                         token.laravelToken = laravelToken;
-                        token.laravelUser = laravelUser;
+                        // Store only essential user data
+                        token.laravelUser = {
+                            id: laravelUser.id.toString(),
+                            email: laravelUser.email,
+                            name: laravelUser.name || laravelUser.username,
+                            role: laravelUser.role,
+                            country: laravelUser.country,
+                            phone_number: laravelUser.phone_number,
+                            is_business_user: laravelUser.is_business_user,
+                            business_name: laravelUser.business_name,
+                            business_location: laravelUser.business_location,
+                            user_types_id: laravelUser.user_types_id,
+                            credits_balance: laravelUser.credits_balance || 0,
+                            total_purchases: laravelUser.total_purchases || 0,
+                            received_amount: laravelUser.received_amount || 0,
+                        };
                     }
                 } catch (error) {
                     console.error('Error syncing user with Laravel:', error);
@@ -140,7 +158,7 @@ export default NextAuth({
                 token.laravelUser = (user as any).laravelUser;
             }
 
-            // Handle session refresh trigger
+            // Handle session refresh trigger - only update essential data
             if (trigger === "update" && token.laravelToken) {
                 try {
                     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/profile`, {
@@ -153,9 +171,12 @@ export default NextAuth({
 
                     if (response.ok) {
                         const freshUserData = await response.json();
+                        // Only update essential fields to prevent token bloat
                         token.laravelUser = {
                             ...token.laravelUser,
-                            ...freshUserData,
+                            credits_balance: freshUserData.credits_balance || token.laravelUser?.credits_balance,
+                            total_purchases: freshUserData.total_purchases || token.laravelUser?.total_purchases,
+                            received_amount: freshUserData.received_amount || token.laravelUser?.received_amount,
                         };
                     }
                 } catch (error) {
@@ -169,9 +190,6 @@ export default NextAuth({
             // Pass Laravel data to session
             session.laravelToken = token.laravelToken;
             session.laravelUser = token.laravelUser;
-            
-            // Debug: Log the token data
-            // console.log('Token laravelUser data:', JSON.stringify(token.laravelUser, null, 2));
             
             // Ensure user data is properly structured
             if (token.laravelUser) {
@@ -192,9 +210,6 @@ export default NextAuth({
                 };
             }
             
-            // Debug: Log the final session user data
-            // console.log('Final session user data:', JSON.stringify(session.user, null, 2));
-            
             return session;
         }
     },
@@ -206,5 +221,9 @@ export default NextAuth({
         strategy: "jwt",
         maxAge: 30 * 24 * 60 * 60, // 30 days
     },
+    jwt: {
+        maxAge: 30 * 24 * 60 * 60, // 30 days - same as session
+    },
     secret: process.env.NEXTAUTH_SECRET,
+    debug: process.env.NODE_ENV === 'development',
 });

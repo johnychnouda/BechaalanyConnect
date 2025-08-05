@@ -8,7 +8,8 @@ import { formatDate } from "@/utils/date";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppTheme } from "@/hooks/use-app-theme";
 import BackButton from "@/components/ui/back-button";
-import { useUserData } from "@/hooks/useUserData";
+import { useOnDemandData } from "@/hooks/useOnDemandData";
+import { DataStaleIndicator } from "@/components/ui/data-stale-indicator";
 
 const transactions = [
   { direction: 'up', title: "Pubg Mobile | 600 UC", date: "2025-03-14 18:37:07", status: 'Purchased' },
@@ -29,25 +30,21 @@ const statusMeta = {
 };
 
 export default function AccountDashboard() {
-  const { user } = useUserData(true, 30000); // Auto-refresh every 30 seconds
-  const { startOrderStatusPolling, stopOrderStatusPolling } = useGlobalContext();
+  const { user, isRefreshing, refreshData, lastFetched, timeSinceLastFetch } = useOnDemandData();
   const { theme } = useAppTheme();
   const [activeSection, setActiveSection] = useState("dashboard");
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [activeFilter, setActiveFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
-  // Start polling for order status changes when component mounts
+  // Initial data fetch on mount
   useEffect(() => {
-    if (user) {
-      startOrderStatusPolling(user.id);
+    if (user && !hasInitialized) {
+      setHasInitialized(true);
+      refreshData();
     }
-
-    // Clean up polling when component unmounts
-    return () => {
-      stopOrderStatusPolling();
-    };
-  }, [user, startOrderStatusPolling, stopOrderStatusPolling]);
+  }, [user, hasInitialized, refreshData]);
 
   const handleDateChange = (from: string, to: string) => {
     setIsLoading(true);
@@ -60,6 +57,24 @@ export default function AccountDashboard() {
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter);
   };
+
+  const handleManualRefresh = () => {
+    refreshData();
+  };
+
+  // const formatTimeSinceLastFetch = () => {
+  //   if (!timeSinceLastFetch) return 'Never';
+    
+  //   const minutes = Math.floor(timeSinceLastFetch / (1000 * 60));
+  //   if (minutes < 1) return 'Just now';
+  //   if (minutes < 60) return `${minutes}m ago`;
+    
+  //   const hours = Math.floor(minutes / 60);
+  //   if (hours < 24) return `${hours}h ago`;
+    
+  //   const days = Math.floor(hours / 24);
+  //   return `${days}d ago`;
+  // };
 
   const filteredTransactions = useMemo(() => {
     if (activeFilter === 'all') {
@@ -97,6 +112,43 @@ export default function AccountDashboard() {
                 Wholesale Account
               </span>
             </div>
+
+            {/* Data Stale Indicator */}
+            <DataStaleIndicator
+              timeSinceLastFetch={timeSinceLastFetch}
+              onRefresh={handleManualRefresh}
+              isRefreshing={isRefreshing}
+              staleThreshold={2 * 60 * 1000} // 2 minutes
+            />
+
+            {/* Refresh Button with Last Updated Info */}
+            {/* <div className="flex justify-between items-center">
+              <div className="text-sm text-gray-500">
+                Last updated: {formatTimeSinceLastFetch()}
+              </div>
+              <button
+                onClick={handleManualRefresh}
+                disabled={isRefreshing}
+                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isRefreshing ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                    </svg>
+                    Refreshing...
+                  </>
+                ) : (
+                  <>
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Refresh Data
+                  </>
+                )}
+              </button>
+            </div> */}
 
             {/* Summary Cards */}
             <div className="flex flex-col lg:flex-row gap-4 w-full">

@@ -19,6 +19,8 @@ import { useRouter } from 'next/router';
 import PageLoader from '@/components/ui/PageLoader';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { clearSessionTokens, hasMultipleSessionTokens, logSessionTokens } from '@/utils/clear-session-tokens';
+
 
 export default function App({
   Component,
@@ -51,6 +53,17 @@ export default function App({
   const nextRouter = useRouter();
   const [loading, setLoading] = useState(false);
 
+  // Development-only session token cleanup
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      // Check for multiple session tokens on mount
+      if (hasMultipleSessionTokens()) {
+        console.warn('Multiple session tokens detected. Clearing them...');
+        logSessionTokens();
+        clearSessionTokens();
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const handleStart = () => setLoading(true);
@@ -126,6 +139,7 @@ export default function App({
                       pauseOnHover
                       theme={"colored"}
                     />
+
                   </NextIntlClientProvider>
                 </QueryClientProvider>
               </GlobalState.Provider>

@@ -44,12 +44,11 @@ interface UserType {
   is_business_user: boolean;
   business_name: string;
   business_location: string;
-  // user_types_id: number;
   credits_balance: number;
   total_purchases: number;
   received_amount: number;
   orders?: Order[];
-  user_types: UserSalesType; // Changed from UserSalesType[] to UserSalesType (single object)
+  user_types: UserSalesType;
 }
 
 interface UserSalesType {
@@ -78,33 +77,16 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSigninModalOpen, setIsSigninModalOpen] = useState(false);
   const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
-  const [userData, setUserData] = useState<any>(null);
-
-  // Listen for session updates
-  useEffect(() => {
-    const handleSessionUpdate = (event: CustomEvent) => {
-      const { freshUserData } = event.detail;
-      if (freshUserData) {
-        setUserData(freshUserData);
-      }
-    };
-
-    window.addEventListener('sessionUpdated', handleSessionUpdate as EventListener);
-    
-    return () => {
-      window.removeEventListener('sessionUpdated', handleSessionUpdate as EventListener);
-    };
-  }, []);
 
   // Derive authentication state from NextAuth session only
   const isAuthenticated = status === "authenticated" && !!session;
 
-  // Refresh user data function
+  // Refresh user data function - use NextAuth's built-in update
   const refreshUserData = useCallback(async () => {
     if (!session?.laravelToken) return;
     
@@ -120,22 +102,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (response.ok) {
         const freshUserData = await response.json();
-        setUserData(freshUserData);
         
-        // Dispatch event for other components that might be listening
-        window.dispatchEvent(new CustomEvent('sessionUpdated', { 
-          detail: { freshUserData } 
-        }));
+        // Use NextAuth's update method to refresh the session
+        await update({
+          credits_balance: freshUserData.credits_balance,
+          total_purchases: freshUserData.total_purchases,
+          received_amount: freshUserData.received_amount,
+        });
       }
     } catch (error) {
       console.error('Error refreshing user data:', error);
     } finally {
       setIsRefreshing(false);
     }
-  }, [session?.laravelToken]);
-
-  // Remove the automatic refresh useEffect to prevent infinite loops
-  // Components can call refreshUserData manually when needed
+  }, [session?.laravelToken, update]);
 
   const user = session?.user ? {
     id: session.user.id,
@@ -147,20 +127,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     is_business_user: session.user.is_business_user || false,
     business_name: session.user.business_name || '',
     business_location: session.user.business_location || '',
-    // user_types_id: session.user.user_types_id || 0,
     user_types: session.laravelUser?.user_types || [],
-    credits_balance: userData?.credits_balance || session.user.credits_balance || 0,
-    total_purchases: userData?.total_purchases || session.user.total_purchases || 0,
-    received_amount: userData?.received_amount || session.user.received_amount || 0,
+    credits_balance: session.user.credits_balance || 0,
+    total_purchases: session.user.total_purchases || 0,
+    received_amount: session.user.received_amount || 0,
     orders: session.laravelUser?.orders || [],
   } : null;
+  
   const token = session?.laravelToken || null;
   const isAdmin = user?.role === 'admin';
 
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      // Using NextAuth credentials provider for login
       const result = await signIn("credentials", {
         email: email,
         password,

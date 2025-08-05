@@ -23,7 +23,6 @@ function PaymentRow({ payment, expanded, onToggle }: {
         screenshot: string | null;
     }; expanded: boolean; onToggle: () => void
 }) {
-    console.log(payment);
 
     const meta = statusMeta[payment.status as 'accepted' | 'rejected' | 'pending'];
     return (
