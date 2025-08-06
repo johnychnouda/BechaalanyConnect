@@ -7,6 +7,8 @@ import OrderRow from "./orderRow";
 import { fetchUserOrders } from "@/services/api.service";
 import { useGlobalContext } from "@/context/GlobalContext";
 
+const ITEMS_PER_PAGE = 2; // Number of items to show initially and per load more
+
 export default function MyOrders() {
   const { user } = useAuth();
   const { setRefreshOrdersCallback } = useGlobalContext();
@@ -14,7 +16,8 @@ export default function MyOrders() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [autoRefreshing, setAutoRefreshing] = useState(false);
-
+  const [displayedItemsCount, setDisplayedItemsCount] = useState(ITEMS_PER_PAGE);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   // Fetch orders from API
   const fetchOrders = async (isAutoRefresh = false) => {
@@ -169,6 +172,26 @@ export default function MyOrders() {
 
   const filteredOrders = activeFilter === "all" ? processedOrders : processedOrders.filter((o: ProcessedOrder) => o.status === activeFilter);
 
+  const displayedOrders = useMemo(() => {
+    return filteredOrders.slice(0, displayedItemsCount);
+  }, [filteredOrders, displayedItemsCount]);
+
+  const hasMoreItems = displayedItemsCount < filteredOrders.length;
+
+  const handleFilterChange = (filter: string) => {
+    setActiveFilter(filter);
+    setDisplayedItemsCount(ITEMS_PER_PAGE); // Reset to initial count when filter changes
+  };
+
+  const handleLoadMore = () => {
+    setIsLoadingMore(true);
+    // Simulate loading delay for better UX
+    setTimeout(() => {
+      setDisplayedItemsCount(prev => prev + ITEMS_PER_PAGE);
+      setIsLoadingMore(false);
+    }, 500);
+  };
+
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-0 md:gap-0">
@@ -184,7 +207,7 @@ export default function MyOrders() {
               key={btn.key}
               className={`flex items-center rounded-[50.5px] px-3 py-2 font-['Roboto'] font-semibold text-[15px] h-[35px] ${btn.className}`}
               style={{ minWidth: '140px', maxWidth: '160px' }}
-              onClick={() => setActiveFilter(btn.key)}
+              onClick={() => handleFilterChange(btn.key)}
               type="button"
             >
               {btn.icon && (
@@ -200,7 +223,10 @@ export default function MyOrders() {
         {/* Refresh Button */}
         <div >
           <button
-            onClick={() => fetchOrders()}
+            onClick={() => {
+              fetchOrders();
+              setDisplayedItemsCount(ITEMS_PER_PAGE); // Reset to initial count on refresh
+            }}
             disabled={loading}
             className="flex items-center gap-2 px-4 py-2 bg-[#E73828] text-white rounded-lg hover:bg-[#d32f2f] disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -215,8 +241,6 @@ export default function MyOrders() {
           </button>
         </div>
       </div>
-
-
 
       {/* Error Message */}
       {error && (
@@ -243,9 +267,45 @@ export default function MyOrders() {
             No orders found.
           </div>
         ) : (
-          filteredOrders.map((order: ProcessedOrder) => (
-            <OrderRow key={order.id} order={order} />
-          ))
+          <>
+            {displayedOrders.map((order: ProcessedOrder) => (
+              <OrderRow key={order.id} order={order} />
+            ))}
+
+            {/* Load More Button */}
+            {hasMoreItems && (
+              <div className="w-full flex justify-center items-center py-4">
+                <button
+                  onClick={handleLoadMore}
+                  disabled={isLoadingMore}
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-[#E73828] hover:bg-[#d63224] disabled:bg-[#E73828]/50 text-white font-['Roboto'] font-medium text-base rounded-[25px] transition-all duration-200 disabled:cursor-not-allowed"
+                >
+                  {isLoadingMore ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Loading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Load More</span>
+                      <span className="text-sm opacity-75">
+                        ({filteredOrders.length - displayedItemsCount} more)
+                      </span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* Empty state */}
+            {!hasMoreItems && filteredOrders.length > 0 && (
+              <div className="w-full flex justify-center items-center py-4">
+                <span className="font-['Roboto'] font-normal text-sm text-[#8E8E8E] dark:text-[#a0a0a0]">
+                  No more orders to load
+                </span>
+              </div>
+            )}
+          </>
         )}
       </div>
     </DashboardLayout>

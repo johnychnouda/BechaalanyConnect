@@ -24,6 +24,8 @@ const statusMeta = {
   ) },
 };
 
+const ITEMS_PER_PAGE = 2; // Number of items to show initially and per load more
+
 export default function AccountDashboard() {
   const { user, isRefreshing, refreshData, lastFetched, timeSinceLastFetch } = useOnDemandData();
   const { theme } = useAppTheme();
@@ -34,6 +36,9 @@ export default function AccountDashboard() {
   const [hasInitialized, setHasInitialized] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
+  const [displayedItemsCount, setDisplayedItemsCount] = useState(ITEMS_PER_PAGE);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [dateFilter, setDateFilter] = useState<{ from: string; to: string } | null>(null);
 
   // Initial data fetch on mount
   useEffect(() => {
@@ -109,19 +114,41 @@ export default function AccountDashboard() {
 
   const handleDateChange = (from: string, to: string) => {
     setIsLoading(true);
-    // Simulate API call
+    
+    // If both dates are empty, clear the filter
+    if (!from && !to) {
+      setDateFilter(null);
+    } else {
+      setDateFilter({ from, to });
+    }
+    
+    setDisplayedItemsCount(ITEMS_PER_PAGE); // Reset to initial count when date filter changes
+    
+    // Simulate API call delay for better UX
     setTimeout(() => {
       setIsLoading(false);
-    }, 1000);
+    }, 500);
   };
 
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter);
+    setDisplayedItemsCount(ITEMS_PER_PAGE); // Reset to initial count when filter changes
   };
 
   const handleManualRefresh = () => {
     refreshData();
     fetchOrdersAndPayments();
+    setDateFilter(null); // Reset date filter on refresh
+    setDisplayedItemsCount(ITEMS_PER_PAGE); // Reset to initial count on refresh
+  };
+
+  const handleLoadMore = () => {
+    setIsLoadingMore(true);
+    // Simulate loading delay for better UX
+    setTimeout(() => {
+      setDisplayedItemsCount(prev => prev + ITEMS_PER_PAGE);
+      setIsLoadingMore(false);
+    }, 500);
   };
 
   const filteredItems = useMemo(() => {
@@ -134,9 +161,26 @@ export default function AccountDashboard() {
       items = payments;
     }
     
+    // Apply date filter if set
+    if (dateFilter && dateFilter.from && dateFilter.to && dateFilter.from !== '' && dateFilter.to !== '') {
+      const fromDate = new Date(dateFilter.from);
+      const toDate = new Date(dateFilter.to);
+      
+      items = items.filter(item => {
+        const itemDate = new Date(item.date);
+        return itemDate >= fromDate && itemDate <= toDate;
+      });
+    }
+    
     // Sort by date from newest to oldest
     return items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [activeFilter, orders, payments]);
+  }, [activeFilter, orders, payments, dateFilter]);
+
+  const displayedItems = useMemo(() => {
+    return filteredItems.slice(0, displayedItemsCount);
+  }, [filteredItems, displayedItemsCount]);
+
+  const hasMoreItems = displayedItemsCount < filteredItems.length;
 
   return (
     <DashboardLayout>
@@ -216,10 +260,23 @@ export default function AccountDashboard() {
             </div>
 
             {/* Transaction Filter */}
-            <TransactionFilter 
-              onDateChange={handleDateChange}
-              onFilterChange={handleFilterChange}
-            />
+            <div className="flex flex-col gap-2">
+              <TransactionFilter 
+                onDateChange={handleDateChange}
+                onFilterChange={handleFilterChange}
+              />
+              {dateFilter && dateFilter.from && dateFilter.to && (
+                <div className="flex items-center gap-2 text-sm text-[#8E8E8E] dark:text-[#a0a0a0]">
+                  <span>Filtered by date: {new Date(dateFilter.from).toLocaleDateString()} - {new Date(dateFilter.to).toLocaleDateString()}</span>
+                  <button
+                    onClick={() => handleDateChange('', '')}
+                    className="text-[#E73828] hover:underline"
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Orders and Payments List */}
             <div className="flex flex-col items-start p-0 gap-2 max-w-full w-full">
@@ -228,66 +285,103 @@ export default function AccountDashboard() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E73828]"></div>
                 </div>
               ) : (
-                filteredItems.map((item, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="flex flex-row justify-between items-center p-3 gap-2 w-full max-w-full h-[66px] bg-[rgba(7,7,7,0.05)] dark:bg-[rgba(255,255,255,0.05)] rounded-[20px] md:rounded-[50.5px] overflow-x-auto"
-                  >
-                    {/* Left Section - Icon, Title, Date */}
-                    <div className="flex flex-row items-center p-0 gap-4 min-w-0 flex-1">
-                      {/* Icon Circle */}
-                      <div className="relative w-9 h-9 flex-shrink-0">
-                        <div className={`absolute w-9 h-9 rounded-full ${item.direction === 'up' ? 'bg-[#E73828]' : 'bg-[#5FD568]'}`}></div>
-                        <svg 
-                          width="24" 
-                          height="24" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          className={`absolute left-[6px] top-[6px] ${item.direction === 'down' ? 'transform rotate-180' : ''}`}
-                        >
-                          <path 
-                            d="M12 5V19M12 5L5 12M12 5L19 12" 
-                            stroke="white" 
-                            strokeWidth="3" 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </div>
-                      {/* Title and Date */}
-                      <div className="flex flex-col justify-center items-start p-0 gap-1 min-w-0">
-                        <div className="flex flex-row items-center p-0 gap-1 w-full">
-                          <span className="font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white truncate">
-                            {item.title.split(' | ')[0]}
-                          </span>
-                          {item.title.includes(' | ') && (
-                            <>
-                              <span className="w-[1px] h-3 bg-[#E73828] flex-shrink-0"></span>
-                              <span className="font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white truncate">
-                                {item.title.split(' | ')[1]}
-                              </span>
-                            </>
-                          )}
+                <>
+                  {displayedItems.map((item, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="flex flex-row justify-between items-center p-3 gap-2 w-full max-w-full h-[66px] bg-[rgba(7,7,7,0.05)] dark:bg-[rgba(255,255,255,0.05)] rounded-[20px] md:rounded-[50.5px] overflow-x-auto"
+                    >
+                      {/* Left Section - Icon, Title, Date */}
+                      <div className="flex flex-row items-center p-0 gap-4 min-w-0 flex-1">
+                        {/* Icon Circle */}
+                        <div className="relative w-9 h-9 flex-shrink-0">
+                          <div className={`absolute w-9 h-9 rounded-full ${item.direction === 'up' ? 'bg-[#E73828]' : 'bg-[#5FD568]'}`}></div>
+                          <svg 
+                            width="24" 
+                            height="24" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            className={`absolute left-[6px] top-[6px] ${item.direction === 'down' ? 'transform rotate-180' : ''}`}
+                          >
+                            <path 
+                              d="M12 5V19M12 5L5 12M12 5L19 12" 
+                              stroke="white" 
+                              strokeWidth="3" 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round"
+                            />
+                          </svg>
                         </div>
-                        <span className="font-['Roboto'] font-normal text-xs leading-[14px] text-[#8E8E8E] dark:text-[#a0a0a0]">
-                          {formatDate(item.date)}
+                        {/* Title and Date */}
+                        <div className="flex flex-col justify-center items-start p-0 gap-1 min-w-0">
+                          <div className="flex flex-row items-center p-0 gap-1 w-full">
+                            <span className="font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white truncate">
+                              {item.title.split(' | ')[0]}
+                            </span>
+                            {item.title.includes(' | ') && (
+                              <>
+                                <span className="w-[1px] h-3 bg-[#E73828] flex-shrink-0"></span>
+                                <span className="font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white truncate">
+                                  {item.title.split(' | ')[1]}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                          <span className="font-['Roboto'] font-normal text-xs leading-[14px] text-[#8E8E8E] dark:text-[#a0a0a0]">
+                            {formatDate(item.date)}
+                          </span>
+                        </div>
+                      </div>
+                      {/* Right Section - Status and Prices */}
+                      <div className="flex flex-row justify-end items-center gap-2 flex-shrink-0">
+                        {/* <span className="font-['Roboto'] font-normal text-sm leading-[16px] text-[#8E8E8E] dark:text-[#a0a0a0] text-right">
+                          {item.status}
+                        </span> */}
+                        <span className={`font-['Roboto'] font-normal text-base leading-[19px] ${item.direction === 'up' ? 'text-[#E73828]' : 'text-[#5FD568]'} text-right`}>
+                          {item.value}
                         </span>
                       </div>
+                    </motion.div>
+                  ))}
+
+                  {/* Load More Button */}
+                  {hasMoreItems && (
+                    <div className="w-full flex justify-center items-center py-4">
+                      <button
+                        onClick={handleLoadMore}
+                        disabled={isLoadingMore}
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-[#E73828] hover:bg-[#d63224] disabled:bg-[#E73828]/50 text-white font-['Roboto'] font-medium text-base rounded-[25px] transition-all duration-200 disabled:cursor-not-allowed"
+                      >
+                        {isLoadingMore ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>Loading...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Load More</span>
+                            <span className="text-sm opacity-75">
+                              ({filteredItems.length - displayedItemsCount} more)
+                            </span>
+                          </>
+                        )}
+                      </button>
                     </div>
-                    {/* Right Section - Status and Prices */}
-                    <div className="flex flex-row justify-end items-center gap-2 flex-shrink-0">
-                      {/* <span className="font-['Roboto'] font-normal text-sm leading-[16px] text-[#8E8E8E] dark:text-[#a0a0a0] text-right">
-                        {item.status}
-                      </span> */}
-                      <span className={`font-['Roboto'] font-normal text-base leading-[19px] ${item.direction === 'up' ? 'text-[#E73828]' : 'text-[#5FD568]'} text-right`}>
-                        {item.value}
+                  )}
+
+
+                  {/* Empty state */}
+                  {filteredItems.length === 0 && !isLoading && (
+                    <div className="w-full flex justify-center items-center py-8">
+                      <span className="font-['Roboto'] font-normal text-base text-[#8E8E8E] dark:text-[#a0a0a0]">
+                        No transactions found
                       </span>
                     </div>
-                  </motion.div>
-                ))
+                  )}
+                </>
               )}
             </div>
           </>

@@ -1,10 +1,11 @@
 import DashboardLayout from "@/components/ui/dashboard-layout";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import BackButton from "@/components/ui/back-button";
 import { fetchUserPayments } from "@/services/api.service";
 import { useAuth } from "@/context/AuthContext";
 import PaymentRow from "./paymentRow";
 
+const ITEMS_PER_PAGE = 2; // Number of items to show initially and per load more
 
 export default function MyPayments() {
   const { user } = useAuth();
@@ -20,6 +21,8 @@ export default function MyPayments() {
   const [error, setError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>("all");
+  const [displayedItemsCount, setDisplayedItemsCount] = useState(ITEMS_PER_PAGE);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   useEffect(() => {
     const fetchPayments = async () => {
@@ -115,6 +118,26 @@ export default function MyPayments() {
     ? payments
     : payments.filter(p => p.status === activeFilter);
 
+  const displayedPayments = useMemo(() => {
+    return filteredPayments.slice(0, displayedItemsCount);
+  }, [filteredPayments, displayedItemsCount]);
+
+  const hasMoreItems = displayedItemsCount < filteredPayments.length;
+
+  const handleFilterChange = (filter: string) => {
+    setActiveFilter(filter);
+    setDisplayedItemsCount(ITEMS_PER_PAGE); // Reset to initial count when filter changes
+  };
+
+  const handleLoadMore = () => {
+    setIsLoadingMore(true);
+    // Simulate loading delay for better UX
+    setTimeout(() => {
+      setDisplayedItemsCount(prev => prev + ITEMS_PER_PAGE);
+      setIsLoadingMore(false);
+    }, 500);
+  };
+
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-4">
@@ -129,7 +152,7 @@ export default function MyPayments() {
                 key={btn.key}
                 className={`flex items-center rounded-[50.5px] px-3 py-2 font-['Roboto'] font-semibold text-[15px] h-[35px] ${btn.className}`}
                 style={{ minWidth: '140px', maxWidth: '160px' }}
-                onClick={() => setActiveFilter(btn.key)}
+                onClick={() => handleFilterChange(btn.key)}
                 type="button"
               >
                 {btn.icon && (
@@ -158,16 +181,52 @@ export default function MyPayments() {
             No payments found.
           </div>
         ) : (
-          <div className="flex flex-col gap-4 w-full">
-            {filteredPayments.map((payment) => (
-              <PaymentRow
-                key={payment.id}
-                payment={payment}
-                expanded={expandedId === payment.id}
-                onToggle={() => setExpandedId(expandedId === payment.id ? null : payment.id)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="flex flex-col gap-4 w-full">
+              {displayedPayments.map((payment) => (
+                <PaymentRow
+                  key={payment.id}
+                  payment={payment}
+                  expanded={expandedId === payment.id}
+                  onToggle={() => setExpandedId(expandedId === payment.id ? null : payment.id)}
+                />
+              ))}
+            </div>
+
+            {/* Load More Button */}
+            {hasMoreItems && (
+              <div className="w-full flex justify-center items-center py-4">
+                <button
+                  onClick={handleLoadMore}
+                  disabled={isLoadingMore}
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-[#E73828] hover:bg-[#d63224] disabled:bg-[#E73828]/50 text-white font-['Roboto'] font-medium text-base rounded-[25px] transition-all duration-200 disabled:cursor-not-allowed"
+                >
+                  {isLoadingMore ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Loading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Load More</span>
+                      <span className="text-sm opacity-75">
+                        ({filteredPayments.length - displayedItemsCount} more)
+                      </span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* Empty state */}
+            {!hasMoreItems && filteredPayments.length > 0 && (
+              <div className="w-full flex justify-center items-center py-4">
+                <span className="font-['Roboto'] font-normal text-sm text-[#8E8E8E] dark:text-[#a0a0a0]">
+                  No more payments to load
+                </span>
+              </div>
+            )}
+          </>
         )}
       </div>
     </DashboardLayout>

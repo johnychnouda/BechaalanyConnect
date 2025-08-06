@@ -107,25 +107,25 @@ export const saveOrder = async (orderData: {
     }
 };
 
-export const fetchUserOrders = async () => {
+export const fetchUserOrders = async (page = 1, limit = 10) => {
     try {
-        const { data } = await api.get('/user/orders');
+        const { data } = await api.get(`/user/orders?page=${page}&limit=${limit}`);
         return data;
     } catch (error) {
         // If the API endpoint doesn't exist yet, return empty orders
         // This allows the frontend to work while the backend is being developed
         console.warn('User orders API endpoint not available yet:', error);
-        return { orders: [] };
+        return { orders: [], total: 0 };
     }
 };
 
-export const fetchUserPayments = async () => {
+export const fetchUserPayments = async (page = 1, limit = 10) => {
   try {
-    const { data } = await api.get('/user/credits');
+    const { data } = await api.get(`/user/credits?page=${page}&limit=${limit}`);
     return data;
   } catch (error) {
     console.warn('User payments API endpoint not available yet:', error);
-    return { payments: [] };
+    return { credits: [], total: 0 };
   }
 };
 
