@@ -24,7 +24,7 @@ const statusMeta = {
   ) },
 };
 
-const ITEMS_PER_PAGE = 2; // Number of items to show initially and per load more
+const ITEMS_PER_PAGE = 5; // Number of items to show initially and per load more
 
 export default function AccountDashboard() {
   const { user, isRefreshing, refreshData, lastFetched, timeSinceLastFetch } = useOnDemandData();

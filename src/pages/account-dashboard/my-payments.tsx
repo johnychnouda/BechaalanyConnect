@@ -5,7 +5,7 @@ import { fetchUserPayments } from "@/services/api.service";
 import { useAuth } from "@/context/AuthContext";
 import PaymentRow from "./paymentRow";
 
-const ITEMS_PER_PAGE = 2; // Number of items to show initially and per load more
+const ITEMS_PER_PAGE = 5; // Number of items to show initially and per load more
 
 export default function MyPayments() {
   const { user } = useAuth();

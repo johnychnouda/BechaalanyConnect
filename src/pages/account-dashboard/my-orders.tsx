@@ -6,8 +6,9 @@ import { ProcessedOrder } from "./orderRow";
 import OrderRow from "./orderRow";
 import { fetchUserOrders } from "@/services/api.service";
 import { useGlobalContext } from "@/context/GlobalContext";
+import { generateBulkOrderReceipts } from "@/utils/pdf-generator";
 
-const ITEMS_PER_PAGE = 2; // Number of items to show initially and per load more
+const ITEMS_PER_PAGE = 5; // Number of items to show initially and per load more
 
 export default function MyOrders() {
   const { user } = useAuth();
@@ -18,6 +19,7 @@ export default function MyOrders() {
   const [autoRefreshing, setAutoRefreshing] = useState(false);
   const [displayedItemsCount, setDisplayedItemsCount] = useState(ITEMS_PER_PAGE);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+
 
   // Fetch orders from API
   const fetchOrders = async (isAutoRefresh = false) => {
@@ -98,6 +100,8 @@ export default function MyOrders() {
         recipient_info = `Phone: ${order.recipient_phone_number}`;
       }
 
+      // console.log(order);
+
       return {
         id: order.id,
         status,
@@ -105,10 +109,19 @@ export default function MyOrders() {
         value,
         date: order.created_at,
         quantity: order.quantity,
-        recipient_info
+        recipient_info: recipient_info,
+        Customer: {
+          username: order.users.username,
+          email: order.users.email,
+          phone_number: order.users.phone_number,
+          country: order.users.country,
+          business_location: order.users.business_location,
+          business_name: order.users.business_name
+        }
       };
     });
   }, [orders]);
+
 
   const [activeFilter, setActiveFilter] = useState<string>("all");
 
@@ -192,6 +205,20 @@ export default function MyOrders() {
     }, 500);
   };
 
+  // const handleBulkExport = async () => {
+  //   if (filteredOrders.length === 0 || isBulkExporting) return;
+    
+  //   setIsBulkExporting(true);
+  //   try {
+  //     await generateBulkOrderReceipts(filteredOrders);
+  //   } catch (error) {
+  //     console.error('Error bulk exporting orders:', error);
+  //     // You could add a toast notification here for better user feedback
+  //   } finally {
+  //     setIsBulkExporting(false);
+  //   }
+  // };
+
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-0 md:gap-0">
@@ -220,15 +247,39 @@ export default function MyOrders() {
           ))}
         </div>
 
-        {/* Refresh Button */}
-        <div >
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Bulk Export Button */}
+          {/* {filteredOrders.length > 0 && (
+            <button
+              onClick={handleBulkExport}
+              disabled={loading || isBulkExporting}
+              className="flex items-center gap-2 px-4 py-2 bg-[#10B981] text-white rounded-lg hover:bg-[#059669] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
+              title={`Export ${filteredOrders.length} order${filteredOrders.length > 1 ? 's' : ''} as PDF`}
+            >
+              {isBulkExporting ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7,10 12,15 17,10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              )}
+              <span className="font-medium">
+                {isBulkExporting ? 'Exporting...' : `Export All (${filteredOrders.length})`}
+              </span>
+            </button>
+          )} */}
+          
+          {/* Refresh Button */}
           <button
             onClick={() => {
               fetchOrders();
               setDisplayedItemsCount(ITEMS_PER_PAGE); // Reset to initial count on refresh
             }}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-[#E73828] text-white rounded-lg hover:bg-[#d32f2f] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 bg-[#E73828] text-white rounded-lg hover:bg-[#d32f2f] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
             {loading ? (
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>

@@ -24,6 +24,14 @@ export interface Order {
     image: string;
     product: Product;
   };
+  users: {
+    username: string;
+    email: string;
+    phone_number: string;
+    country?: string;
+    business_location?: string;
+    business_name?: string;
+  }
 }
 
 export interface Product {
