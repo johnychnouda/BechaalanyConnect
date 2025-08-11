@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode, useCa
 import { useRouter } from "next/router";
 import { fetchGeneralData } from "@/services/api.service";
 import { GeneralDataType } from "@/types/globalData.type";
-import { useSession } from 'next-auth/react';
+import { useAppSession } from '@/hooks/use-session';
 
 interface GlobalContextType {
   generalData: GeneralDataType | null;
@@ -20,7 +20,7 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
   const [generalData, setGeneralData] = useState<GeneralDataType | null>(null);
   const [refreshOrdersCallback, setRefreshOrdersCallback] = useState<(() => void) | null>(null);
   const router = useRouter();
-  const { data: session, update } = useSession();
+  const { session, update } = useAppSession();
 
   useEffect(() => {
     if (!router.locale) return;
@@ -66,6 +66,16 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
       console.error('Error refreshing user session:', error);
     }
   }, [session?.laravelToken, update]);
+
+  // Clear session cache when session changes to ensure consistency
+  useEffect(() => {
+    if (session) {
+      // Import and call clearSessionCache when session changes
+      import('@/utils/api').then(({ clearSessionCache }) => {
+        clearSessionCache();
+      });
+    }
+  }, [session]);
 
   return (
     <GlobalContext.Provider value={{ 

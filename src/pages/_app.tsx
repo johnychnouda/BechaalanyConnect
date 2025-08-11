@@ -20,6 +20,7 @@ import PageLoader from '@/components/ui/PageLoader';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { clearSessionTokens, hasMultipleSessionTokens, logSessionTokens } from '@/utils/clear-session-tokens';
+import SessionProfiler from '@/components/ui/session-profiler';
 
 
 export default function App({
@@ -93,60 +94,74 @@ export default function App({
 
   return (
     <StyledComponentsRegistry>
-      <SessionProvider session={pageProps.session}>
-        <GlobalProvider>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem={true} storageKey="theme" disableTransitionOnChange={false}>
-            <AuthProvider>
-              <GlobalState.Provider value={globalStateValue}>
-                <QueryClientProvider client={queryClient}>
-                  <NextIntlClientProvider
-                    locale={router.locale}
-                    timeZone="Asia/Beirut"
-                    messages={messages || {}}
-                    onError={(error) => {
-                      if (error.code !== 'MISSING_MESSAGE') {
-                        console.error(error);
-                      }
-                    }}
-                  >
-                    <FallbackTheme />
-                    {loading && <PageLoader />}
-                    <main
-                      className={`min-h-screen flex flex-col ${isRTL ? "rtl" : "ltr"}`}
-                      dir={isRTL ? "rtl" : "ltr"}
-                    >
-                      <TopBanner>
-                        <Header>
-                          <div className="flex-grow">
-                            <Component {...pageProps} />
-                          </div>
-                        </Header>
-                      </TopBanner>
-                      {/* WhatsApp Floating Button */}
-                      <WhatsAppButton style={{ position: "fixed", bottom: "2rem", right: "2rem", zIndex: 40 }} />
-                      {/* Footer */}
-                      <Footer />
-                    </main>
-                    {/* Global Toast Container */}
-                    <ToastContainer
-                      position={isRTL ? 'top-left' : 'top-right'}
-                      autoClose={3000}
-                      hideProgressBar={false}
-                      newestOnTop={false}
-                      closeOnClick
-                      rtl={false}
-                      pauseOnFocusLoss
-                      pauseOnHover
-                      theme={"colored"}
-                    />
+      <SessionProfiler name="SessionProvider">
+        <SessionProvider session={pageProps.session}>
+          <SessionProfiler name="GlobalProvider">
+            <GlobalProvider>
+              <SessionProfiler name="ThemeProvider">
+                <ThemeProvider attribute="class" defaultTheme="light" enableSystem={true} storageKey="theme" disableTransitionOnChange={false}>
+                  <SessionProfiler name="AuthProvider">
+                    <AuthProvider>
+                      <SessionProfiler name="GlobalState">
+                        <GlobalState.Provider value={globalStateValue}>
+                          <SessionProfiler name="QueryClientProvider">
+                            <QueryClientProvider client={queryClient}>
+                              <SessionProfiler name="NextIntlClientProvider">
+                                <NextIntlClientProvider
+                                  locale={router.locale}
+                                  timeZone="Asia/Beirut"
+                                  messages={messages || {}}
+                                  onError={(error) => {
+                                    if (error.code !== 'MISSING_MESSAGE') {
+                                      console.error(error);
+                                    }
+                                  }}
+                                >
+                                  <FallbackTheme />
+                                  {loading && <PageLoader />}
+                                  <main
+                                    className={`min-h-screen flex flex-col ${isRTL ? "rtl" : "ltr"}`}
+                                    dir={isRTL ? "rtl" : "ltr"}
+                                  >
+                                    <TopBanner>
+                                      <Header>
+                                        <div className="flex-grow">
+                                          <Component {...pageProps} />
+                                        </div>
+                                      </Header>
+                                    </TopBanner>
+                                    {/* WhatsApp Floating Button */}
+                                    <WhatsAppButton style={{ position: "fixed", bottom: "2rem", right: "2rem", zIndex: 40 }} />
+                                    {/* Footer */}
+                                    <Footer />
+                                  </main>
+                                  {/* Global Toast Container */}
+                                  <ToastContainer
+                                    position={isRTL ? 'top-left' : 'top-right'}
+                                    autoClose={3000}
+                                    hideProgressBar={false}
+                                    newestOnTop={false}
+                                    closeOnClick
+                                    rtl={false}
+                                    pauseOnFocusLoss
+                                    pauseOnHover
+                                    theme={"colored"}
+                                  />
 
-                  </NextIntlClientProvider>
-                </QueryClientProvider>
-              </GlobalState.Provider>
-            </AuthProvider>
-          </ThemeProvider>
-        </GlobalProvider>
-      </SessionProvider>
+                                </NextIntlClientProvider>
+                              </SessionProfiler>
+                            </QueryClientProvider>
+                          </SessionProfiler>
+                        </GlobalState.Provider>
+                      </SessionProfiler>
+                    </AuthProvider>
+                  </SessionProfiler>
+                </ThemeProvider>
+              </SessionProfiler>
+            </GlobalProvider>
+          </SessionProfiler>
+        </SessionProvider>
+      </SessionProfiler>
     </StyledComponentsRegistry>
   );
 }

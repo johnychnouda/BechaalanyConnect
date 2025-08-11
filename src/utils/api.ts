@@ -10,13 +10,61 @@ const api = axios.create({
     },
 });
 
+// Cache for session to avoid multiple calls
+let sessionCache: any = null;
+let sessionCacheTime = 0;
+const SESSION_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Enable debugging in development
+const DEBUG_SESSION = process.env.NODE_ENV === 'development';
+
+// Function to get cached session
+const getCachedSession = async () => {
+    const now = Date.now();
+    
+    // Return cached session if it's still valid
+    if (sessionCache && (now - sessionCacheTime) < SESSION_CACHE_DURATION) {
+        return sessionCache;
+    }
+    
+    // Fetch fresh session
+    try {
+        const session = await getSession();
+        sessionCache = session;
+        sessionCacheTime = now;
+        return session;
+    } catch (error) {
+        console.error('Error getting session:', error);
+        return null;
+    }
+};
+
 // Add request interceptor
 api.interceptors.request.use(
     async (config) => {
-        // Get token from NextAuth session
-        const session = await getSession();
-        if (session?.laravelToken) {
-            config.headers.Authorization = `Bearer ${session.laravelToken}`;
+        // Define public endpoints that don't need authentication
+        const publicEndpoints = [
+            '/general',
+            '/home', 
+            '/categories',
+            '/about',
+            '/contact',
+            '/credit-types',
+            '/contact-form-submit'
+        ];
+        
+        // Check if the current request is to a public endpoint
+        const isPublicEndpoint = publicEndpoints.some(endpoint => 
+            config.url && config.url.includes(endpoint)
+        );
+        
+        
+        // Only get session for authenticated endpoints
+        if (!isPublicEndpoint) {
+            const session = await getCachedSession();
+            if (session?.laravelToken) {
+                config.headers.Authorization = `Bearer ${session.laravelToken}`;
+            }
         }
         return config;
     },
@@ -59,5 +107,18 @@ api.interceptors.response.use(
         }
     }
 );
+
+// Function to clear session cache (useful for logout)
+export const clearSessionCache = () => {
+    sessionCache = null;
+    sessionCacheTime = 0;
+};
+
+// Function to manually refresh session cache
+export const refreshSessionCache = async () => {
+    sessionCache = null;
+    sessionCacheTime = 0;
+    return await getCachedSession();
+};
 
 export default api;

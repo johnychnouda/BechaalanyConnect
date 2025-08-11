@@ -1,7 +1,9 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useSession, signOut, signIn } from "next-auth/react";
+import { signOut, signIn } from "next-auth/react";
+import { clearSessionCache } from '@/utils/api';
+import { useAppSession } from '@/hooks/use-session';
 
 export interface Order {
   id: number;
@@ -77,14 +79,14 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { data: session, status, update } = useSession();
+  const { session, status, update, isAuthenticated: sessionAuthenticated, user: sessionUser, token: sessionToken } = useAppSession();
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSigninModalOpen, setIsSigninModalOpen] = useState(false);
   const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
 
-  // Derive authentication state from NextAuth session only
-  const isAuthenticated = status === "authenticated" && !!session;
+  // Use the centralized authentication state
+  const isAuthenticated = sessionAuthenticated;
 
   // Refresh user data function - use NextAuth's built-in update
   const refreshUserData = useCallback(async () => {
@@ -117,24 +119,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [session?.laravelToken, update]);
 
-  const user = session?.user ? {
-    id: session.user.id,
-    name: session.user.name || '',
-    email: session.user.email || '',
-    role: session.user.role || 'user',
-    country: session.user.country || '',
-    phone_number: session.user.phone_number || '',
-    is_business_user: session.user.is_business_user || false,
-    business_name: session.user.business_name || '',
-    business_location: session.user.business_location || '',
-    user_types: session.laravelUser?.user_types || [],
-    credits_balance: session.user.credits_balance || 0,
-    total_purchases: session.user.total_purchases || 0,
-    received_amount: session.user.received_amount || 0,
-    orders: session.laravelUser?.orders || [],
+  const user = sessionUser ? {
+    id: sessionUser.id,
+    name: sessionUser.name || '',
+    email: sessionUser.email || '',
+    role: sessionUser.role || 'user',
+    country: sessionUser.country || '',
+    phone_number: sessionUser.phone_number || '',
+    is_business_user: sessionUser.is_business_user || false,
+    business_name: sessionUser.business_name || '',
+    business_location: sessionUser.business_location || '',
+    user_types: session?.laravelUser?.user_types || [],
+    credits_balance: sessionUser.credits_balance || 0,
+    total_purchases: sessionUser.total_purchases || 0,
+    received_amount: sessionUser.received_amount || 0,
+    orders: session?.laravelUser?.orders || [],
   } : null;
   
-  const token = session?.laravelToken || null;
+  const token = sessionToken;
   const isAdmin = user?.role === 'admin';
 
   const login = async (email: string, password: string) => {
@@ -170,6 +172,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       await signOut({ callbackUrl: "/" });
+      clearSessionCache();
     } catch (error) {
       setLoading(false);
       throw error;
