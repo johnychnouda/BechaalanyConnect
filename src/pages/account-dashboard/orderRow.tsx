@@ -118,7 +118,7 @@ function orderRow({ order }: { order: ProcessedOrder }) {
               <path d="M12 15v-6M9 12l3 3 3-3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <span className="hidden md:block text-xs font-medium">
-              {locale === 'en' ? 'Preview & Export' : 'معاينة وتحميل'}
+              {locale === 'en' ? 'Export' : 'تحميل'}
             </span>
           </button>
         </div>

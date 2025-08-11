@@ -68,21 +68,6 @@ export const generateOrderReceipt = (orderData: OrderReceiptData): Promise<void>
                 doc.text(`Phone: ${orderData.Customer.phone_number}`, 120, 80);
             }
             
-            if (orderData.Customer?.business_location) {
-                doc.text(`Business Location: ${orderData.Customer.business_location}`, 120, 90);
-            }
-            if (orderData.Customer?.business_name) {
-                doc.text(`Business Name: ${orderData.Customer.business_name}`, 120, 100);
-            }
-
-            // Calculate the height needed for customer information
-            let customerInfoHeight = 0;
-            if (orderData.Customer?.username || orderData.Customer?.email || 
-                orderData.Customer?.phone_number || orderData.Customer?.country || 
-                orderData.Customer?.business_location || orderData.Customer?.business_name) {
-                customerInfoHeight = 50; // Base height for customer info section
-            }
-
             // Product details table - positioned below customer info
             const tableData = [
                 ['Product', orderData.productName],
@@ -94,7 +79,7 @@ export const generateOrderReceipt = (orderData: OrderReceiptData): Promise<void>
             ];
 
             autoTable(doc, {
-                startY: 120 , // Position table below customer info
+                startY: 100 , // Position table below customer info
                 head: [['Item', 'Details']],
                 body: tableData,
                 theme: 'grid',
@@ -114,7 +99,7 @@ export const generateOrderReceipt = (orderData: OrderReceiptData): Promise<void>
             });
 
             // Get the table's end position to avoid overlap
-            const tableEndY = (doc as any).lastAutoTable.finalY || (140 + customerInfoHeight);
+            const tableEndY = (doc as any).lastAutoTable.finalY || (140);
 
             // Footer - positioned below the table with proper spacing
             const footerY = tableEndY + 20; // Add 20px spacing after table
@@ -148,9 +133,6 @@ export const generateOrderReceiptFromProcessedOrder = async (
         let customerName = '';
         let customerEmail = '';
         let customerPhone = '';
-        let customerCountry = '';
-        let customerBusinessLocation = '';
-        let customerBusinessName = '';
 
         // Check if user data is available in the order
         if (order?.Customer) {
@@ -158,9 +140,6 @@ export const generateOrderReceiptFromProcessedOrder = async (
             customerName = order.Customer.username || '';
             customerEmail = order.Customer.email || '';
             customerPhone = order.Customer.phone_number || '';
-            customerCountry = order.Customer.country || '';
-            customerBusinessLocation = order.Customer.business_location || '';
-            customerBusinessName = order.Customer.business_name || '';
         } else if (order?.users_id) {
             // Fallback: if no user data, show user ID
             customerName = `User ID: ${order.users_id}`;
@@ -168,7 +147,7 @@ export const generateOrderReceiptFromProcessedOrder = async (
 
         const receiptData: OrderReceiptData = {
             orderId: order.id,
-            orderDate: order.date,
+            orderDate: order.date.split('T')[0],
             status: order.status.charAt(0).toUpperCase() + order.status.slice(1),
             productName: order.title.split(' | ')[0] || 'Unknown Product',
             productVariation: order.title.split(' | ')[1] || 'Standard',
@@ -180,9 +159,6 @@ export const generateOrderReceiptFromProcessedOrder = async (
                 username: customerName,
                 email: customerEmail,
                 phone_number: customerPhone,
-                country: customerCountry,
-                business_location: customerBusinessLocation,
-                business_name: customerBusinessName
             }
         };
 
