@@ -3,6 +3,13 @@ import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 
+
+interface UserSalesType {
+    id: number;
+    title: string;
+    slug: string;
+}
+
 // Extend NextAuth types
 declare module "next-auth" {
     interface Session {
@@ -22,6 +29,7 @@ declare module "next-auth" {
             credits_balance?: number;
             total_purchases?: number;
             received_amount?: number;
+            user_types?: UserSalesType;
         };
     }
 }
@@ -32,6 +40,7 @@ declare module "next-auth/jwt" {
         laravelUser?: any;
     }
 }
+
 
 export default NextAuth({
     providers: [
@@ -86,6 +95,7 @@ export default NextAuth({
                             credits_balance: user.credits_balance || 0,
                             total_purchases: user.total_purchases || 0,
                             received_amount: user.received_amount || 0,
+                            user_types: user.user_types,
                         };
                         
                         return {
@@ -145,6 +155,7 @@ export default NextAuth({
                             credits_balance: laravelUser.credits_balance || 0,
                             total_purchases: laravelUser.total_purchases || 0,
                             received_amount: laravelUser.received_amount || 0,
+                            user_types: laravelUser.user_types,
                         };
                     }
                 } catch (error) {
@@ -158,8 +169,10 @@ export default NextAuth({
                 token.laravelUser = (user as any).laravelUser;
             }
 
-            // Handle session refresh trigger - only update essential data
-            if (trigger === "update" && token.laravelToken) {
+  
+
+             // Handle session refresh trigger - only update essential data
+             if (trigger === "update" && token.laravelToken) {
                 try {
                     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/profile`, {
                         method: 'GET',
@@ -207,6 +220,7 @@ export default NextAuth({
                     credits_balance: token.laravelUser.credits_balance || 0,
                     total_purchases: token.laravelUser.total_purchases || 0,
                     received_amount: token.laravelUser.received_amount || 0,
+                    user_types: token.laravelUser.user_types,
                 };
             }
             
