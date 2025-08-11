@@ -13,15 +13,21 @@ import { DataStaleIndicator } from "@/components/ui/data-stale-indicator";
 import { fetchUserOrders, fetchUserPayments } from "@/services/api.service";
 
 const statusMeta = {
-  accepted: { color: "#5FD568", label: "Accepted", icon: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#5FD568"/><path d="M7 13.5L11 17L17 11" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-  ) },
-  rejected: { color: "#E73828", label: "Rejected", icon: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#E73828"/><path d="M8 8L16 16M16 8L8 16" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-  ) },
-  pending: { color: "#FB923C", label: "Pending", icon: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FB923C"/><path d="M12 7V12L15 14" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-  ) },
+  accepted: {
+    color: "#5FD568", label: "Accepted", icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#5FD568" /><path d="M7 13.5L11 17L17 11" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+    )
+  },
+  rejected: {
+    color: "#E73828", label: "Rejected", icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#E73828" /><path d="M8 8L16 16M16 8L8 16" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+    )
+  },
+  pending: {
+    color: "#FB923C", label: "Pending", icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FB923C" /><path d="M12 7V12L15 14" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+    )
+  },
 };
 
 const ITEMS_PER_PAGE = 5; // Number of items to show initially and per load more
@@ -32,13 +38,14 @@ export default function AccountDashboard() {
   const [activeSection, setActiveSection] = useState("dashboard");
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [activeFilter, setActiveFilter] = useState("all");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
   const [displayedItemsCount, setDisplayedItemsCount] = useState(ITEMS_PER_PAGE);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [dateFilter, setDateFilter] = useState<{ from: string; to: string } | null>(null);
+  const [hasError, setHasError] = useState(false);
 
   // Initial data fetch on mount
   useEffect(() => {
@@ -50,6 +57,7 @@ export default function AccountDashboard() {
   }, [user, hasInitialized, refreshData]);
 
   const fetchOrdersAndPayments = async () => {
+    setIsLoading(true);
     try {
       // Fetch orders
       const ordersResponse = await fetchUserOrders();
@@ -93,8 +101,10 @@ export default function AccountDashboard() {
 
       setOrders(processedOrders);
       setPayments(processedPayments);
+      setHasError(false); // Clear error state on success
     } catch (error) {
       console.error('Error fetching orders and payments:', error);
+      setHasError(true);
       // Fallback to user session data if available
       if (user?.orders) {
         const processedOrders = user.orders
@@ -109,21 +119,30 @@ export default function AccountDashboard() {
           }));
         setOrders(processedOrders);
       }
+      // Set empty arrays if no fallback data available
+      if (!user?.orders) {
+        setOrders([]);
+      }
+      // Payments are fetched from API, so set empty if API fails
+      setPayments([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleDateChange = (from: string, to: string) => {
     setIsLoading(true);
-    
+    setHasError(false); // Clear error state when changing filters
+
     // If both dates are empty, clear the filter
     if (!from && !to) {
       setDateFilter(null);
     } else {
       setDateFilter({ from, to });
     }
-    
+
     setDisplayedItemsCount(ITEMS_PER_PAGE); // Reset to initial count when date filter changes
-    
+
     // Simulate API call delay for better UX
     setTimeout(() => {
       setIsLoading(false);
@@ -132,11 +151,13 @@ export default function AccountDashboard() {
 
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter);
+    setHasError(false); // Clear error state when changing filters
     setDisplayedItemsCount(ITEMS_PER_PAGE); // Reset to initial count when filter changes
   };
 
   const handleManualRefresh = () => {
     refreshData();
+    setHasError(false); // Clear error state on refresh
     fetchOrdersAndPayments();
     setDateFilter(null); // Reset date filter on refresh
     setDisplayedItemsCount(ITEMS_PER_PAGE); // Reset to initial count on refresh
@@ -160,18 +181,18 @@ export default function AccountDashboard() {
     } else if (activeFilter === 'received') {
       items = payments;
     }
-    
+
     // Apply date filter if set
     if (dateFilter && dateFilter.from && dateFilter.to && dateFilter.from !== '' && dateFilter.to !== '') {
       const fromDate = new Date(dateFilter.from);
       const toDate = new Date(dateFilter.to);
-      
+
       items = items.filter(item => {
         const itemDate = new Date(item.date);
         return itemDate >= fromDate && itemDate <= toDate;
       });
     }
-    
+
     // Sort by date from newest to oldest
     return items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [activeFilter, orders, payments, dateFilter]);
@@ -203,7 +224,7 @@ export default function AccountDashboard() {
                     {user?.user_types?.slug || ''}
                   </span>
                   <svg width="11" height="12" viewBox="0 0 11 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3.02494 2.01245C2.95107 2.01249 2.87857 2.03237 2.815 2.07C2.75144 2.10764 2.69915 2.16165 2.66359 2.2264L1.15109 4.9764C1.11123 5.04894 1.09411 5.13178 1.10196 5.21418C1.1098 5.29657 1.14225 5.3747 1.19509 5.4384L5.18259 10.2509C5.2213 10.2976 5.26983 10.3352 5.32473 10.361C5.37963 10.3868 5.43955 10.4002 5.50021 10.4002C5.56088 10.4002 5.6208 10.3868 5.6757 10.361C5.7306 10.3352 5.77913 10.2976 5.81784 10.2509L9.80534 5.4384C9.85818 5.3747 9.89063 5.29657 9.89847 5.21418C9.90632 5.13178 9.8892 5.04894 9.84934 4.9764L8.33684 2.2264C8.30124 2.16157 8.24886 2.1075 8.18519 2.06986C8.12152 2.03222 8.0489 2.01239 7.97494 2.01245H3.02494ZM2.28574 4.62495L3.26859 2.83745H4.09359L3.46769 4.62495H2.28574ZM3.37914 5.44995L4.44009 8.06135L2.27584 5.44995H3.37914ZM5.49389 8.4645L4.26959 5.44995H6.68189L5.49389 8.4645ZM4.34219 4.62495L4.96754 2.83745H6.03729L6.69564 4.62495H4.34219ZM7.57509 4.62495L6.91674 2.83745H7.73074L8.71414 4.62495H7.57509ZM7.56849 5.44995H8.72349L6.52074 8.10865L7.56849 5.44995Z" fill="#E73828"/>
+                    <path d="M3.02494 2.01245C2.95107 2.01249 2.87857 2.03237 2.815 2.07C2.75144 2.10764 2.69915 2.16165 2.66359 2.2264L1.15109 4.9764C1.11123 5.04894 1.09411 5.13178 1.10196 5.21418C1.1098 5.29657 1.14225 5.3747 1.19509 5.4384L5.18259 10.2509C5.2213 10.2976 5.26983 10.3352 5.32473 10.361C5.37963 10.3868 5.43955 10.4002 5.50021 10.4002C5.56088 10.4002 5.6208 10.3868 5.6757 10.361C5.7306 10.3352 5.77913 10.2976 5.81784 10.2509L9.80534 5.4384C9.85818 5.3747 9.89063 5.29657 9.89847 5.21418C9.90632 5.13178 9.8892 5.04894 9.84934 4.9764L8.33684 2.2264C8.30124 2.16157 8.24886 2.1075 8.18519 2.06986C8.12152 2.03222 8.0489 2.01239 7.97494 2.01245H3.02494ZM2.28574 4.62495L3.26859 2.83745H4.09359L3.46769 4.62495H2.28574ZM3.37914 5.44995L4.44009 8.06135L2.27584 5.44995H3.37914ZM5.49389 8.4645L4.26959 5.44995H6.68189L5.49389 8.4645ZM4.34219 4.62495L4.96754 2.83745H6.03729L6.69564 4.62495H4.34219ZM7.57509 4.62495L6.91674 2.83745H7.73074L8.71414 4.62495H7.57509ZM7.56849 5.44995H8.72349L6.52074 8.10865L7.56849 5.44995Z" fill="#E73828" />
                   </svg>
                 </span>
               </div>
@@ -261,7 +282,7 @@ export default function AccountDashboard() {
 
             {/* Transaction Filter */}
             <div className="flex flex-col gap-2">
-              <TransactionFilter 
+              <TransactionFilter
                 onDateChange={handleDateChange}
                 onFilterChange={handleFilterChange}
               />
@@ -284,8 +305,30 @@ export default function AccountDashboard() {
                 <div className="w-full flex justify-center items-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E73828]"></div>
                 </div>
+              ) : hasError ? (
+                <div className="w-full flex flex-col justify-center items-center py-8 gap-4">
+                  <span className="font-['Roboto'] font-normal text-base text-[#E73828] dark:text-[#ff6b6b] text-center">
+                    Failed to load transactions. Please try again.
+                  </span>
+                  <button
+                    onClick={() => {
+                      setHasError(false);
+                      fetchOrdersAndPayments();
+                    }}
+                    className="px-6 py-3 bg-[#E73828] hover:bg-[#d63224] text-white font-['Roboto'] font-medium text-base rounded-[25px] transition-all duration-200"
+                  >
+                    Retry
+                  </button>
+                </div>
               ) : (
                 <>
+                  {filteredItems.length === 0 && (
+                    <div className="w-full flex justify-center items-center py-8">
+                      <span className="font-['Roboto'] font-normal text-base text-[#8E8E8E] dark:text-[#a0a0a0]">
+                        No transactions found
+                      </span>
+                    </div>
+                  )}
                   {displayedItems.map((item, i) => (
                     <motion.div
                       key={i}
@@ -299,18 +342,18 @@ export default function AccountDashboard() {
                         {/* Icon Circle */}
                         <div className="relative w-9 h-9 flex-shrink-0">
                           <div className={`absolute w-9 h-9 rounded-full ${item.direction === 'up' ? 'bg-[#E73828]' : 'bg-[#5FD568]'}`}></div>
-                          <svg 
-                            width="24" 
-                            height="24" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
+                          <svg
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
                             className={`absolute left-[6px] top-[6px] ${item.direction === 'down' ? 'transform rotate-180' : ''}`}
                           >
-                            <path 
-                              d="M12 5V19M12 5L5 12M12 5L19 12" 
-                              stroke="white" 
-                              strokeWidth="3" 
-                              strokeLinecap="round" 
+                            <path
+                              d="M12 5V19M12 5L5 12M12 5L19 12"
+                              stroke="white"
+                              strokeWidth="3"
+                              strokeLinecap="round"
                               strokeLinejoin="round"
                             />
                           </svg>
@@ -369,16 +412,6 @@ export default function AccountDashboard() {
                           </>
                         )}
                       </button>
-                    </div>
-                  )}
-
-
-                  {/* Empty state */}
-                  {filteredItems.length === 0 && !isLoading && (
-                    <div className="w-full flex justify-center items-center py-8">
-                      <span className="font-['Roboto'] font-normal text-base text-[#8E8E8E] dark:text-[#a0a0a0]">
-                        No transactions found
-                      </span>
                     </div>
                   )}
                 </>
