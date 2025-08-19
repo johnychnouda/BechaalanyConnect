@@ -26,6 +26,14 @@ interface ProductVariation {
   product_id: number;
   is_active: number;
   quantity: number | null;
+  price_variations: PriceVariation[];
+}
+
+interface PriceVariation {
+  id: number;
+  products_variations_id: number;
+  price: number;
+  user_types_id: number;
 }
 
 interface Product {
@@ -67,14 +75,16 @@ const ProductPage: React.FC = () => {
   const [recipientPhoneNumber, setRecipientPhoneNumber] = useState('');
   const [recipientUser, setRecipientUser] = useState('');
 
+
   // Convert product variations to amounts format
   const amounts: SelectedAmount[] = productVariations.map((variation, index) => ({
     id: variation.id || index,
     amount: variation.name,
-    price: variation.price,
+    price: variation.price_variations.find((price) => price.user_types_id === user?.user_types?.id)?.price || variation.price,
     image: variation.full_path?.image,
     description: variation.description
   }));
+
 
   useEffect(() => {
     if (!router.locale || !categorySlug) return;

@@ -110,19 +110,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [cachedUserData, sessionUser, session?.laravelToken, status, sessionAuthenticated]);
 
   // Debug logging for authentication state changes
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Auth state:', {
-        stableIsAuthenticated,
-        sessionAuthenticated,
-        hasCachedData: !!cachedUserData,
-        hasSessionUser: !!sessionUser,
-        hasToken: !!session?.laravelToken,
-        status,
-        isRefreshing
-      });
-    }
-  }, [stableIsAuthenticated, sessionAuthenticated, cachedUserData, sessionUser, session?.laravelToken, status, isRefreshing]);
+  // useEffect(() => {
+  //   if (process.env.NODE_ENV === 'development') {
+  //     console.log('Auth state:', {
+  //       stableIsAuthenticated,
+  //       sessionAuthenticated,
+  //       hasCachedData: !!cachedUserData,
+  //       hasSessionUser: !!sessionUser,
+  //       hasToken: !!session?.laravelToken,
+  //       status,
+  //       isRefreshing
+  //     });
+  //   }
+  // }, [stableIsAuthenticated, sessionAuthenticated, cachedUserData, sessionUser, session?.laravelToken, status, isRefreshing]);
 
   // Clear cache when session changes to ensure data consistency
   useEffect(() => {
