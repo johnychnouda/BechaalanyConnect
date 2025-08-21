@@ -52,11 +52,9 @@ export default function AccountDashboard() {
   const hasDataRef = useRef<boolean>(false); // Track if we have data without causing re-renders
 
   const fetchOrdersAndPayments = useCallback(async () => {
-    console.log('fetchOrdersAndPayments called', { isFetching, hasData: hasDataRef.current });
     
     // Prevent multiple simultaneous requests
     if (isFetching) {
-      console.log('Request blocked: already fetching');
       return;
     }
     
@@ -67,18 +65,11 @@ export default function AccountDashboard() {
       return;
     }
 
-    console.log('Making API call for orders and payments');
     setIsFetching(true);
     setIsLoading(true);
     lastRequestTimeRef.current = now;
     
     try {
-      // Check if we have a session before making API calls
-      console.log('User session check:', { 
-        hasUser: !!user, 
-        userId: user?.id,
-        userEmail: user?.email 
-      });
       
       // Fetch orders and payments in parallel
       const [ordersResponse, paymentsResponse] = await Promise.all([

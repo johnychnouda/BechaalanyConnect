@@ -26,7 +26,7 @@ const MIN_SESSION_FETCH_INTERVAL = 1000; // Minimum 1 second between session fet
 // Function to get cached session
 const getCachedSession = async () => {
     const now = Date.now();
-    
+
     // Return cached session if it's still valid AND has a token
     if (sessionCache && (now - sessionCacheTime) < SESSION_CACHE_DURATION && sessionCache?.laravelToken) {
         if (DEBUG_SESSION) {
@@ -34,7 +34,7 @@ const getCachedSession = async () => {
         }
         return sessionCache;
     }
-    
+
     // Rate limiting: prevent too frequent session fetches, but allow if no cache exists
     if (now - lastSessionFetch < MIN_SESSION_FETCH_INTERVAL && sessionCache) {
         if (DEBUG_SESSION) {
@@ -42,24 +42,16 @@ const getCachedSession = async () => {
         }
         return sessionCache;
     }
-    
+
     // Fetch fresh session
     try {
         sessionFetchCount++;
         lastSessionFetch = now;
-        
-        if (DEBUG_SESSION) {
-            console.log('🔃 Fetching fresh session, call #', sessionFetchCount);
-        }
-        
+
         const session = await getSession();
         sessionCache = session;
         sessionCacheTime = now;
-        
-        if (DEBUG_SESSION) {
-            console.log('✅ Fresh session cached');
-        }
-        
+
         return session;
     } catch (error) {
         console.error('❌ Error getting session:', error);
@@ -73,32 +65,25 @@ api.interceptors.request.use(
         // Define public endpoints that don't need authentication
         const publicEndpoints = [
             '/general',
-            '/home', 
+            '/home',
             '/categories',
             '/about',
             '/contact',
             '/credit-types',
             '/contact-form-submit'
         ];
-        
+
         // Check if the current request is to a public endpoint
-        const isPublicEndpoint = publicEndpoints.some(endpoint => 
+        const isPublicEndpoint = publicEndpoints.some(endpoint =>
             config.url && config.url.includes(endpoint)
         );
-        
-        
+
+
         // Only get session for authenticated endpoints
         if (!isPublicEndpoint) {
             const session = await getCachedSession();
             if (session?.laravelToken) {
                 config.headers.Authorization = `Bearer ${session.laravelToken}`;
-                if (DEBUG_SESSION && config.url?.includes('/user/')) {
-                    console.log('🔑 Adding auth header for:', config.url, 'Token:', session.laravelToken.substring(0, 20) + '...');
-                }
-            } else {
-                if (DEBUG_SESSION && config.url?.includes('/user/')) {
-                    console.log('❌ No session token available for:', config.url, 'Session:', session);
-                }
             }
         }
         return config;
