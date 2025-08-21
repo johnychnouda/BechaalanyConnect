@@ -174,3 +174,13 @@ export const submitCreditRequest = async (formData: FormData) => {
         throw error;
     }
 };
+
+export const fetchDashboardSettings = async (locale: string) => {
+    try {
+        const { data } = await api.get(`/${locale}/dashboard-settings`);
+        return data;
+    } catch (error) {
+        console.error('Error fetching dashboard settings:', error);
+        throw error;
+    }
+};

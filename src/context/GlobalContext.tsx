@@ -2,13 +2,16 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { useRouter } from "next/router";
-import { fetchGeneralData } from "@/services/api.service";
+import { fetchGeneralData, fetchDashboardSettings } from "@/services/api.service";
 import { GeneralDataType } from "@/types/globalData.type";
+import { DashboardSettingsType } from "@/types/Dashboard.type";
 import { useAppSession } from '@/hooks/use-session';
 
 interface GlobalContextType {
   generalData: GeneralDataType | null;
   setGeneralData: (data: GeneralDataType | null) => void;
+  dashboardSettings: DashboardSettingsType | null;
+  setDashboardSettings: (data: DashboardSettingsType | null) => void;
   refreshOrders: () => void;
   setRefreshOrdersCallback: (callback: () => void) => void;
   refreshUserSession: () => Promise<void>;
@@ -18,13 +21,29 @@ const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 
 export const GlobalProvider = ({ children }: { children: ReactNode }) => {
   const [generalData, setGeneralData] = useState<GeneralDataType | null>(null);
+  const [dashboardSettings, setDashboardSettings] = useState<DashboardSettingsType | null>(null);
   const [refreshOrdersCallback, setRefreshOrdersCallback] = useState<(() => void) | null>(null);
   const router = useRouter();
   const { session, update } = useAppSession();
 
   useEffect(() => {
     if (!router.locale) return;
-    fetchGeneralData(router.locale).then(setGeneralData);
+    const locale = router.locale || 'en';
+
+    // Fetch general data
+    fetchGeneralData(locale).then(setGeneralData);
+    
+    // Fetch dashboard settings
+    fetchDashboardSettings(locale)
+      .then((data) => {
+        if (data) {
+          setDashboardSettings(data);
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching dashboard settings:', error);
+        setDashboardSettings(null);
+      });
   }, [router.locale]);
 
   const refreshOrders = useCallback(() => {
@@ -81,6 +100,8 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
     <GlobalContext.Provider value={{ 
       generalData, 
       setGeneralData,
+      dashboardSettings,
+      setDashboardSettings,
       refreshOrders,
       setRefreshOrdersCallback: setRefreshOrdersCallbackHandler,
       refreshUserSession,

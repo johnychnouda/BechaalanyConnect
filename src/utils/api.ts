@@ -29,17 +29,11 @@ const getCachedSession = async () => {
 
     // Return cached session if it's still valid AND has a token
     if (sessionCache && (now - sessionCacheTime) < SESSION_CACHE_DURATION && sessionCache?.laravelToken) {
-        if (DEBUG_SESSION) {
-            console.log('🔄 Using cached session, age:', Math.round((now - sessionCacheTime) / 1000), 'seconds');
-        }
         return sessionCache;
     }
 
     // Rate limiting: prevent too frequent session fetches, but allow if no cache exists
     if (now - lastSessionFetch < MIN_SESSION_FETCH_INTERVAL && sessionCache) {
-        if (DEBUG_SESSION) {
-            console.log('⏳ Session fetch throttled, using cached session');
-        }
         return sessionCache;
     }
 
