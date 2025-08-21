@@ -64,7 +64,9 @@ export default function DashboardFilterButton({
           {icon}
         </div>
       )}
-      <span className="flex-1 text-center">{label}</span>
+      <div className="flex items-center justify-center">
+        {label}
+      </div>
     </button>
   );
 }
@@ -115,7 +117,7 @@ export function DashboardFilterButtonGroup({
           </defs>
         </svg>
       ),
-      width: 'w-[114px]',
+      width: 'min-w-[114px]',
       type: 'purchased' as const
     },
     {
@@ -146,7 +148,7 @@ export function DashboardFilterButtonGroup({
           </defs>
         </svg>
       ),
-      width: 'w-[104px]',
+      width: 'min-w-[104px]',
       type: 'received' as const
     },
   ];

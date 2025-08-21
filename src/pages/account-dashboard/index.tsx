@@ -221,7 +221,10 @@ export default function AccountDashboard() {
     // Apply date filter if set
     if (dateFilter && dateFilter.from && dateFilter.to && dateFilter.from !== '' && dateFilter.to !== '') {
       const fromDate = new Date(dateFilter.from);
+      fromDate.setHours(0, 0, 0, 0); // Start of day
+      
       const toDate = new Date(dateFilter.to);
+      toDate.setHours(23, 59, 59, 999); // End of day
 
       items = items.filter(item => {
         const itemDate = new Date(item.date);
@@ -337,14 +340,8 @@ export default function AccountDashboard() {
               onFilterChange={handleFilterChange}
             />
             {dateFilter && dateFilter.from && dateFilter.to && (
-              <div className="flex items-center gap-2 text-sm text-[#8E8E8E] dark:text-[#a0a0a0]">
+              <div className="flex items-center gap-2 text-sm text-[#8E8E8E] dark:text-[#fff]">
                 <span>Filtered by Date: {new Date(dateFilter.from).toLocaleDateString()} - {new Date(dateFilter.to).toLocaleDateString()}</span>
-                <button
-                  onClick={() => handleDateChange('', '')}
-                  className="text-[#E73828] hover:underline"
-                >
-                  Clear
-                </button>
               </div>
             )}
           </div>
@@ -476,7 +473,7 @@ export default function AccountDashboard() {
       </div>
 
       {/* WhatsApp Floating Button */}
-      <WhatsAppButton style={{ position: "fixed", bottom: "2rem", right: "2rem", zIndex: 50 }} />
+      {/* <WhatsAppButton style={{ position: "fixed", bottom: "2rem", right: "2rem", zIndex: 50 }} /> */}
     </DashboardLayout>
   );
 }
