@@ -20,7 +20,7 @@ import PageLoader from '@/components/ui/PageLoader';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { clearSessionTokens, hasMultipleSessionTokens, logSessionTokens } from '@/utils/clear-session-tokens';
-import SessionProfiler from '@/components/ui/session-profiler';
+
 
 
 export default function App({
@@ -94,20 +94,17 @@ export default function App({
 
   return (
     <StyledComponentsRegistry>
-      <SessionProfiler name="SessionProvider">
-        <SessionProvider session={pageProps.session}>
-          <SessionProfiler name="GlobalProvider">
-            <GlobalProvider>
-              <SessionProfiler name="ThemeProvider">
-                <ThemeProvider attribute="class" defaultTheme="light" enableSystem={true} storageKey="theme" disableTransitionOnChange={false}>
-                  <SessionProfiler name="AuthProvider">
-                    <AuthProvider>
-                      <SessionProfiler name="GlobalState">
-                        <GlobalState.Provider value={globalStateValue}>
-                          <SessionProfiler name="QueryClientProvider">
-                            <QueryClientProvider client={queryClient}>
-                              <SessionProfiler name="NextIntlClientProvider">
-                                <NextIntlClientProvider
+      <SessionProvider 
+        session={pageProps.session}
+        refetchInterval={0}
+        refetchOnWindowFocus={false}
+      >
+        <GlobalProvider>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem={true} storageKey="theme" disableTransitionOnChange={false}>
+            <AuthProvider>
+              <GlobalState.Provider value={globalStateValue}>
+                <QueryClientProvider client={queryClient}>
+                  <NextIntlClientProvider
                                   locale={router.locale}
                                   timeZone="Asia/Beirut"
                                   messages={messages || {}}
@@ -150,19 +147,12 @@ export default function App({
                                   />
 
                                 </NextIntlClientProvider>
-                              </SessionProfiler>
-                            </QueryClientProvider>
-                          </SessionProfiler>
-                        </GlobalState.Provider>
-                      </SessionProfiler>
-                    </AuthProvider>
-                  </SessionProfiler>
-                </ThemeProvider>
-              </SessionProfiler>
-            </GlobalProvider>
-          </SessionProfiler>
-        </SessionProvider>
-      </SessionProfiler>
+                </QueryClientProvider>
+              </GlobalState.Provider>
+            </AuthProvider>
+          </ThemeProvider>
+        </GlobalProvider>
+      </SessionProvider>
     </StyledComponentsRegistry>
   );
 }

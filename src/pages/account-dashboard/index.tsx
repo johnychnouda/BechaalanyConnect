@@ -1,13 +1,12 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import DashboardLayout from "@/components/ui/dashboard-layout";
 import WhatsAppButton from "@/components/ui/whatsapp-button";
 import TransactionFilter from "@/components/general/TransactionFilter";
 import { formatDate } from "@/utils/date";
-import { motion, AnimatePresence } from 'framer-motion';
-import { useAppTheme } from "@/hooks/use-app-theme";
+import { motion } from 'framer-motion';
+
 import BackButton from "@/components/ui/back-button";
 import { useOnDemandData } from "@/hooks/useOnDemandData";
-import { DataStaleIndicator } from "@/components/ui/data-stale-indicator";
 import { fetchUserOrders, fetchUserPayments } from "@/services/api.service";
 import { useRouter } from "next/router";
 
@@ -33,11 +32,9 @@ const statusMeta = {
 const ITEMS_PER_PAGE = 5; // Number of items to show initially and per load more
 
 export default function AccountDashboard() {
-  const { user, isRefreshing, refreshData, lastFetched, timeSinceLastFetch } = useOnDemandData();
-  const { theme } = useAppTheme();
+  const { user, isRefreshing, refreshData } = useOnDemandData();
   const router = useRouter();
-  const [activeSection, setActiveSection] = useState("dashboard");
-  const [expandedId, setExpandedId] = useState<number | null>(null);
+
   const [activeFilter, setActiveFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -47,14 +44,50 @@ export default function AccountDashboard() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [dateFilter, setDateFilter] = useState<{ from: string; to: string } | null>(null);
   const [hasError, setHasError] = useState(false);
+  
+  // Simplified request tracking - removed auto-refresh cache logic
+  const [isFetching, setIsFetching] = useState(false);
+  const lastRequestTimeRef = useRef<number>(0);
+  const MIN_REQUEST_INTERVAL = 2000; // Minimum 2 seconds between requests
+  const hasDataRef = useRef<boolean>(false); // Track if we have data without causing re-renders
 
   const fetchOrdersAndPayments = useCallback(async () => {
+    console.log('fetchOrdersAndPayments called', { isFetching, hasData: hasDataRef.current });
+    
+    // Prevent multiple simultaneous requests
+    if (isFetching) {
+      console.log('Request blocked: already fetching');
+      return;
+    }
+    
+    // Rate limiting: prevent requests more frequent than MIN_REQUEST_INTERVAL
+    const now = Date.now();
+    if (now - lastRequestTimeRef.current < MIN_REQUEST_INTERVAL) {
+      console.log('Request throttled, too soon since last request');
+      return;
+    }
+
+    console.log('Making API call for orders and payments');
+    setIsFetching(true);
     setIsLoading(true);
+    lastRequestTimeRef.current = now;
+    
     try {
-      // Fetch orders
-      const ordersResponse = await fetchUserOrders(router.locale);
+      // Check if we have a session before making API calls
+      console.log('User session check:', { 
+        hasUser: !!user, 
+        userId: user?.id,
+        userEmail: user?.email 
+      });
+      
+      // Fetch orders and payments in parallel
+      const [ordersResponse, paymentsResponse] = await Promise.all([
+        fetchUserOrders(router.locale),
+        fetchUserPayments(router.locale)
+      ]);
+
       const processedOrders = (ordersResponse.orders || [])
-        .filter((order: any) => order.statuses_id === 1) // Only show approved orders
+        .filter((order: any) => order.statuses_id === 1)
         .map((order: any) => {
           let status: 'accepted' | 'rejected' | 'pending' = 'pending';
           if (order.statuses_id === 1) status = 'accepted';
@@ -71,10 +104,8 @@ export default function AccountDashboard() {
           };
         });
 
-      // Fetch payments
-      const paymentsResponse = await fetchUserPayments(router.locale);
       const processedPayments = (paymentsResponse.credits || [])
-        .filter((payment: any) => payment.statuses_id === 1) // Only show approved payments
+        .filter((payment: any) => payment.statuses_id === 1)
         .map((payment: any) => {
           let status: 'accepted' | 'rejected' | 'pending' = 'pending';
           if (payment.statuses_id === 1) status = 'accepted';
@@ -93,14 +124,29 @@ export default function AccountDashboard() {
 
       setOrders(processedOrders);
       setPayments(processedPayments);
-      setHasError(false); // Clear error state on success
+      setHasError(false);
+      hasDataRef.current = true; // Mark data as fetched
     } catch (error) {
       console.error('Error fetching orders and payments:', error);
       setHasError(true);
+      
+      // Check if it's a rate limiting error
+      if (error && typeof error === 'object' && 'message' in error) {
+        const errorMessage = (error as any).message;
+        if (errorMessage.includes('Too Many Attempts') || errorMessage.includes('429')) {
+          console.warn('Rate limit exceeded, will retry later');
+          // Set a longer delay before allowing retry
+          setTimeout(() => {
+            setHasError(false);
+          }, 30000); // 30 seconds delay
+          return;
+        }
+      }
+      
       // Fallback to user session data if available
       if (user?.orders) {
         const processedOrders = user.orders
-          .filter((order: any) => order.statuses_id === 1) // Only show approved orders
+          .filter((order: any) => order.statuses_id === 1)
           .map((order: any) => ({
             direction: 'up' as const,
             title: `${order.product_variation?.product?.name || 'Product'} | ${order.product_variation?.name || 'Variation'}`,
@@ -110,65 +156,52 @@ export default function AccountDashboard() {
             originalStatus: 'accepted'
           }));
         setOrders(processedOrders);
+        hasDataRef.current = true; // Mark data as fetched
       }
-      // Set empty arrays if no fallback data available
       if (!user?.orders) {
         setOrders([]);
       }
-      // Payments are fetched from API, so set empty if API fails
       setPayments([]);
     } finally {
       setIsLoading(false);
+      setIsFetching(false);
     }
-  }, [router.locale, user]);
+  }, [router.locale]); // Removed user dependency to prevent excessive re-renders
 
-  // Initial data fetch on mount
+  // Initial data fetch on mount - only once per user session
   useEffect(() => {
-    if (user && !hasInitialized) {
+    if (user && user.id && !hasInitialized) {
       setHasInitialized(true);
-      refreshData();
-      fetchOrdersAndPayments();
+      // Add a small delay to ensure session is fully established
+      setTimeout(() => {
+        fetchOrdersAndPayments();
+      }, 100);
     }
-  }, [user, hasInitialized, refreshData, fetchOrdersAndPayments]);
-
-  // Re-fetch data when locale changes
-  useEffect(() => {
-    if (user && hasInitialized && router.locale) {
-      fetchOrdersAndPayments();
-    }
-  }, [router.locale, user, hasInitialized, fetchOrdersAndPayments]);
+  }, [user, hasInitialized, fetchOrdersAndPayments]);
 
   const handleDateChange = (from: string, to: string) => {
-    setIsLoading(true);
-    setHasError(false); // Clear error state when changing filters
-
-    // If both dates are empty, clear the filter
+    // No API call needed for date filtering - just update local state
     if (!from && !to) {
       setDateFilter(null);
     } else {
       setDateFilter({ from, to });
     }
-
-    setDisplayedItemsCount(ITEMS_PER_PAGE); // Reset to initial count when date filter changes
-
-    // Simulate API call delay for better UX
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
+    setDisplayedItemsCount(ITEMS_PER_PAGE);
   };
 
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter);
-    setHasError(false); // Clear error state when changing filters
-    setDisplayedItemsCount(ITEMS_PER_PAGE); // Reset to initial count when filter changes
+    setHasError(false);
+    setDisplayedItemsCount(ITEMS_PER_PAGE);
   };
 
   const handleManualRefresh = () => {
-    refreshData();
-    setHasError(false); // Clear error state on refresh
-    fetchOrdersAndPayments();
-    setDateFilter(null); // Reset date filter on refresh
-    setDisplayedItemsCount(ITEMS_PER_PAGE); // Reset to initial count on refresh
+    // Refresh both user data (balance, etc.) and orders/payments
+    refreshData(); // This refreshes user balance and profile data
+    setHasError(false);
+    fetchOrdersAndPayments(); // This fetches fresh orders and payments
+    setDateFilter(null);
+    setDisplayedItemsCount(ITEMS_PER_PAGE);
   };
 
   const handleLoadMore = () => {
@@ -218,7 +251,6 @@ export default function AccountDashboard() {
           <BackButton href="/" label="Home Page" />
         </div>
         {/* Content */}
-        {activeSection === "dashboard" &&
           <>
             {/* Page Title & User Info */}
             <div className="flex flex-col items-start gap-1">
@@ -241,13 +273,28 @@ export default function AccountDashboard() {
               </span>
             </div>
 
-            {/* Data Stale Indicator */}
-            <DataStaleIndicator
-              timeSinceLastFetch={timeSinceLastFetch}
-              onRefresh={handleManualRefresh}
-              isRefreshing={isRefreshing}
-              staleThreshold={2 * 60 * 1000} // 2 minutes
-            />
+            {/* Manual Refresh Button */}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleManualRefresh}
+                disabled={isRefreshing || isFetching}
+                className="flex items-center gap-2 px-4 py-2 bg-[#E73828] hover:bg-[#d63224] disabled:bg-[#E73828]/50 text-white font-['Roboto'] font-medium text-sm rounded-[20px] transition-all duration-200 disabled:cursor-not-allowed"
+              >
+                {isRefreshing || isFetching ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Refreshing...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M23 4v6h-6M1 20v-6h6M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4a9 9 0 0 1-14.85 3.36L23 14"/>
+                    </svg>
+                    <span>Refresh Data</span>
+                  </>
+                )}
+              </button>
+            </div>
 
             {/* Summary Cards */}
             <div className="flex flex-col lg:flex-row gap-4 w-full">
@@ -321,12 +368,16 @@ export default function AccountDashboard() {
                   <button
                     onClick={() => {
                       setHasError(false);
-                      fetchOrdersAndPayments();
+                      fetchOrdersAndPayments(); // Retry without force refresh
                     }}
-                    className="px-6 py-3 bg-[#E73828] hover:bg-[#d63224] text-white font-['Roboto'] font-medium text-base rounded-[25px] transition-all duration-200"
+                    disabled={isFetching}
+                    className="px-6 py-3 bg-[#E73828] hover:bg-[#d63224] disabled:bg-[#E73828]/50 text-white font-['Roboto'] font-medium text-base rounded-[25px] transition-all duration-200 disabled:cursor-not-allowed"
                   >
-                    Retry
+                    {isFetching ? 'Loading...' : 'Retry'}
                   </button>
+                  <p className="text-sm text-[#8E8E8E] dark:text-[#a0a0a0] text-center max-w-md">
+                    If you see "Too Many Attempts" error, please wait a few minutes before retrying.
+                  </p>
                 </div>
               ) : (
                 <>
@@ -426,7 +477,7 @@ export default function AccountDashboard() {
               )}
             </div>
           </>
-        }
+        
       </div>
 
       {/* WhatsApp Floating Button */}

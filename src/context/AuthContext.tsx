@@ -133,9 +133,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Don't clear cache during refresh operations
   }, [sessionUser, session?.laravelToken, isRefreshing]);
 
-  // Refresh user data function - use NextAuth's built-in update
+  // Refresh user data function - now with better rate limiting
   const refreshUserData = useCallback(async () => {
-    if (!session?.laravelToken) return;
+    if (!session?.laravelToken) {
+      console.log('🚫 No session token available for refresh');
+      return;
+    }
+    
+    // Prevent multiple simultaneous refresh calls
+    if (isRefreshing) {
+      console.log('🔄 Refresh already in progress, skipping');
+      return;
+    }
+    
+    console.log('🔃 Starting user data refresh');
     
     // Cache current user data to prevent flickering
     if (sessionUser) {
@@ -155,25 +166,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         received_amount: sessionUser.received_amount || 0,
         orders: session?.laravelUser?.orders || [],
       });
-    } else if (session?.laravelToken && status === "authenticated") {
-      // If we don't have sessionUser but have a token and are authenticated,
-      // create a minimal cache to maintain authentication state
-      setCachedUserData({
-        id: 0, // Placeholder ID
-        name: '',
-        email: '',
-        role: 'user',
-        country: '',
-        phone_number: '',
-        is_business_user: false,
-        business_name: '',
-        business_location: '',
-        user_types: [],
-        credits_balance: 0,
-        total_purchases: 0,
-        received_amount: 0,
-        orders: [],
-      });
     }
     
     setIsRefreshing(true);
@@ -188,6 +180,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (response.ok) {
         const freshUserData = await response.json();
+        console.log('✅ Fresh user data received, updating session');
         
         // Optimistic update: Update session immediately to prevent flickering
         await update({
@@ -198,15 +191,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // Clear cache after successful update
         setCachedUserData(null);
+        console.log('✅ User data refresh completed');
+      } else {
+        console.error('❌ Failed to refresh user data:', response.status);
       }
     } catch (error) {
-      console.error('Error refreshing user data:', error);
+      console.error('❌ Error refreshing user data:', error);
       // Clear cache on error to fall back to session data
       setCachedUserData(null);
     } finally {
       setIsRefreshing(false);
     }
-  }, [session?.laravelToken, update, sessionUser, session?.laravelUser, status]);
+  }, [session?.laravelToken, update, sessionUser, session?.laravelUser, isRefreshing]);
 
   const user = cachedUserData || (sessionUser ? {
     id: sessionUser.id,

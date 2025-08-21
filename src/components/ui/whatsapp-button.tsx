@@ -2,7 +2,6 @@ import React from 'react';
 import styles from './whatsapp-button.module.css';
 
 const WhatsAppButton = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
-  console.log(className);
   return (
     <div className={`${className || ''}`} {...props}>
       <button className={styles.button}>

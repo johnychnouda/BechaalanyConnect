@@ -13,29 +13,57 @@ const api = axios.create({
 // Cache for session to avoid multiple calls
 let sessionCache: any = null;
 let sessionCacheTime = 0;
-const SESSION_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const SESSION_CACHE_DURATION = 10 * 60 * 1000; // Increased to 10 minutes
 
 // Enable debugging in development
 const DEBUG_SESSION = process.env.NODE_ENV === 'development';
+
+// Track session fetch calls to prevent excessive requests
+let sessionFetchCount = 0;
+let lastSessionFetch = 0;
+const MIN_SESSION_FETCH_INTERVAL = 1000; // Minimum 1 second between session fetches
 
 // Function to get cached session
 const getCachedSession = async () => {
     const now = Date.now();
     
-    // Return cached session if it's still valid
-    if (sessionCache && (now - sessionCacheTime) < SESSION_CACHE_DURATION) {
+    // Return cached session if it's still valid AND has a token
+    if (sessionCache && (now - sessionCacheTime) < SESSION_CACHE_DURATION && sessionCache?.laravelToken) {
+        if (DEBUG_SESSION) {
+            console.log('🔄 Using cached session, age:', Math.round((now - sessionCacheTime) / 1000), 'seconds');
+        }
+        return sessionCache;
+    }
+    
+    // Rate limiting: prevent too frequent session fetches, but allow if no cache exists
+    if (now - lastSessionFetch < MIN_SESSION_FETCH_INTERVAL && sessionCache) {
+        if (DEBUG_SESSION) {
+            console.log('⏳ Session fetch throttled, using cached session');
+        }
         return sessionCache;
     }
     
     // Fetch fresh session
     try {
+        sessionFetchCount++;
+        lastSessionFetch = now;
+        
+        if (DEBUG_SESSION) {
+            console.log('🔃 Fetching fresh session, call #', sessionFetchCount);
+        }
+        
         const session = await getSession();
         sessionCache = session;
         sessionCacheTime = now;
+        
+        if (DEBUG_SESSION) {
+            console.log('✅ Fresh session cached');
+        }
+        
         return session;
     } catch (error) {
-        console.error('Error getting session:', error);
-        return null;
+        console.error('❌ Error getting session:', error);
+        return sessionCache; // Return cached session on error if available
     }
 };
 
@@ -64,6 +92,13 @@ api.interceptors.request.use(
             const session = await getCachedSession();
             if (session?.laravelToken) {
                 config.headers.Authorization = `Bearer ${session.laravelToken}`;
+                if (DEBUG_SESSION && config.url?.includes('/user/')) {
+                    console.log('🔑 Adding auth header for:', config.url, 'Token:', session.laravelToken.substring(0, 20) + '...');
+                }
+            } else {
+                if (DEBUG_SESSION && config.url?.includes('/user/')) {
+                    console.log('❌ No session token available for:', config.url, 'Session:', session);
+                }
             }
         }
         return config;
