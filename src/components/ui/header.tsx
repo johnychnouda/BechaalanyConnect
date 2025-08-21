@@ -116,7 +116,7 @@ export default function Header({ children }: PropsWithChildren) {
                 href="/account-dashboard"
                 className="transition-all duration-200 hover:bg-app-red p-1 sm:p-2 rounded-full group min-w-0"
               >
-                <ProfileIcon className="w-5 h-5 sm:w-6 sm:h-6 text-app-red group-hover:text-white" />
+                <ProfileIcon className="w-5 h-5 sm:w-5 sm:h-5 text-app-red group-hover:text-white" />
               </ButtonLink>
             </>
           ) : (
@@ -138,14 +138,15 @@ export default function Header({ children }: PropsWithChildren) {
                   aria-label="Login Button"
                 />
               </div>
-              <div className="flex items-center justify-center cursor-pointer w-5 h-5 sm:w-6 sm:h-6"
 
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-              >
-                <SearchIcon className=" text-app-red" />
-              </div>
             </>
           )}
+          <div className="flex items-center justify-center cursor-pointer w-5 h-5 sm:w-5 sm:h-5"
+
+            onClick={() => setIsSearchOpen(!isSearchOpen)}
+          >
+            <SearchIcon className=" text-app-red" />
+          </div>
         </div>
       </PageLayout>
 

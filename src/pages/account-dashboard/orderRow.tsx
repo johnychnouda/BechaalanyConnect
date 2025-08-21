@@ -68,7 +68,7 @@ function orderRow({ order }: { order: ProcessedOrder }) {
 
   return (
     <>
-      <div className="flex flex-row justify-between items-center p-[12px_16px] gap-[10px] w-full bg-[rgba(7,7,7,0.05)] rounded-[50.5px] mb-2">
+      <div className="flex flex-row justify-between items-center p-[12px_16px] gap-[10px] w-full bg-[rgba(7,7,7,0.05)]  rounded-[20px] mb-2">
         {/* Left Section - Icon, Title, Date */}
         <div className="flex flex-row items-center p-0 gap-4 ">
           {/* Icon Circle */}

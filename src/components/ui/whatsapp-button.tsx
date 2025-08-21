@@ -2,8 +2,9 @@ import React from 'react';
 import styles from './whatsapp-button.module.css';
 
 const WhatsAppButton = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => {
+  console.log(className);
   return (
-    <div className={`${styles.container} ${className || ''}`} {...props}>
+    <div className={`${className || ''}`} {...props}>
       <button className={styles.button}>
         <div className={styles.icon}>
           <svg viewBox="0 0 16 16">

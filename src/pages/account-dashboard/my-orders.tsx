@@ -7,11 +7,13 @@ import OrderRow from "./orderRow";
 import { fetchUserOrders } from "@/services/api.service";
 import { useGlobalContext } from "@/context/GlobalContext";
 import { generateBulkOrderReceipts } from "@/utils/pdf-generator";
+import { useRouter } from "next/router";
 
 const ITEMS_PER_PAGE = 5; // Number of items to show initially and per load more
 
 export default function MyOrders() {
   const { user } = useAuth();
+  const router = useRouter();
   const { setRefreshOrdersCallback } = useGlobalContext();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +32,7 @@ export default function MyOrders() {
         setLoading(true);
       }
       setError(null);
-      const response = await fetchUserOrders();
+      const response = await fetchUserOrders(router.locale);
 
       // If API returns empty orders and we have session orders, use session orders
       if ((!response.orders || response.orders.length === 0) && user?.orders && Array.isArray(user.orders) && user.orders.length > 0) {

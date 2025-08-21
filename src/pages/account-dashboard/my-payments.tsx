@@ -4,11 +4,13 @@ import BackButton from "@/components/ui/back-button";
 import { fetchUserPayments } from "@/services/api.service";
 import { useAuth } from "@/context/AuthContext";
 import PaymentRow from "./paymentRow";
+import { useRouter } from "next/router";
 
 const ITEMS_PER_PAGE = 5; // Number of items to show initially and per load more
 
 export default function MyPayments() {
   const { user } = useAuth();
+  const router = useRouter();
   const [payments, setPayments] = useState<Array<{
     id: number;
     status: 'accepted' | 'rejected' | 'pending';
@@ -29,7 +31,7 @@ export default function MyPayments() {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetchUserPayments();
+        const response = await fetchUserPayments(router.locale);
         // Map API response to PaymentRow props
         const mappedPayments = (response.credits || []).map((item: any) => {
           let status: 'accepted' | 'rejected' | 'pending' = 'pending';
@@ -39,7 +41,7 @@ export default function MyPayments() {
           return {
             id: item.id,
             status,
-            title: `${item.credits_types.title} | ${item.amount} $`,
+            title: `${item.credits_types.title}`,
             value: item.amount + '$',
             date: item.created_at,
             screenshot: item.full_path?.receipt_image || null,

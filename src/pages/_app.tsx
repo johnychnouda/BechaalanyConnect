@@ -131,7 +131,8 @@ export default function App({
                                       </Header>
                                     </TopBanner>
                                     {/* WhatsApp Floating Button */}
-                                    <WhatsAppButton style={{ position: "fixed", bottom: "2rem", right: "2rem", zIndex: 40 }} />
+                                    {/* if language is arabic, the button should be on the left 3rem and on small screens 2rem */}
+                                    <WhatsAppButton className="fixed bottom-3 right-6 left-auto rtl:left-6 rtl:right-auto md:right-12 md:left-auto rtl:md:left-12 rtl:md:right-auto" />
                                     {/* Footer */}
                                     <Footer />
                                   </main>

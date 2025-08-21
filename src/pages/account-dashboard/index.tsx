@@ -1,9 +1,7 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import DashboardLayout from "@/components/ui/dashboard-layout";
 import WhatsAppButton from "@/components/ui/whatsapp-button";
 import TransactionFilter from "@/components/general/TransactionFilter";
-import { useAuth } from '@/context/AuthContext';
-import { useGlobalContext } from "@/context/GlobalContext";
 import { formatDate } from "@/utils/date";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -11,6 +9,8 @@ import BackButton from "@/components/ui/back-button";
 import { useOnDemandData } from "@/hooks/useOnDemandData";
 import { DataStaleIndicator } from "@/components/ui/data-stale-indicator";
 import { fetchUserOrders, fetchUserPayments } from "@/services/api.service";
+import { useRouter } from "next/router";
+
 
 const statusMeta = {
   accepted: {
@@ -35,6 +35,7 @@ const ITEMS_PER_PAGE = 5; // Number of items to show initially and per load more
 export default function AccountDashboard() {
   const { user, isRefreshing, refreshData, lastFetched, timeSinceLastFetch } = useOnDemandData();
   const { theme } = useAppTheme();
+  const router = useRouter();
   const [activeSection, setActiveSection] = useState("dashboard");
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [activeFilter, setActiveFilter] = useState("all");
@@ -47,20 +48,11 @@ export default function AccountDashboard() {
   const [dateFilter, setDateFilter] = useState<{ from: string; to: string } | null>(null);
   const [hasError, setHasError] = useState(false);
 
-  // Initial data fetch on mount
-  useEffect(() => {
-    if (user && !hasInitialized) {
-      setHasInitialized(true);
-      refreshData();
-      fetchOrdersAndPayments();
-    }
-  }, [user, hasInitialized, refreshData]);
-
-  const fetchOrdersAndPayments = async () => {
+  const fetchOrdersAndPayments = useCallback(async () => {
     setIsLoading(true);
     try {
       // Fetch orders
-      const ordersResponse = await fetchUserOrders();
+      const ordersResponse = await fetchUserOrders(router.locale);
       const processedOrders = (ordersResponse.orders || [])
         .filter((order: any) => order.statuses_id === 1) // Only show approved orders
         .map((order: any) => {
@@ -80,7 +72,7 @@ export default function AccountDashboard() {
         });
 
       // Fetch payments
-      const paymentsResponse = await fetchUserPayments();
+      const paymentsResponse = await fetchUserPayments(router.locale);
       const processedPayments = (paymentsResponse.credits || [])
         .filter((payment: any) => payment.statuses_id === 1) // Only show approved payments
         .map((payment: any) => {
@@ -128,7 +120,23 @@ export default function AccountDashboard() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router.locale, user]);
+
+  // Initial data fetch on mount
+  useEffect(() => {
+    if (user && !hasInitialized) {
+      setHasInitialized(true);
+      refreshData();
+      fetchOrdersAndPayments();
+    }
+  }, [user, hasInitialized, refreshData, fetchOrdersAndPayments]);
+
+  // Re-fetch data when locale changes
+  useEffect(() => {
+    if (user && hasInitialized && router.locale) {
+      fetchOrdersAndPayments();
+    }
+  }, [router.locale, user, hasInitialized, fetchOrdersAndPayments]);
 
   const handleDateChange = (from: string, to: string) => {
     setIsLoading(true);
@@ -288,7 +296,7 @@ export default function AccountDashboard() {
               />
               {dateFilter && dateFilter.from && dateFilter.to && (
                 <div className="flex items-center gap-2 text-sm text-[#8E8E8E] dark:text-[#a0a0a0]">
-                  <span>Filtered by date: {new Date(dateFilter.from).toLocaleDateString()} - {new Date(dateFilter.to).toLocaleDateString()}</span>
+                  <span>Filtered by Date: {new Date(dateFilter.from).toLocaleDateString()} - {new Date(dateFilter.to).toLocaleDateString()}</span>
                   <button
                     onClick={() => handleDateChange('', '')}
                     className="text-[#E73828] hover:underline"

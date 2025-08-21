@@ -28,10 +28,10 @@ function PaymentRow({ payment, expanded, onToggle }: {
     return (
         <div className="bg-[#F3F3F3] rounded-[20px] mb-4 w-full shadow-none">
             <div className="flex items-center px-6 py-4 cursor-pointer" onClick={onToggle}>
-                <span className="mr-4">{meta.icon}</span>
+                <span className="mr-4 rtl:ml-4 rtl:mr-0">{meta.icon}</span>
                 <span className="font-['Roboto'] font-normal text-[16px] text-[#070707]">{payment.title}</span>
-                <span className="ml-auto text-xs text-[#8E8E8E]">{formatDate(payment.date)}</span>
-                <span className="ml-4">
+                <span className="ml-auto rtl:ml-0 rtl:mr-auto text-xs text-[#8E8E8E]">{formatDate(payment.date)}</span>
+                <span className="ml-4 rtl:mr-4 rtl:ml-0">
                     <svg className={`transition-transform ${expanded ? 'rotate-180' : ''}`} width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5" stroke="#E73828" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </span>
             </div>

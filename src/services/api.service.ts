@@ -107,9 +107,10 @@ export const saveOrder = async (orderData: {
     }
 };
 
-export const fetchUserOrders = async (page = 1, limit = 10) => {
+export const fetchUserOrders = async (locale?: string, page = 1, limit = 10) => {
     try {
-        const { data } = await api.get(`/user/orders?page=${page}&limit=${limit}`);
+        const endpoint = locale ? `/${locale}/user/orders?page=${page}&limit=${limit}` : `/user/orders?page=${page}&limit=${limit}`;
+        const { data } = await api.get(endpoint);
         return data;
     } catch (error) {
         // If the API endpoint doesn't exist yet, return empty orders
@@ -119,9 +120,10 @@ export const fetchUserOrders = async (page = 1, limit = 10) => {
     }
 };
 
-export const fetchUserPayments = async (page = 1, limit = 10) => {
+export const fetchUserPayments = async (locale?: string, page = 1, limit = 10) => {
   try {
-    const { data } = await api.get(`/user/credits?page=${page}&limit=${limit}`);
+    const endpoint = locale ? `/${locale}/user/credits?page=${page}&limit=${limit}` : `/user/credits?page=${page}&limit=${limit}`;
+    const { data } = await api.get(endpoint);
     return data;
   } catch (error) {
     console.warn('User payments API endpoint not available yet:', error);
