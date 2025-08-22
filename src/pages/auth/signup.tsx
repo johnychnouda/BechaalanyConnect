@@ -204,7 +204,7 @@ export default function SignupPage() {
                   type="text"
                   placeholder="Username"
                   {...register("username", { required: "Username is required" })}
-                  className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+                  className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black rtl:text-right"
                 />
                 {errors.username && (
                   <span className="text-xs text-red-600">{errors.username.message as string}</span>
@@ -229,7 +229,7 @@ export default function SignupPage() {
                 )}
 
                 <div className="flex items-center border border-[#E73828] rounded-full px-4 py-2 bg-transparent">
-                  <span className="text-[#E73828] mr-2 min-w-[48px] text-base">
+                  <span className="text-[#E73828] mr-2 rtl:ml-2 rtl:mr-0 min-w-[48px] text-base">
                     {phonePrefix}
                   </span>
                   <input
@@ -239,7 +239,7 @@ export default function SignupPage() {
                       required: "Phone number is required",
                       validate: (val: string) => validatePhone(val) || `Please enter a valid phone number ${country ? `for ${countries.find(c => c.slug === country)?.title}` : ''}.`,
                     })}
-                    className="w-full focus:outline-none text-base text-black bg-transparent placeholder:text-black"
+                    className="w-full focus:outline-none text-base text-black bg-transparent placeholder:text-black rtl:text-right"
                   />
                 </div>
                 {errors.phone && (
@@ -256,7 +256,7 @@ export default function SignupPage() {
                       message: "Please enter a valid email address (e.g. user@example.com).",
                     },
                   })}
-                  className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+                  className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black rtl:text-right"
                 />
                 {errors.email && (
                   <span className="text-xs text-red-600">{errors.email.message as string}</span>
@@ -270,10 +270,10 @@ export default function SignupPage() {
                       required: "Password is required",
                       validate: (val: string) => validatePassword(val) || "Password must be at least 8 characters, include 1 uppercase letter, 1 number, and 1 special character.",
                     })}
-                    className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+                    className="w-full border border-[#E73828] rounded-full px-4 py-2 pr-12 rtl:pl-12 rtl:pr-4 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
                   />
                   <div
-                    className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer"
+                    className="absolute right-4 rtl:left-4 rtl:right-auto top-1/2 -translate-y-1/2 cursor-pointer"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     <EyeIcon open={showPassword} />
@@ -291,10 +291,10 @@ export default function SignupPage() {
                       required: "Please confirm your password",
                       validate: (val: string) => val === watch("password") || "Passwords do not match.",
                     })}
-                    className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+                    className="w-full border border-[#E73828] rounded-full px-4 py-2 pr-12 rtl:pl-12 rtl:pr-4 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
                   />
                   <div
-                    className="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer"
+                    className="absolute right-4 rtl:left-4 rtl:right-auto top-1/2 -translate-y-1/2 cursor-pointer"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
                     <EyeIcon open={showConfirmPassword} />
@@ -342,7 +342,7 @@ export default function SignupPage() {
                       {...register("storeName", {
                         required: isBusiness ? "Store name is required" : false,
                       })}
-                      className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+                      className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black rtl:text-right"
                     />
                     {errors.storeName && (
                       <span className="text-xs text-red-600">{errors.storeName.message as string}</span>
@@ -354,7 +354,7 @@ export default function SignupPage() {
                       {...register("location", {
                         required: isBusiness ? "Store location is required" : false,
                       })}
-                      className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+                      className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black rtl:text-right"
                     />
                     {errors.location && (
                       <span className="text-xs text-red-600">{errors.location.message as string}</span>
