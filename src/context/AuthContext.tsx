@@ -76,10 +76,6 @@ interface AuthContextType {
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
-  isSigninModalOpen: boolean;
-  isCreateAccountModalOpen: boolean;
-  setIsSigninModalOpen: (isOpen: boolean) => void;
-  setIsCreateAccountModalOpen: (isOpen: boolean) => void;
   refreshUserData: () => Promise<void>;
   isRefreshing: boolean;
 }
@@ -90,8 +86,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { session, status, update, isAuthenticated: sessionAuthenticated, user: sessionUser, token: sessionToken } = useAppSession();
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isSigninModalOpen, setIsSigninModalOpen] = useState(false);
-  const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] = useState(false);
   const [cachedUserData, setCachedUserData] = useState<any>(null);
 
   // Use the centralized authentication state
@@ -274,10 +268,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       loginWithGoogle, 
       logout, 
       loading,
-      isSigninModalOpen,
-      isCreateAccountModalOpen,
-      setIsSigninModalOpen,
-      setIsCreateAccountModalOpen,
       refreshUserData,
       isRefreshing,
     }}>

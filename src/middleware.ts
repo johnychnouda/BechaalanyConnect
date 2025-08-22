@@ -5,13 +5,10 @@ import { getToken } from 'next-auth/jwt';
 const protectedPaths = [
   '/profile',
   '/account-dashboard',
-  '/settings',
-  '/orders',
-  '/my-orders',
-  '/my-payments',
-  '/notifications',
-  '/account-settings',
-  '/add-credits',
+  '/account-dashboard/account-settings',
+  '/account-dashboard/my-orders',
+  '/account-dashboard/my-payments',
+  '/account-dashboard/add-credits',
   // Add other protected routes here
 ];
 

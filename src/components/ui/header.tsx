@@ -12,8 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import BlurredPrice from "./BlurredPrice";
 import Notification from "./notification";
 import { useNotificationStore } from "@/store/notification.store";
-import SigninModal from "../auth/signin-modal";
-import CreateAccountModal from "../auth/create-account-modal";
+import { useRouter } from "next/router";
 import Image from "next/image";
 import { useGlobalContext } from "@/context/GlobalContext";
 import { BurgerIcon } from "@/assets/icons/burger.icon";
@@ -27,11 +26,12 @@ export default function Header({ children }: PropsWithChildren) {
   const { generalData } = useGlobalContext();
   const { theme } = useAppTheme();
   const isMounted = useIsMounted();
-  const { isAuthenticated, user, isSigninModalOpen, isCreateAccountModalOpen, setIsSigninModalOpen, setIsCreateAccountModalOpen, refreshUserData, isRefreshing } = useAuth();
+  const { isAuthenticated, user, refreshUserData, isRefreshing } = useAuth();
   const { count } = useNotificationStore();
   const { isRTL } = useLanguage();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const router = useRouter();
 
   if (!isMounted) return null;
 
@@ -122,14 +122,15 @@ export default function Header({ children }: PropsWithChildren) {
           ) : (
             <>
               <ButtonLink
+                href="/auth/signup"
                 className="flex items-center justify-center w-[100px] sm:w-[120px] md:w-[140px] mx-auto text-white text-center bg-app-red py-0.5 sm:py-1 px-1 sm:px-2 rounded-full font-bold text-[9px] sm:text-[11px] md:text-xs border-2 border-app-red transition-all duration-200 hover:bg-white hover:text-app-red whitespace-nowrap"
                 style={{ minWidth: "100px" }}
-                onClick={() => setIsCreateAccountModalOpen(true)}
               >
                 {generalData?.settings.create_account_button}
               </ButtonLink>
-              <div className="flex items-center justify-center cursor-pointer"
-                onClick={() => setIsSigninModalOpen(true)}
+              <ButtonLink
+                href="/auth/signin"
+                className="flex items-center justify-center cursor-pointer"
               >
                 <LoginIcon
                   width={18}
@@ -137,7 +138,7 @@ export default function Header({ children }: PropsWithChildren) {
                   className="object-contain"
                   aria-label="Login Button"
                 />
-              </div>
+              </ButtonLink>
 
             </>
           )}
@@ -156,15 +157,11 @@ export default function Header({ children }: PropsWithChildren) {
         setIsMobileMenuOpen={setIsMobileMenuOpen}
         isRTL={isRTL}
         generalData={generalData}
-        setIsSigninOpen={setIsSigninModalOpen}
-        setIsCreateAccountOpen={setIsCreateAccountModalOpen}
         isAuthenticated={isAuthenticated}
         user={user}
         count={count}
       />
 
-      <SigninModal isOpen={isSigninModalOpen} setIsOpen={setIsSigninModalOpen} setCreateAccountOpen={setIsCreateAccountModalOpen} />
-      <CreateAccountModal isOpen={isCreateAccountModalOpen} setIsOpen={setIsCreateAccountModalOpen} />
       {isSearchOpen && <SearchModal isOpen={isSearchOpen} setIsOpen={setIsSearchOpen} />}
 
       {children}

@@ -60,7 +60,7 @@ interface SelectedAmount {
 const ProductPage: React.FC = () => {
 
   const router = useRouter();
-  const { user, setIsSigninModalOpen } = useAuth();
+  const { user } = useAuth();
   const { refreshOrders, refreshUserSession, generalData } = useGlobalContext();
   const { category: categorySlug, subcategory: subcategorySlug, productId: productSlug } = router.query;
   const [isLoading, setIsLoading] = useState(true);
@@ -188,7 +188,7 @@ const ProductPage: React.FC = () => {
     e.preventDefault();
 
     if (!user) {
-      setIsSigninModalOpen(true);
+      router.push('/auth/signin');
       return;
     }
 

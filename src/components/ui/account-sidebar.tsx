@@ -54,8 +54,8 @@ export default function AccountSidebar({ onClose, menuItems }: { onClose?: () =>
           onClick={logout}
           className="group flex items-center justify-center gap-2 font-['Roboto'] font-semibold text-[13px] bg-[#E73828] text-white border border-[#E73828] rounded-lg px-4 py-2.5 transition-all duration-200 hover:bg-white hover:text-[#E73828] hover:border-[#E73828] shadow-sm"
         >
-          {/* <ArrowRightOnRectangleIcon className="w-4 h-4 text-white hover:text-app-red" /> */}
           <span>Logout</span>
+          <ArrowRightOnRectangleIcon className="w-4 h-4 text-white group-hover:text-app-red rtl:rotate-y-180" />
         </button>
       </div>
     </>

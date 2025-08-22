@@ -16,8 +16,6 @@ interface MobileMenuProps {
     setIsMobileMenuOpen: (open: boolean) => void;
     isRTL: boolean;
     generalData: any;
-    setIsSigninOpen: (open: boolean) => void;
-    setIsCreateAccountOpen: (open: boolean) => void;
     isAuthenticated: boolean;
     user: any;
     count: number;
@@ -28,8 +26,6 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
     setIsMobileMenuOpen,
     isRTL,
     generalData,
-    setIsSigninOpen,
-    setIsCreateAccountOpen,
     isAuthenticated,
     user,
     count,
@@ -82,6 +78,9 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                         /> */}
                         {user && <BlurredPrice price={user.credits_balance} />}
                         <ButtonLink
+                            onClick={() => {
+                                setIsMobileMenuOpen(false);
+                            }}
                             href="/account-dashboard"
                             className="transition-all duration-200 hover:bg-app-red p-1 sm:p-2 rounded-full group min-w-0"
                         >
@@ -115,20 +114,16 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                     !isAuthenticated ? (
                         <div className="flex flex-col gap-2 mt-4">
                             <ButtonLink
+                                href="/auth/signup"
                                 className="flex items-center justify-center w-full text-white text-center bg-app-red py-2 px-4 rounded-full font-bold text-xs border-2 border-app-red transition-all duration-200 hover:bg-white hover:text-app-red whitespace-nowrap"
-                                onClick={() => {
-                                    setIsCreateAccountOpen(true);
-                                    setIsMobileMenuOpen(false);
-                                }}
+                                onClick={() => setIsMobileMenuOpen(false)}
                             >
                                 {generalData?.settings.create_account_button}
                             </ButtonLink>
                             <ButtonLink
+                                href="/auth/signin"
                                 className="flex items-center justify-center w-full text-app-red text-center bg-white py-2 px-4 rounded-full font-bold text-xs border-2 border-app-red transition-all duration-200 hover:bg-app-red hover:text-white whitespace-nowrap"
-                                onClick={() => {
-                                    setIsSigninOpen(true);
-                                    setIsMobileMenuOpen(false);
-                                }}
+                                onClick={() => setIsMobileMenuOpen(false)}
                             >
                                 {generalData?.settings.login_button}
                             </ButtonLink>
