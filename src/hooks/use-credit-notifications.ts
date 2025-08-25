@@ -71,8 +71,8 @@ export const useCreditNotifications = () => {
               return false;
             }
             
-            // Create unique identifier for this notification
-            const notificationId = `${notification.request_id}-${notification.type}`;
+            // Create unique identifier for this notification using both request_id and backend notification id
+            const notificationId = `${notification.request_id}-${notification.type}-${notification.id}`;
             
             // Check if already processed
             if (processedNotifications.current.has(notificationId)) {
@@ -92,8 +92,8 @@ export const useCreditNotifications = () => {
             try {
               console.log('Processing credit notification:', notification);
               
-              // Create unique identifier for this notification
-              const notificationId = `${notification.request_id}-${notification.type}`;
+              // Create unique identifier for this notification using both request_id and backend notification id
+              const notificationId = `${notification.request_id}-${notification.type}-${notification.id}`;
               
               // Mark as processed BEFORE processing to prevent race conditions
               processedNotifications.current.add(notificationId);
@@ -103,6 +103,19 @@ export const useCreditNotifications = () => {
                   if (notification.amount && notification.amount > 0) {
                     creditsService.approveCreditRequest(notification.request_id, notification.amount);
                     console.log(`✅ Credit approved: $${notification.amount} for request ${notification.request_id}`);
+                    
+                    // Send acknowledgment to backend (optional - helps ensure notification is truly marked as read)
+                    try {
+                      fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/notifications/${notification.id}/acknowledge`, {
+                        method: 'POST',
+                        headers: {
+                          'Authorization': `Bearer ${token}`,
+                          'Content-Type': 'application/json',
+                        },
+                      }).catch(error => console.warn('Failed to acknowledge notification:', error));
+                    } catch (ackError) {
+                      console.warn('Error sending notification acknowledgment:', ackError);
+                    }
                   } else {
                     console.error('Invalid amount for credit approval:', notification);
                   }
@@ -110,6 +123,19 @@ export const useCreditNotifications = () => {
                 case 'credit_rejected':
                   creditsService.rejectCreditRequest(notification.request_id);
                   console.log(`❌ Credit rejected for request ${notification.request_id}`);
+                  
+                  // Send acknowledgment to backend (optional)
+                  try {
+                    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/notifications/${notification.id}/acknowledge`, {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                      },
+                    }).catch(error => console.warn('Failed to acknowledge notification:', error));
+                  } catch (ackError) {
+                    console.warn('Error sending notification acknowledgment:', ackError);
+                  }
                   break;
                 default:
                   console.log(`ℹ️ Credit status update: ${notification.type} for request ${notification.request_id}`);
@@ -117,7 +143,7 @@ export const useCreditNotifications = () => {
             } catch (notificationError) {
               console.error('Error processing individual notification:', notificationError, notification);
               // Remove from processed set if processing failed, so it can be retried
-              const notificationId = `${notification.request_id}-${notification.type}`;
+              const notificationId = `${notification.request_id}-${notification.type}-${notification.id}`;
               processedNotifications.current.delete(notificationId);
             }
           });
