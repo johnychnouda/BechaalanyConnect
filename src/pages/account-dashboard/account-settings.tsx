@@ -3,6 +3,10 @@ import React, { useState, useRef, useEffect } from "react";
 import BackButton from "@/components/ui/back-button";
 import { useAuth } from "@/context/AuthContext";
 import { useGlobalContext } from "@/context/GlobalContext";
+import { updateUserInfo, fetchCurrentUser } from "@/services/api.service";
+import { useLanguage } from "@/hooks/use-language";
+import { toast } from "react-toastify";
+import { useRouter } from "next/router";
 
 interface DropdownOption {
   value: string;
@@ -80,36 +84,77 @@ const CustomDropdown: React.FC<{
 
 export default function AccountSettings() {
 
-  const { user } = useAuth();
+  const { isRefreshing } = useAuth();
   const { generalData } = useGlobalContext();
   const countries = generalData?.countries || [];
   const userTypes = generalData?.user_types || [];
+  const { locale } = useLanguage();
+  const router = useRouter();
+  
+  // Profile data state
+  const [profileData, setProfileData] = useState<any>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
+
 
   // Form state for account info
   const [accountInfo, setAccountInfo] = useState({
-    username: user?.name || "",
-    email: user?.email || "",
-    phone: user?.phone_number || "",
-    country: user?.country || "",
-    userType: user?.user_types?.title || "",
-    storeName: user?.business_name || "",
-    storeLocation: user?.business_location || "",
+    username: "",
+    phone: "",
+    country: "",
+    userType: "",
+    storeName: "",
+    storeLocation: "",
   });
 
-  // Update form state when user data changes
+  // Original form values to track changes
+  const [originalAccountInfo, setOriginalAccountInfo] = useState({
+    username: "",
+    phone: "",
+    country: "",
+    userType: "",
+    storeName: "",
+    storeLocation: "",
+  });
+
+  // Function to check if form has changes
+  const hasFormChanges = () => {
+    return JSON.stringify(accountInfo) !== JSON.stringify(originalAccountInfo);
+  };
+
+  // Fetch profile data directly from API on component mount
   useEffect(() => {
-    if (user) {
-      setAccountInfo({
-        username: user.name || "",
-        email: user.email || "",
-        phone: user.phone_number || "",
-        country: user.country || "",
-        userType: user.user_types?.title || "",
-        storeName: user.business_name || "",
-        storeLocation: user.business_location || "",
-      });
-    }
-  }, [user]);
+    const fetchProfileData = async () => {
+      setIsLoadingProfile(true);
+      setProfileError(null);
+      
+      try {
+        const freshProfileData = await fetchCurrentUser(locale);
+        setProfileData(freshProfileData);
+        
+        // Update form state with fresh data
+        const formData = {
+          username: freshProfileData.user.username || "",
+          phone: freshProfileData.user.phone_number || "",
+          country: freshProfileData.user.country || "",
+          userType: freshProfileData.user.user_types?.id?.toString() || "",
+          storeName: freshProfileData.user.business_name || "",
+          storeLocation: freshProfileData.user.business_location || "",
+        };
+        
+        setAccountInfo(formData);
+        setOriginalAccountInfo(formData); // Set original values for change tracking
+        
+      } catch (error) {
+        setProfileError('Failed to load profile data. Please refresh the page.');
+        toast.error('Failed to load profile data. Please refresh the page.');
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+    
+    fetchProfileData();
+  }, [locale]); // Only depend on locale, fetch fresh data every time
 
   const country = accountInfo.country as keyof typeof countries;
   const phonePrefix = countries.find(c => c.slug === country)?.code || "+";
@@ -145,11 +190,50 @@ export default function AccountSettings() {
     setSecurity({ ...security, [e.target.name]: e.target.value });
   };
 
-  const handleInfoSubmit = (e: React.FormEvent) => {
+  const handleInfoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Save account info logic
-    console.log("Saving account info:", accountInfo);
-    alert("Account info saved!");
+    
+    // Check if there are any changes
+    if (!hasFormChanges()) {
+      toast.info("No changes detected. Please modify the form before saving.");
+      return;
+    }
+    
+    const restructuredAccountInfo = {
+      username: accountInfo.username,
+      country: accountInfo.country,
+      phone_number: accountInfo.phone.toString(),
+      // is_business_user: accountInfo.userType === 'business',
+      business_name: accountInfo.storeName,
+      business_location: accountInfo.storeLocation,
+      user_types_id: accountInfo.userType,
+    }
+    try {
+      await updateUserInfo(locale, restructuredAccountInfo);
+      
+      // Fetch fresh profile data from API
+      const freshProfileData = await fetchCurrentUser(locale);
+      setProfileData(freshProfileData);
+      
+      // Update form state with fresh data
+      const updatedFormData = {
+        username: freshProfileData.user.username || "",
+        phone: freshProfileData.user.phone_number || "",
+        country: freshProfileData.user.country || "",
+        userType: freshProfileData.user.user_types?.id?.toString() || "",
+        storeName: freshProfileData.user.business_name || "",
+        storeLocation: freshProfileData.user.business_location || "",
+      };
+      
+      setAccountInfo(updatedFormData);
+      setOriginalAccountInfo(updatedFormData); // Update original values after successful save
+      
+      toast.success("Account data updated successfully!");
+      
+    } catch (error) {
+      console.error("Error saving account info:", error);
+      toast.error("Failed to save account info. Please try again.");
+    }
   };
 
   const handleSecuritySubmit = (e: React.FormEvent) => {
@@ -165,6 +249,13 @@ export default function AccountSettings() {
     setShowSecurity(false);
   };
 
+  const handleResetForm = () => {
+    setAccountInfo({ ...originalAccountInfo });
+    toast.info("Form reset to original values");
+  };
+
+
+
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-4">
@@ -178,20 +269,41 @@ export default function AccountSettings() {
           {/* Sidebar (left) is handled by DashboardLayout */}
           <div className="flex-1 max-w-2xl">
             {/* Account Info Form */}
-            <form onSubmit={handleInfoSubmit} className="mb-12">
-              <div className="text-[22px] font-semibold text-[#E73828] mb-6">Account Info</div>
+            <div className="relative">
+              {(isRefreshing || isLoadingProfile) && (
+                <div className="absolute inset-0 bg-white/70 dark:bg-black/70 z-10 flex items-center justify-center rounded-lg">
+                  <div className="flex items-center gap-3 bg-white dark:bg-[#232323] px-6 py-3 rounded-full shadow-lg border border-[#E73828]/20">
+                    <span className="text-[#E73828] font-semibold">
+                      {isLoadingProfile ? 'Loading account data...' : 'Updating account data...'}
+                    </span>
+                  </div>
+                </div>
+              )}
+              {profileError && (
+                <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <svg className="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-red-700 dark:text-red-400 font-medium">{profileError}</span>
+                  </div>
+                </div>
+              )}
+              
+              <form onSubmit={handleInfoSubmit} className="mb-12">
+                <div className="text-[22px] font-semibold text-[#E73828] mb-6">Account Info</div>
               <div className="mb-4">
                 <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Username</label>
                 <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
                   <input name="username" value={accountInfo.username} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" />
                 </div>
               </div>
-              <div className="mb-4">
+              {/* <div className="mb-4">
                 <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Email</label>
                 <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#E73828] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
                   <input name="email" value={accountInfo.email} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="email" />
                 </div>
-              </div>
+              </div> */}
               {/* Phone Number */}
               <div className="flex flex-col items-start gap-1 w-full">
                 <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Phone Number</label>
@@ -225,10 +337,10 @@ export default function AccountSettings() {
                 <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">User Type</label>
                 <CustomDropdown
                   options={userTypes.map(userType => ({
-                    value: userType.title,
+                    value: userType.id.toString(),
                     label: userType.title
                   }))}
-                  value={accountInfo.userType}
+                  value={accountInfo.userType.toString()}
                   onChange={(value) => handleDropdownChange('userType', value)}
                   className="w-full"
                 />
@@ -261,13 +373,54 @@ export default function AccountSettings() {
               <div className="flex flex-row flex-nowrap w-full gap-4 overflow-x-auto mb-4">
                 <button
                   type="submit"
-                  className="bg-[#E73828] text-white rounded-full py-3 font-bold text-lg hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap"
+                  disabled={!hasFormChanges() || isRefreshing || isLoadingProfile}
+                  className={`rounded-full py-3 font-bold text-lg transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap ${
+                    !hasFormChanges() || isRefreshing || isLoadingProfile
+                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                      : 'bg-[#E73828] text-white hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828]'
+                  }`}
                   style={{ flexShrink: 1, maxWidth: '200px' }}
+                  onClick={handleInfoSubmit}
+                  title={!hasFormChanges() ? 'No changes to save' : ''}
                 >
-                  SAVE
+                  {isRefreshing ? 'SAVING...' : 'SAVE'}
                 </button>
+                
+                {hasFormChanges() && (
+                  <button
+                    type="button"
+                    onClick={handleResetForm}
+                    disabled={isRefreshing || isLoadingProfile}
+                    className="border-2 border-[#E73828] text-[#E73828] rounded-full py-3 font-bold text-lg hover:bg-[#E73828] hover:text-white transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ flexShrink: 1, maxWidth: '200px' }}
+                    title="Reset form to original values"
+                  >
+                    RESET
+                  </button>
+                )}
               </div>
-            </form>
+              
+              {/* Form status indicator */}
+              <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                {hasFormChanges() ? (
+                  <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
+                    <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    You have unsaved changes
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                    <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    All changes saved
+                  </div>
+                )}
+              </div>
+              
+              </form>
+            </div>
             {showSecurity && (
               <form onSubmit={handleSecuritySubmit} id="security-section">
                 <div className="text-[22px] font-semibold text-[#E73828] mb-6">Account Security</div>

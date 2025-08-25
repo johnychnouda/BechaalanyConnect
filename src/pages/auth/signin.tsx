@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { getErrorMessage } from "@/utils/getErrorMessage";
 import { useRouter } from "next/router";
 import PageLayout from "@/components/ui/page-layout";
+import { useGlobalContext } from "@/context/GlobalContext";
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
@@ -45,6 +46,8 @@ export default function SigninPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
+  const { generalData } = useGlobalContext();
+  const { locale } = useRouter();
 
   const {
     register,
@@ -64,12 +67,12 @@ export default function SigninPage() {
     setError("");
     setSuccess(false);
     try {
-      await login(data.email, data.password);
+      await login(data.email, data.password, locale);
       setSuccess(true);
       // Redirect to dashboard or previous page
       router.push("/account-dashboard");
     } catch (err: Error | unknown) {
-      setError(getErrorMessage(err, "Login failed. Please try again."));
+      setError(getErrorMessage(err, locale === "ar" ? "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى." : "Login failed. Please try again."));
     }
   };
 
@@ -78,9 +81,14 @@ export default function SigninPage() {
     try {
       await loginWithGoogle();
     } catch (err: Error | unknown) {
-      setError(getErrorMessage(err, "Google login failed. Please try again."));
+      setError(getErrorMessage(err, locale === "ar" ? "فشل تسجيل الدخول بواسطة الإنترنت. يرجى المحاولة مرة أخرى." : "Google login failed. Please try again."));
     }
   };
+
+  const PasswordValidationErrorMessage = locale === "ar" ?
+    "يجب أن يكون كلمة المرور على الأقل 8 أحرف, تشمل حروف كبيرة وصغيرة ورقم ورمز خاص."
+    :
+    "Password must be at least 8 characters, include uppercase, lowercase, a number, and a special character.";
 
   return (
     <PageLayout>
@@ -88,10 +96,10 @@ export default function SigninPage() {
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-[#E73828] mb-1 tracking-tight">
-              WELCOME BACK
+              {generalData?.logging_page_settings.sign_in_title}
             </h2>
             <p className="text-black text-sm sm:text-base mb-4 sm:mb-6">
-              Login to continue
+              {generalData?.logging_page_settings.sign_in_subtitle}
             </p>
           </div>
 
@@ -103,7 +111,12 @@ export default function SigninPage() {
             )}
             {success && (
               <div className="w-full mb-4 text-center text-green-600 text-xs sm:text-sm font-semibold">
-                Signed in successfully!
+                {
+                  locale === "ar" ?
+                    "تم تسجيل الدخول بنجاح!"
+                    :
+                    "Signed in successfully!"
+                }
               </div>
             )}
 
@@ -115,7 +128,7 @@ export default function SigninPage() {
                   validate: value =>
                     validateEmail(value) || "Please enter a valid email.",
                 })}
-                placeholder="Email"
+                placeholder={generalData?.logging_page_settings.email_placeholder}
                 required
                 className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black rtl:text-right"
                 autoComplete="username"
@@ -132,10 +145,9 @@ export default function SigninPage() {
                   {...register("password", {
                     required: "Password is required.",
                     validate: value =>
-                      validatePassword(value) ||
-                      "Password must be at least 8 characters, include uppercase, lowercase, a number, and a special character.",
+                      validatePassword(value) || PasswordValidationErrorMessage
                   })}
-                  placeholder="Password"
+                  placeholder={generalData?.logging_page_settings.password_placeholder}
                   required
                   className="w-full border border-[#E73828] rounded-full px-4 py-2 pr-12 rtl:pl-12 rtl:pr-4 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
                   autoComplete="current-password"
@@ -161,7 +173,7 @@ export default function SigninPage() {
                   href="/auth/forgot-password"
                   className="text-xs text-[#E73828] hover:underline font-semibold"
                 >
-                  Forgot Password?
+                  {generalData?.logging_page_settings.forget_password_label}
                 </Link>
               </div>
 
@@ -170,7 +182,7 @@ export default function SigninPage() {
                 disabled={loading}
                 className="w-full bg-[#E73828] text-white font-bold py-3 rounded-full mt-2 hover:bg-white hover:text-[#E73828] border border-[#E73828] transition-colors duration-200 text-lg disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {loading ? "Signing in..." : "LOGIN"}
+                {loading ? locale === "ar" ? "جاري التسجيل..." : "Signing in..." : generalData?.logging_page_settings.login_button}
               </button>
 
               <div className="relative w-full my-4">
@@ -178,25 +190,43 @@ export default function SigninPage() {
                   <div className="w-full border-t border-gray-300"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                  <span className="px-2 bg-white text-gray-500">
+                    {
+                      locale === "ar" ?
+                        "او استمرار ب"
+                        :
+                        "Or continue with"
+                    }
+                  </span>
                 </div>
               </div>
             </form>
 
             <GoogleButton
               onClick={handleLoginWithGoogle}
-              text="CONTINUE WITH GOOGLE"
+              locale={locale}
+              text={generalData?.logging_page_settings.google_button}
             />
 
             <div className="flex items-center justify-center gap-1 mt-6">
               <div className="text-center text-black text-sm sm:text-base">
-                Don&apos;t have an account?{" "}
+                {
+                  locale === "ar" ?
+                    "ليس لديك حساب؟"
+                    :
+                    "Don't have an account?"
+                }
               </div>
               <Link
                 href="/auth/signup"
                 className="text-[#E73828] font-bold hover:underline"
               >
-                Sign up
+                {
+                  locale === "ar" ?
+                    "انشئ حساب"
+                    :
+                    "Sign up"
+                }
               </Link>
             </div>
           </div>

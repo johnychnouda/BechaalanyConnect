@@ -4,6 +4,9 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { signOut, signIn } from "next-auth/react";
 import { clearSessionCache } from '@/utils/api';
 import { useAppSession } from '@/hooks/use-session';
+import { useLanguage } from '@/hooks/use-language';
+import { useCreditsStore } from '@/store/credits.store';
+import { creditsService } from '@/services/credits.service';
 
 export interface Order {
   id: number;
@@ -72,11 +75,11 @@ interface AuthContextType {
   user: UserType | null;
   token: string | null;
   isAdmin: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, lang?: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
-  refreshUserData: () => Promise<void>;
+  refreshUserData: (forceRefresh?: boolean) => Promise<void>;
   isRefreshing: boolean;
 }
 
@@ -84,9 +87,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { session, status, update, isAuthenticated: sessionAuthenticated, user: sessionUser, token: sessionToken } = useAppSession();
+  const { locale } = useLanguage();
+  const { setBalance, initializeFromUser } = useCreditsStore();
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [cachedUserData, setCachedUserData] = useState<any>(null);
+  const [lastRefreshTime, setLastRefreshTime] = useState<number>(0);
 
   // Use the centralized authentication state
   const isAuthenticated = sessionAuthenticated;
@@ -103,21 +109,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return sessionAuthenticated;
   }, [cachedUserData, sessionUser, session?.laravelToken, status, sessionAuthenticated]);
 
-  // Debug logging for authentication state changes
-  // useEffect(() => {
-  //   if (process.env.NODE_ENV === 'development') {
-  //     console.log('Auth state:', {
-  //       stableIsAuthenticated,
-  //       sessionAuthenticated,
-  //       hasCachedData: !!cachedUserData,
-  //       hasSessionUser: !!sessionUser,
-  //       hasToken: !!session?.laravelToken,
-  //       status,
-  //       isRefreshing
-  //     });
-  //   }
-  // }, [stableIsAuthenticated, sessionAuthenticated, cachedUserData, sessionUser, session?.laravelToken, status, isRefreshing]);
-
   // Clear cache when session changes to ensure data consistency
   useEffect(() => {
     // Only clear cache if we're completely logged out and not in the middle of a refresh
@@ -127,56 +118,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Don't clear cache during refresh operations
   }, [sessionUser, session?.laravelToken, isRefreshing]);
 
-  // Refresh user data function - now with better rate limiting
-  const refreshUserData = useCallback(async () => {
+  // Refresh user data function - now with better rate limiting and cache invalidation
+  const refreshUserData = useCallback(async (forceRefresh: boolean = false) => {
     if (!session?.laravelToken) {
-      console.log('🚫 No session token available for refresh');
       return;
     }
     
     // Prevent multiple simultaneous refresh calls
     if (isRefreshing) {
-      console.log('🔄 Refresh already in progress, skipping');
       return;
     }
-    
-    console.log('🔃 Starting user data refresh');
-    
-    // Cache current user data to prevent flickering
-    if (sessionUser) {
-      setCachedUserData({
-        id: sessionUser.id,
-        name: sessionUser.name || '',
-        email: sessionUser.email || '',
-        role: sessionUser.role || 'user',
-        country: sessionUser.country || '',
-        phone_number: sessionUser.phone_number || '',
-        is_business_user: sessionUser.is_business_user || false,
-        business_name: sessionUser.business_name || '',
-        business_location: sessionUser.business_location || '',
-        user_types: session?.laravelUser?.user_types || [],
-        credits_balance: sessionUser.credits_balance || 0,
-        total_purchases: sessionUser.total_purchases || 0,
-        received_amount: sessionUser.received_amount || 0,
-        orders: session?.laravelUser?.orders || [],
-      });
+
+    // Time-based rate limiting: only refresh if 30 seconds have passed since last refresh
+    // unless it's a forced refresh (e.g., after updating user info)
+    const now = Date.now();
+    const timeSinceLastRefresh = now - lastRefreshTime;
+    const MIN_REFRESH_INTERVAL = 30 * 1000; // 30 seconds
+
+    if (!forceRefresh && timeSinceLastRefresh < MIN_REFRESH_INTERVAL) {
+      return;
     }
+
+    // Clear cached data for refresh
+    setCachedUserData(null);
     
     setIsRefreshing(true);
+    setLastRefreshTime(now); // Set refresh time at start to prevent multiple calls
+    
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/profile`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/${locale}/user/profile`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${session.laravelToken}`,
           'Content-Type': 'application/json',
+          // Add cache-busting header for force refresh
+          ...(forceRefresh && { 'Cache-Control': 'no-cache, no-store, must-revalidate' }),
         },
       });
 
       if (response.ok) {
         const freshUserData = await response.json();
-        console.log('✅ Fresh user data received, updating session');
         
-        // Optimistic update: Update session immediately to prevent flickering
+        // Update credits store with fresh balance
+        setBalance(freshUserData.credits_balance || 0);
+        
+        // Update session with fresh financial data (primarily for header display)
         await update({
           credits_balance: freshUserData.credits_balance,
           total_purchases: freshUserData.total_purchases,
@@ -185,18 +171,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // Clear cache after successful update
         setCachedUserData(null);
-        console.log('✅ User data refresh completed');
       } else {
-        console.error('❌ Failed to refresh user data:', response.status);
+        if (response.status === 429) {
+        }
+        throw new Error(`Failed to refresh user data: ${response.status}`);
       }
     } catch (error) {
-      console.error('❌ Error refreshing user data:', error);
       // Clear cache on error to fall back to session data
       setCachedUserData(null);
     } finally {
       setIsRefreshing(false);
     }
-  }, [session?.laravelToken, update, sessionUser, session?.laravelUser, isRefreshing]);
+  }, [session?.laravelToken, update, sessionUser, session?.laravelUser, isRefreshing, locale, lastRefreshTime]);
+
+  // Initialize credits store and auto-refresh when user is authenticated
+  useEffect(() => {
+    if (!stableIsAuthenticated || !session?.laravelToken) return;
+
+    // Initialize credits store with current user balance
+    if (sessionUser?.credits_balance !== undefined) {
+      initializeFromUser(sessionUser.credits_balance);
+    }
+
+    // Refresh immediately when becoming authenticated
+    refreshUserData(false);
+
+    // Set up periodic refresh (every 5 minutes)
+    const interval = setInterval(() => {
+      refreshUserData(false);
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(interval);
+  }, [stableIsAuthenticated, session?.laravelToken, refreshUserData, sessionUser?.credits_balance, initializeFromUser]);
+
+  // Sync credits store when user balance changes
+  useEffect(() => {
+    if (sessionUser?.credits_balance !== undefined) {
+      creditsService.syncBalanceFromSession(sessionUser.credits_balance);
+    }
+  }, [sessionUser?.credits_balance]);
 
   const user = cachedUserData || (sessionUser ? {
     id: sessionUser.id,
@@ -218,12 +231,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const token = sessionToken;
   const isAdmin = user?.role === 'admin';
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, lang?: string) => {
     setLoading(true);
     try {
       const result = await signIn("credentials", {
         email: email,
         password,
+        lang: lang || 'en',
         redirect: false,
       });
 
@@ -250,6 +264,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     setLoading(true);
     try {
+      // Call Laravel logout endpoint first if we have a token
+      if (session?.laravelToken) {
+        try {
+          await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/${locale}/logout`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session.laravelToken}`,
+              'Content-Type': 'application/json',
+            },
+          });
+        } catch (error) {
+          // Continue with NextAuth logout even if Laravel logout fails
+          console.warn('Laravel logout failed:', error);
+        }
+      }
+      
       await signOut({ callbackUrl: "/" });
       clearSessionCache();
     } catch (error) {

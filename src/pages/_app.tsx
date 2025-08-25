@@ -15,6 +15,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import FallbackTheme from "@/components/ui/fallback-theme";
 import StyledComponentsRegistry from '@/lib/registry';
 import { GlobalProvider } from "@/context/GlobalContext";
+import CreditNotificationProvider from "@/components/providers/CreditNotificationProvider";
 import { useRouter } from 'next/router';
 import PageLoader from '@/components/ui/PageLoader';
 import { ToastContainer } from 'react-toastify';
@@ -102,7 +103,8 @@ export default function App({
         <GlobalProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem={true} storageKey="theme" disableTransitionOnChange={false}>
             <AuthProvider>
-              <GlobalState.Provider value={globalStateValue}>
+              <CreditNotificationProvider>
+                <GlobalState.Provider value={globalStateValue}>
                 <QueryClientProvider client={queryClient}>
                   <NextIntlClientProvider
                                   locale={router.locale}
@@ -149,6 +151,7 @@ export default function App({
                                 </NextIntlClientProvider>
                 </QueryClientProvider>
               </GlobalState.Provider>
+              </CreditNotificationProvider>
             </AuthProvider>
           </ThemeProvider>
         </GlobalProvider>

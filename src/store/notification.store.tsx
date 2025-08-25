@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 export type NotificationType = 'success' | 'rejected';
+export type NotificationFilterType = NotificationType | 'all' | 'credits';
 export type NotificationStatus = 'read' | 'unread';
 
 export interface Notification {
@@ -10,81 +11,27 @@ export interface Notification {
   description: string;
   date: string;
   readStatus: NotificationStatus;
+  type?: 'credit' | 'order' | 'system'; // Add notification category
+  amount?: number; // For credit notifications
+  request_id?: string; // For credit request tracking
 }
 
 interface NotificationStore {
   notifications: Notification[];
   count: number;
-  filter: NotificationType | 'all';
+  filter: NotificationFilterType;
   page: number;
   hasMore: boolean;
-  setFilter: (filter: NotificationType | 'all') => void;
+  setFilter: (filter: NotificationFilterType) => void;
   setNotifications: (notifications: Notification[]) => void;
+  addNotification: (notification: Omit<Notification, 'id'>) => void; // Add new notification
   markAsRead: (id: number) => void;
   markAllAsRead: () => void;
   clearAll: () => void;
   loadMore: () => void;
 }
 
-// Dummy data for demonstration
-const initialNotifications: Notification[] = [
-  {
-    id: 1,
-    status: 'success',
-    title: 'Top-Up Successful',
-    description: '$50 has been added to your balance.',
-    date: '2025-03-14 18:37:07',
-    readStatus: 'unread',
-  },
-  {
-    id: 2,
-    status: 'rejected',
-    title: 'Top-Up Rejected',
-    description: `We're sorry, your top-up of $50 could not be processed. Please try again later or contact support.`,
-    date: '2025-03-14 18:37:07',
-    readStatus: 'unread',
-  },
-  {
-    id: 3,
-    status: 'success',
-    title: 'Top-Up Successful',
-    description: '$50 has been added to your balance.',
-    date: '2025-03-14 18:37:07',
-    readStatus: 'unread',
-  },
-  {
-    id: 4,
-    status: 'rejected',
-    title: 'Top-Up Rejected',
-    description: `We're sorry, your top-up of $50 could not be processed. Please try again later or contact support.`,
-    date: '2025-03-14 18:37:07',
-    readStatus: 'unread',
-  },
-  {
-    id: 5,
-    status: 'success',
-    title: 'Top-Up Successful',
-    description: '$50 has been added to your balance.',
-    date: '2025-03-14 18:37:07',
-    readStatus: 'unread',
-  },
-  {
-    id: 6,
-    status: 'rejected',
-    title: 'Top-Up Rejected',
-    description: `We're sorry, your top-up of $50 could not be processed. Please try again later or contact support.`,
-    date: '2025-03-14 18:37:07',
-    readStatus: 'unread',
-  },
-  {
-    id: 7,
-    status: 'success',
-    title: 'Top-Up Successful',
-    description: '$50 has been added to your balance.',
-    date: '2025-03-14 18:37:07',
-    readStatus: 'unread',
-  },
-];
+const initialNotifications: Notification[] = [];
 
 export const useNotificationStore = create<NotificationStore>((set, get) => ({
   notifications: initialNotifications,
@@ -98,6 +45,18 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   setNotifications: (notifications) => set({ 
     notifications,
     count: notifications.filter(n => n.readStatus === 'unread').length
+  }),
+
+  addNotification: (notification) => set((state) => {
+    const newNotification = {
+      ...notification,
+      id: Date.now() + Math.random(), // Generate unique ID
+    };
+    const updatedNotifications = [newNotification, ...state.notifications];
+    return {
+      notifications: updatedNotifications,
+      count: updatedNotifications.filter(n => n.readStatus === 'unread').length
+    };
   }),
   
   markAsRead: (id) => set((state) => {

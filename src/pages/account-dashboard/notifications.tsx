@@ -50,9 +50,11 @@ const NotificationsPage: React.FC = () => {
   };
 
   const filteredNotifications = useMemo(() => {
-    return notifications.filter(notification => 
-      filter === 'all' || notification.status === filter
-    );
+    return notifications.filter(notification => {
+      if (filter === 'all') return true;
+      if (filter === 'credits') return notification.type === 'credit';
+      return notification.status === filter;
+    });
   }, [notifications, filter]);
 
   const groupedNotifications = useMemo(() => {
@@ -114,6 +116,18 @@ const NotificationsPage: React.FC = () => {
             <StatusDot status="rejected" />
             <span>Rejected</span>
           </FilterButton>
+          <FilterButton 
+            active={filter === 'credits'} 
+            onClick={() => setFilter('credits')}
+          >
+            <div style={{ 
+              width: '8px', 
+              height: '8px', 
+              backgroundColor: '#3B82F6', 
+              borderRadius: '50%' 
+            }} />
+            <span>Credits</span>
+          </FilterButton>
         </FilterContainer>
 
         <ListArea>
@@ -127,6 +141,7 @@ const NotificationsPage: React.FC = () => {
                       <NotificationCard 
                         key={notif.id}
                         read={notif.readStatus === 'read'}
+                        onClick={() => markAsRead(notif.id)}
                       >
                         <NotifLeft>
                           <StatusIconContainer>
@@ -146,6 +161,19 @@ const NotificationsPage: React.FC = () => {
                           <NotifTexts>
                             <NotifTitle>{notif.title}</NotifTitle>
                             <NotifDesc>{notif.description}</NotifDesc>
+                            {/* Credit-specific information */}
+                            {/* {notif.type === 'credit' && notif.amount && (
+                              <CreditInfo status={notif.status}>
+                                <CreditAmount>
+                                  ${notif.amount}
+                                </CreditAmount>
+                                {notif.request_id && (
+                                  <RequestId>
+                                    Request #{notif.request_id.toString().slice(-6)}
+                                  </RequestId>
+                                )}
+                              </CreditInfo>
+                            )} */}
                           </NotifTexts>
                         </NotifLeft>
                         <NotifDate>{formatDate(notif.date)}</NotifDate>
@@ -428,14 +456,25 @@ const NotificationCard = styled.div<{ read: boolean }>`
   gap: 10px;
   width: 100%;
   min-height: 72px;
-  max-height: 72px;
   background: ${props => props.read ? 'var(--color-app-off-white)' : '#F3F3F3'};
   border-radius: 50.5px;
   transition: all 0.2s;
   box-sizing: border-box;
+  cursor: pointer;
 
   .dark & {
     background: ${props => props.read ? 'var(--color-app-black)' : '#1a1a1a'};
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: ${props => props.read ? 'var(--color-app-off-white)' : '#E8E8E8'};
+
+    .dark & {
+      background: ${props => props.read ? 'var(--color-app-black)' : '#2a2a2a'};
+      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.05);
+    }
   }
 
   @media (max-width: 768px) {
@@ -659,6 +698,49 @@ const EmptyState = styled.div`
     .empty-text {
       font-size: 1rem;
     }
+  }
+`;
+
+// Credit-specific styled components
+const CreditInfo = styled.div<{ status: 'success' | 'rejected' }>`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: ${props => 
+    props.status === 'success' 
+      ? 'rgba(34, 197, 94, 0.1)' 
+      : 'rgba(239, 68, 68, 0.1)'
+  };
+  border: 1px solid ${props => 
+    props.status === 'success' 
+      ? 'rgba(34, 197, 94, 0.2)' 
+      : 'rgba(239, 68, 68, 0.2)'
+  };
+`;
+
+const CreditAmount = styled.span`
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--color-app-black);
+  
+  .dark & {
+    color: var(--color-app-white);
+  }
+`;
+
+const RequestId = styled.span`
+  font-size: 0.85rem;
+  color: #666;
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 2px 6px;
+  border-radius: 4px;
+  
+  .dark & {
+    color: #ccc;
+    background-color: rgba(255, 255, 255, 0.1);
   }
 `;
 

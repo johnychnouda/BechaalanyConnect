@@ -61,6 +61,7 @@ export default function SignupPage() {
   const { generalData } = useGlobalContext();
   const countries = generalData?.countries || [];
   const userTypes = generalData?.user_types || [];
+  const { locale } = useRouter();
 
   const {
     register,
@@ -72,7 +73,7 @@ export default function SignupPage() {
   } = useForm();
 
   const country = watch("country") as keyof typeof countries;
-  const phonePrefix = countries.find(c => c.slug === country)?.code || "+";
+  const phonePrefix = countries.find(c => c.slug === country)?.code || "";
 
   const validatePhone = (phone: string) => {
     const countryFormat = countries.find(c => c.slug === country);
@@ -95,10 +96,11 @@ export default function SignupPage() {
     setError("");
     setSuccess("");
     setSubmitLoading(true);
+    const phone = phonePrefix + data.phone;
     try {
       const response = await authService.register({
         email: data.email,
-        phone: data.phone,
+        phone: phone,
         username: data.username,
         country: data.country,
         userType: data.userType,
@@ -107,6 +109,7 @@ export default function SignupPage() {
         password: data.password,
         confirmPassword: data.confirmPassword,
         isBusiness: data.isBusiness || false,
+        lang: router.locale || 'en'
       });
       setShowVerify(true);
       setVerifyEmail(data.email);
@@ -130,11 +133,11 @@ export default function SignupPage() {
       if (regPassword) {
         try {
           await login(verifyEmail, regPassword);
-          setSuccess("Account verified and logged in successfully!");
+          setSuccess(locale === "ar" ? "تم التحقق من البريد الإلكتروني وتم تسجيل الدخول بنجاح!" : "Account verified and logged in successfully!");
           router.push("/account-dashboard");
         } catch (loginErr: any) {
           console.error("Auto-login failed:", loginErr);
-          setSuccess("Account verified successfully! Please log in.");
+          setSuccess(locale === "ar" ? "تم التحقق من البريد الإلكتروني بنجاح! يرجى تسجيل الدخول." : "Account verified successfully! Please log in.");
           router.push("/auth/signin");
         }
       }
@@ -157,9 +160,9 @@ export default function SignupPage() {
 
   const ResendCode = async () => {
     try {
-      await authService.resendVerificationCode(verifyEmail);
+      await authService.resendVerificationCode(verifyEmail, router.locale || 'en');
       setVerifyError("");
-      setSuccess("Verification code resent successfully.");
+      setSuccess(locale === "ar" ? "تم إعادة إرسال رمز التحقق بنجاح." : "Verification code resent successfully.");
       setTimeout(() => setSuccess(""), 4000);
     } catch (err: any) {
       setVerifyError(err.message || "Network error. Please try again.");
@@ -176,10 +179,10 @@ export default function SignupPage() {
           <div className="max-w-md w-full space-y-8">
             <div className="text-center">
               <h2 className="text-2xl sm:text-3xl font-extrabold text-[#E73828] mb-1 tracking-tight">
-                CREATE ACCOUNT
+                {generalData?.logging_page_settings.sign_up_title}
               </h2>
               <p className="text-black text-sm sm:text-base mb-4 sm:mb-6">
-                Sign up to continue
+                {generalData?.logging_page_settings.sign_up_subtitle}
               </p>
             </div>
 
@@ -202,8 +205,8 @@ export default function SignupPage() {
               >
                 <input
                   type="text"
-                  placeholder="Username"
-                  {...register("username", { required: "Username is required" })}
+                  placeholder={generalData?.logging_page_settings.username_placeholder}
+                  {...register("username", { required: locale === "ar" ? "يجب أن يكون لديك اسم مستخدم" : "Username is required" })}
                   className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black rtl:text-right"
                 />
                 {errors.username && (
@@ -217,27 +220,32 @@ export default function SignupPage() {
                     const selected = countries.find(c => c.title === val);
                     setValue("country", selected?.slug || "", { shouldValidate: true });
                   }}
-                  placeholder="Country"
+                  placeholder={generalData?.logging_page_settings.country_placeholder || "Country"}
                 />
                 <input
                   type="hidden"
-                  {...register("country", { required: "Country is required" })}
+                  {...register("country", { required: locale === "ar" ? "يجب أن يكون لديك بلد" : "Country is required" })}
                   name="country"
                 />
                 {errors.country && (
                   <span className="text-xs text-red-600">{errors.country.message as string}</span>
                 )}
 
-                <div className="flex items-center border border-[#E73828] rounded-full px-4 py-2 bg-transparent">
-                  <span className="text-[#E73828] mr-2 rtl:ml-2 rtl:mr-0 min-w-[48px] text-base">
-                    {phonePrefix}
-                  </span>
+                <div className="flex rtl:flex-row-reverse items-center border border-[#E73828] rounded-full px-4 py-2 bg-transparent">
+                  <div className="flex rtl:flex-row-reverse items-center mr-2 rtl:ml-2 rtl:mr-0">
+                    <span className="text-[#E73828] text-base">
+                      +
+                    </span>
+                    <span className="text-[#E73828] rtl:text-left">
+                      {phonePrefix}
+                    </span>
+                  </div>
                   <input
                     type="tel"
-                    placeholder="Phone Number"
+                    placeholder={generalData?.logging_page_settings.phone_number_placeholder || "Phone Number"}
                     {...register("phone", {
-                      required: "Phone number is required",
-                      validate: (val: string) => validatePhone(val) || `Please enter a valid phone number ${country ? `for ${countries.find(c => c.slug === country)?.title}` : ''}.`,
+                      required: locale === "ar" ? "يجب أن يكون لديك رقم هاتف" : "Phone number is required",
+                      validate: (val: string) => validatePhone(val) || `${locale === "ar" ? "يرجى إدخال رقم هاتف صالح" : "Please enter a valid phone number"} ${country ? `for ${countries.find(c => c.slug === country)?.title}` : ''}`,
                     })}
                     className="w-full focus:outline-none text-base text-black bg-transparent placeholder:text-black rtl:text-right"
                   />
@@ -248,12 +256,12 @@ export default function SignupPage() {
 
                 <input
                   type="email"
-                  placeholder="Email"
+                  placeholder={generalData?.logging_page_settings.email_placeholder || "Email"}
                   {...register("email", {
-                    required: "Email is required",
+                    required: locale === "ar" ? "يجب أن يكون لديك بريد إلكتروني" : "Email is required",
                     pattern: {
                       value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                      message: "Please enter a valid email address (e.g. user@example.com).",
+                      message: locale === "ar" ? "يرجى إدخال عنوان بريد إلكتروني صالح (مثال: user@example.com)." : "Please enter a valid email address (e.g. user@example.com).",
                     },
                   })}
                   className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black rtl:text-right"
@@ -265,10 +273,10 @@ export default function SignupPage() {
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
-                    placeholder="Password"
+                    placeholder={generalData?.logging_page_settings.password_placeholder || "Password"}
                     {...register("password", {
-                      required: "Password is required",
-                      validate: (val: string) => validatePassword(val) || "Password must be at least 8 characters, include 1 uppercase letter, 1 number, and 1 special character.",
+                      required: locale === "ar" ? "يجب أن يكون لديك كلمة مرور" : "Password is required",
+                      validate: (val: string) => validatePassword(val) || (locale === "ar" ? "يجب أن تكون كلمة المرور على الأقل 8 أحرف, تحتوي على 1 حرف كبير, 1 رقم, و 1 حرف خاص." : "Password must be at least 8 characters, include 1 uppercase letter, 1 number, and 1 special character."),
                     })}
                     className="w-full border border-[#E73828] rounded-full px-4 py-2 pr-12 rtl:pl-12 rtl:pr-4 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
                   />
@@ -286,10 +294,10 @@ export default function SignupPage() {
                 <div className="relative">
                   <input
                     type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirm Password"
+                    placeholder={generalData?.logging_page_settings.confirm_password_placeholder || "Confirm Password"}
                     {...register("confirmPassword", {
-                      required: "Please confirm your password",
-                      validate: (val: string) => val === watch("password") || "Passwords do not match.",
+                      required: locale === "ar" ? "يرجى التأكد من كلمة المرور" : "Please confirm your password",
+                      validate: (val: string) => val === watch("password") || (locale === "ar" ? "كلمات المرور غير متطابقة." : "Passwords do not match."),
                     })}
                     className="w-full border border-[#E73828] rounded-full px-4 py-2 pr-12 rtl:pl-12 rtl:pr-4 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
                   />
@@ -312,7 +320,7 @@ export default function SignupPage() {
                     className="w-4 h-4 accent-[#E73828]"
                   />
                   <label htmlFor="isBusiness" className="text-sm sm:text-base text-black">
-                    Register as a Business User
+                    {generalData?.logging_page_settings.register_business_user_label}
                   </label>
                 </div>
 
@@ -325,11 +333,11 @@ export default function SignupPage() {
                         const selected = userTypes.find(ut => ut.title === val);
                         setValue("userType", selected?.id || 0, { shouldValidate: true });
                       }}
-                      placeholder="User Type"
+                      placeholder={generalData?.logging_page_settings.user_type_placeholder || "User Type"}
                     />
                     <input
                       type="hidden"
-                      {...register("userType", { required: isBusiness ? "User type is required" : false })}
+                      {...register("userType", { required: isBusiness ? (locale === "ar" ? "يجب أن يكون لديك نوع مستخدم" : "User type is required") : false })}
                       name="userType"
                     />
                     {errors.userType && (
@@ -338,9 +346,9 @@ export default function SignupPage() {
 
                     <input
                       type="text"
-                      placeholder="Store Name"
+                      placeholder={generalData?.logging_page_settings.store_name_placeholder || "Store Name"}
                       {...register("storeName", {
-                        required: isBusiness ? "Store name is required" : false,
+                        required: isBusiness ? (locale === "ar" ? "يجب أن يكون لديك اسم متجر" : "Store name is required") : false,
                       })}
                       className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black rtl:text-right"
                     />
@@ -350,9 +358,9 @@ export default function SignupPage() {
 
                     <input
                       type="text"
-                      placeholder="Store Location"
+                      placeholder={generalData?.logging_page_settings.store_location_placeholder || "Store Location"}
                       {...register("location", {
-                        required: isBusiness ? "Store location is required" : false,
+                        required: isBusiness ? (locale === "ar" ? "يجب أن يكون لديك موقع متجر" : "Store location is required") : false,
                       })}
                       className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black rtl:text-right"
                     />
@@ -371,7 +379,7 @@ export default function SignupPage() {
                     type="submit"
                     className="w-full bg-[#E73828] text-white rounded-full py-3 text-base font-bold mt-4 hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200"
                   >
-                    CREATE ACCOUNT
+                    {generalData?.logging_page_settings.sign_up_button || "CREATE ACCOUNT"}
                   </button>
                 )}
 
@@ -380,22 +388,39 @@ export default function SignupPage() {
                     <div className="w-full border-t border-gray-300"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                    <span className="px-2 bg-white text-gray-500">
+                      {
+                        locale === "ar" ?
+                          "او استمرار ب"
+                          :
+                          "Or continue with"
+                      }
+                    </span>
                   </div>
                 </div>
               </form>
 
-              <GoogleButton onClick={handleGoogleSignup} />
+              <GoogleButton text={generalData?.logging_page_settings.google_button || "SIGNUP WITH GOOGLE"} onClick={handleGoogleSignup} locale={locale} />
 
               <div className="flex items-center justify-center gap-1 mt-6">
                 <div className="text-center text-black text-sm sm:text-base">
-                  Already have an account?{" "}
+                  {
+                    locale === "ar" ?
+                      "لديك حساب؟"
+                      :
+                      "Already have an account?"
+                  }
                 </div>
                 <Link
                   href="/auth/signin"
                   className="text-[#E73828] font-bold hover:underline"
                 >
-                  Sign in
+                  {
+                    locale === "ar" ?
+                      "تسجيل الدخول"
+                      :
+                      "Sign in"
+                  }
                 </Link>
               </div>
             </div>

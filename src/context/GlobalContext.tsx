@@ -6,6 +6,7 @@ import { fetchGeneralData, fetchDashboardSettings } from "@/services/api.service
 import { GeneralDataType } from "@/types/globalData.type";
 import { DashboardSettingsType } from "@/types/Dashboard.type";
 import { useAppSession } from '@/hooks/use-session';
+import { useLanguage } from '@/hooks/use-language';
 
 interface GlobalContextType {
   generalData: GeneralDataType | null;
@@ -14,7 +15,8 @@ interface GlobalContextType {
   setDashboardSettings: (data: DashboardSettingsType | null) => void;
   refreshOrders: () => void;
   setRefreshOrdersCallback: (callback: () => void) => void;
-  refreshUserSession: () => Promise<void>;
+  refreshCredits: () => void;
+  setRefreshCreditsCallback: (callback: () => void) => void;
 }
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
@@ -23,8 +25,10 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
   const [generalData, setGeneralData] = useState<GeneralDataType | null>(null);
   const [dashboardSettings, setDashboardSettings] = useState<DashboardSettingsType | null>(null);
   const [refreshOrdersCallback, setRefreshOrdersCallback] = useState<(() => void) | null>(null);
+  const [refreshCreditsCallback, setRefreshCreditsCallback] = useState<(() => void) | null>(null);
   const router = useRouter();
   const { session, update } = useAppSession();
+  const { locale } = useLanguage();
 
   useEffect(() => {
     if (!router.locale) return;
@@ -56,35 +60,17 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
     setRefreshOrdersCallback(() => callback);
   }, []);
 
-  const refreshUserSession = useCallback(async () => {
-    if (!session?.laravelToken) return;
-    
-    try {
-      // Fetch fresh user data from the backend
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/profile`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${session.laravelToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const freshUserData = await response.json();
-        
-        // Use NextAuth's update method to refresh the session
-        await update({
-          credits_balance: freshUserData.credits_balance,
-          total_purchases: freshUserData.total_purchases,
-          received_amount: freshUserData.received_amount,
-        });
-      } else {
-        console.error('Failed to fetch fresh user data');
-      }
-    } catch (error) {
-      console.error('Error refreshing user session:', error);
+  const refreshCredits = useCallback(() => {
+    if (refreshCreditsCallback) {
+      refreshCreditsCallback();
     }
-  }, [session?.laravelToken, update]);
+  }, [refreshCreditsCallback]);
+
+  const setRefreshCreditsCallbackHandler = useCallback((callback: () => void) => {
+    setRefreshCreditsCallback(() => callback);
+  }, []);
+
+
 
   // Clear session cache when session changes to ensure consistency
   useEffect(() => {
@@ -104,7 +90,8 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
       setDashboardSettings,
       refreshOrders,
       setRefreshOrdersCallback: setRefreshOrdersCallbackHandler,
-      refreshUserSession,
+      refreshCredits,
+      setRefreshCreditsCallback: setRefreshCreditsCallbackHandler,
     }}>
       {children}
     </GlobalContext.Provider>

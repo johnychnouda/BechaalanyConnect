@@ -81,6 +81,7 @@ export const submitContactForm = async (formData: {
     phone: string;
     subject: string;
     message: string;
+    lang?: string;
 }) => {
     try {
         const { data } = await api.post('/contact-form-submit', formData);
@@ -98,6 +99,7 @@ export const saveOrder = async (orderData: {
     recipient_phone_number: string;
     recipient_user: string;
     statuses_id: number;
+    lang?: string;
 }) => {
     try {
         const { data } = await api.post('/save-order', orderData);
@@ -107,10 +109,10 @@ export const saveOrder = async (orderData: {
     }
 };
 
-export const fetchUserOrders = async (locale?: string, page = 1, limit = 10) => {
+export const fetchUserOrders = async (locale: string = 'en', page = 1, limit = 10) => {
     try {
-        const endpoint = locale ? `/${locale}/user/orders?page=${page}&limit=${limit}` : `/user/orders?page=${page}&limit=${limit}`;
-        const { data } = await api.get(endpoint);
+        // Always use locale-aware endpoint for consistency with other user endpoints
+        const { data } = await api.get(`/${locale}/user/orders?page=${page}&limit=${limit}`);
         return data;
     } catch (error) {
         // If the API endpoint doesn't exist yet, return empty orders
@@ -120,10 +122,10 @@ export const fetchUserOrders = async (locale?: string, page = 1, limit = 10) => 
     }
 };
 
-export const fetchUserPayments = async (locale?: string, page = 1, limit = 10) => {
+export const fetchUserPayments = async (locale: string = 'en', page = 1, limit = 10) => {
   try {
-    const endpoint = locale ? `/${locale}/user/credits?page=${page}&limit=${limit}` : `/user/credits?page=${page}&limit=${limit}`;
-    const { data } = await api.get(endpoint);
+    // Always use locale-aware endpoint for consistency with other user endpoints
+    const { data } = await api.get(`/${locale}/user/credits?page=${page}&limit=${limit}`);
     return data;
   } catch (error) {
     console.warn('User payments API endpoint not available yet:', error);
@@ -131,9 +133,10 @@ export const fetchUserPayments = async (locale?: string, page = 1, limit = 10) =
   }
 };
 
-export const fetchCurrentUser = async () => {
+export const fetchCurrentUser = async (locale: string = 'en') => {
     try {
-        const { data } = await api.get('/user/profile');
+        // Always use locale-aware endpoint since Laravel now requires it for translated userTypes
+        const { data } = await api.get(`/${locale}/user/profile`);
         return data;
     } catch (error) {
         console.error('Error fetching current user:', error);
@@ -181,6 +184,16 @@ export const fetchDashboardSettings = async (locale: string) => {
         return data;
     } catch (error) {
         console.error('Error fetching dashboard settings:', error);
+        throw error;
+    }
+};
+
+export const updateUserInfo = async (locale: string, userData: any) => {
+    try {
+        const { data } = await api.put(`/${locale}/user/update`, userData);
+        return data;
+    } catch (error) {
+        console.error('Error updating user info:', error);
         throw error;
     }
 };

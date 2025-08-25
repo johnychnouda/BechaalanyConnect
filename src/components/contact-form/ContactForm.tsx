@@ -46,7 +46,7 @@ function ContactForm({
                         : 'border-gray-300 dark:border-gray-600'
                         }`}
                     {...register("name", {
-                        required: "Name is required"
+                        required: router.locale === "ar" ? "يجب أن يكون لديك اسم" : "Name is required"
                     })}
                 />
                 {errors.name && (
@@ -65,10 +65,10 @@ function ContactForm({
                         : 'border-gray-300 dark:border-gray-600'
                         }`}
                     {...register("email", {
-                        required: "Email is required",
+                        required: router.locale === "ar" ? "يجب أن يكون لديك بريد إلكتروني" : "Email is required",
                         pattern: {
                             value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                            message: "Please enter a valid email address"
+                            message: router.locale === "ar" ? "يرجى إدخال عنوان بريد إلكتروني صالح" : "Please enter a valid email address"
                         }
                     })}
                 />
@@ -89,10 +89,10 @@ function ContactForm({
                             : 'border-gray-300 dark:border-gray-600'
                         }`}
                     {...register("phone", {
-                        required: "Phone number is required",
+                        required: router.locale === "ar" ? "يجب أن يكون لديك رقم هاتف" : "Phone number is required",
                         pattern: {
                             value: /^[\+]?[1-9][\d]{0,15}$/,
-                            message: "Please enter a valid phone number"
+                            message: router.locale === "ar" ? "يرجى إدخال رقم هاتف صالح" : "Please enter a valid phone number"
                         }
                     })}
                 />
@@ -123,7 +123,7 @@ function ContactForm({
                 <input
                     type="hidden"
                     {...register("subject", {
-                        required: "Please select a subject"
+                        required: router.locale === "ar" ? "يرجى إختيار موضوع" : "Please select a subject"
                     })}
                 />
                 {errors.subject && (
@@ -156,10 +156,10 @@ function ContactForm({
                         : 'border-gray-300 dark:border-gray-600'
                         }`}
                     {...register("message", {
-                        required: "Message is required",
+                        required: router.locale === "ar" ? "يجب أن يكون لديك رسالة" : "Message is required",
                         minLength: {
                             value: 8,
-                            message: "Message must be at least 8 characters long"
+                            message: router.locale === "ar" ? "يجب أن يكون لديك رسالة على الأقل 8 أحرف" : "Message must be at least 8 characters long"
                         }
                     })}
                 ></textarea>

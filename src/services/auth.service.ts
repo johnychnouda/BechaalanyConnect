@@ -17,6 +17,7 @@ export interface RegisterData {
   password: string;
   confirmPassword: string;
   isBusiness: boolean;
+  lang?: string;
 }
 
 export interface AuthResponse {
@@ -53,12 +54,13 @@ class AuthService {
     return AuthService.instance;
   }
 
-  public async login(credentials: LoginCredentials): Promise<AuthResponse> {
+  public async login(credentials: LoginCredentials, lang?: string): Promise<AuthResponse> {
     try {
       // Use NextAuth signIn for login
       const result = await signIn('credentials', {
         email: credentials.email,
         password: credentials.password,
+        lang: lang || 'en',
         redirect: false,
       });
 
@@ -100,6 +102,7 @@ class AuthService {
         password: data.password,
         password_confirmation: data.confirmPassword, // Map confirmPassword to password_confirmation
         isBusiness: data.isBusiness,
+        lang: data.lang || 'en'
       };
       
       // Register via API - this returns verification token, not session token
@@ -119,16 +122,33 @@ class AuthService {
     }
   }
 
-  public async resendVerificationCode(email: string): Promise<void> {
+  public async resendVerificationCode(email: string, lang?: string): Promise<void> {
     try {
-      await api.post('/resend-verification', { email });
+      await api.post('/resend-verification-code', { email, lang });
     } catch (error) {
       throw this.handleError(error);
     }
   }
 
-  public async logout(): Promise<void> {
+  public async logout(locale: string = 'en'): Promise<void> {
     try {
+      // Call Laravel logout endpoint first if we have a token
+      const session = await getSession();
+      if (session?.laravelToken) {
+        try {
+          await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/${locale}/logout`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session.laravelToken}`,
+              'Content-Type': 'application/json',
+            },
+          });
+        } catch (error) {
+          // Continue with NextAuth logout even if Laravel logout fails
+          console.warn('Laravel logout failed:', error);
+        }
+      }
+      
       // Use NextAuth signOut for logout
       await signOut({ callbackUrl: '/' });
     } catch (error) {

@@ -6,10 +6,11 @@ import { formatDate } from "@/utils/date";
 import { motion } from 'framer-motion';
 
 import BackButton from "@/components/ui/back-button";
-import { useOnDemandData } from "@/hooks/useOnDemandData";
-import { fetchDashboardSettings, fetchUserOrders, fetchUserPayments } from "@/services/api.service";
+import { fetchDashboardSettings, fetchUserOrders, fetchUserPayments, fetchCurrentUser } from "@/services/api.service";
 import { useRouter } from "next/router";
 import { useGlobalContext } from "@/context/GlobalContext";
+import { useLanguage } from "@/hooks/use-language";
+import { toast } from "react-toastify";
 const statusMeta = {
   accepted: {
     color: "#5FD568", label: "Accepted", icon: (
@@ -31,9 +32,14 @@ const statusMeta = {
 const ITEMS_PER_PAGE = 5; // Number of items to show initially and per load more
 
 export default function AccountDashboard() {
-  const { user, isRefreshing, refreshData } = useOnDemandData();
   const { dashboardSettings } = useGlobalContext();
   const router = useRouter();
+  const { locale } = useLanguage();
+
+  // Profile data state
+  const [profileData, setProfileData] = useState<any>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
   const [activeFilter, setActiveFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
@@ -55,6 +61,26 @@ export default function AccountDashboard() {
 
 
 
+  // Fetch profile data directly from API on component mount
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      setIsLoadingProfile(true);
+      setProfileError(null);
+
+      try {
+        const freshProfileData = await fetchCurrentUser(locale);
+        setProfileData(freshProfileData.user);
+      } catch (error) {
+        setProfileError('Failed to load profile data. Please refresh the page.');
+        toast.error('Failed to load profile data. Please refresh the page.');
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+
+    fetchProfileData();
+  }, [locale]);
+
   const fetchOrdersAndPayments = useCallback(async () => {
 
     // Prevent multiple simultaneous requests
@@ -65,7 +91,6 @@ export default function AccountDashboard() {
     // Rate limiting: prevent requests more frequent than MIN_REQUEST_INTERVAL
     const now = Date.now();
     if (now - lastRequestTimeRef.current < MIN_REQUEST_INTERVAL) {
-      console.log('Request throttled, too soon since last request');
       return;
     }
 
@@ -139,8 +164,8 @@ export default function AccountDashboard() {
       }
 
       // Fallback to user session data if available
-      if (user?.orders) {
-        const processedOrders = user.orders
+      if (profileData?.orders) {
+        const processedOrders = profileData.orders
           .filter((order: any) => order.statuses_id === 1)
           .map((order: any) => ({
             direction: 'up' as const,
@@ -153,7 +178,7 @@ export default function AccountDashboard() {
         setOrders(processedOrders);
         hasDataRef.current = true; // Mark data as fetched
       }
-      if (!user?.orders) {
+      if (!profileData?.orders) {
         setOrders([]);
       }
       setPayments([]);
@@ -163,16 +188,16 @@ export default function AccountDashboard() {
     }
   }, [router.locale]); // Removed user dependency to prevent excessive re-renders
 
-  // Initial data fetch on mount - only once per user session
+  // Initial data fetch on mount - only once per profile session
   useEffect(() => {
-    if (user && user.id && !hasInitialized) {
+    if (profileData && profileData.id && !hasInitialized) {
       setHasInitialized(true);
-      // Add a small delay to ensure session is fully established
+      // Add a small delay to ensure profile data is fully loaded
       setTimeout(() => {
         fetchOrdersAndPayments();
       }, 100);
     }
-  }, [user, hasInitialized, fetchOrdersAndPayments]);
+  }, [profileData, hasInitialized, fetchOrdersAndPayments]);
 
   const handleDateChange = (from: string, to: string) => {
     // No API call needed for date filtering - just update local state
@@ -190,14 +215,25 @@ export default function AccountDashboard() {
     setDisplayedItemsCount(ITEMS_PER_PAGE);
   };
 
-  const handleManualRefresh = () => {
-    // Refresh both user data (balance, etc.) and orders/payments
-    refreshData(); // This refreshes user balance and profile data
-    setHasError(false);
-    fetchOrdersAndPayments(); // This fetches fresh orders and payments
-    setDateFilter(null);
-    setDisplayedItemsCount(ITEMS_PER_PAGE);
-  };
+  // const handleManualRefresh = async () => {
+  //   // Refresh both profile data (balance, etc.) and orders/payments
+  //   try {
+  //     setIsLoadingProfile(true);
+  //     const freshProfileData = await fetchCurrentUser(locale);
+  //     setProfileData(freshProfileData.user);
+  //     setProfileError(null);
+  //   } catch (error) {
+  //     console.error('Failed to refresh profile data:', error);
+  //     setProfileError('Failed to refresh profile data.');
+  //   } finally {
+  //     setIsLoadingProfile(false);
+  //   }
+
+  //   setHasError(false);
+  //   fetchOrdersAndPayments(); // This fetches fresh orders and payments
+  //   setDateFilter(null);
+  //   setDisplayedItemsCount(ITEMS_PER_PAGE);
+  // };
 
   const handleLoadMore = () => {
     setIsLoadingMore(true);
@@ -222,7 +258,7 @@ export default function AccountDashboard() {
     if (dateFilter && dateFilter.from && dateFilter.to && dateFilter.from !== '' && dateFilter.to !== '') {
       const fromDate = new Date(dateFilter.from);
       fromDate.setHours(0, 0, 0, 0); // Start of day
-      
+
       const toDate = new Date(dateFilter.to);
       toDate.setHours(23, 59, 59, 999); // End of day
 
@@ -250,35 +286,59 @@ export default function AccountDashboard() {
         </div>
         {/* Content */}
         <>
+          {/* Profile Error Display */}
+          {profileError && (
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <div className="flex items-center gap-2">
+                <svg className="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <span className="text-red-700 dark:text-red-400 font-medium">{profileError}</span>
+              </div>
+            </div>
+          )}
+
           {/* Page Title & User Info */}
-          <div className="flex flex-col items-start gap-1">
+          <div className="flex flex-col items-start gap-1 relative">
+            {/* Loading overlay for profile section */}
+
             <div className="flex flex-row items-center gap-2 flex-wrap">
               <span className="uppercase font-roboto font-semibold text-2xl md:text-[36px] leading-tight text-[#E73828] tracking-tight">
-                {user?.name || 'CHARBEL BECHAALANY'}
-              </span>
-              {/* VIP badge */}
-              <span className="flex flex-row justify-center items-center border border-[#E73828] rounded-[20px] px-2 py-1 gap-1">
-                <span className="font-nunito font-medium text-[12px] leading-[16px] text-black dark:text-white">
-                  {user?.user_types?.slug || ''}
-                </span>
-                <svg width="11" height="12" viewBox="0 0 11 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3.02494 2.01245C2.95107 2.01249 2.87857 2.03237 2.815 2.07C2.75144 2.10764 2.69915 2.16165 2.66359 2.2264L1.15109 4.9764C1.11123 5.04894 1.09411 5.13178 1.10196 5.21418C1.1098 5.29657 1.14225 5.3747 1.19509 5.4384L5.18259 10.2509C5.2213 10.2976 5.26983 10.3352 5.32473 10.361C5.37963 10.3868 5.43955 10.4002 5.50021 10.4002C5.56088 10.4002 5.6208 10.3868 5.6757 10.361C5.7306 10.3352 5.77913 10.2976 5.81784 10.2509L9.80534 5.4384C9.85818 5.3747 9.89063 5.29657 9.89847 5.21418C9.90632 5.13178 9.8892 5.04894 9.84934 4.9764L8.33684 2.2264C8.30124 2.16157 8.24886 2.1075 8.18519 2.06986C8.12152 2.03222 8.0489 2.01239 7.97494 2.01245H3.02494ZM2.28574 4.62495L3.26859 2.83745H4.09359L3.46769 4.62495H2.28574ZM3.37914 5.44995L4.44009 8.06135L2.27584 5.44995H3.37914ZM5.49389 8.4645L4.26959 5.44995H6.68189L5.49389 8.4645ZM4.34219 4.62495L4.96754 2.83745H6.03729L6.69564 4.62495H4.34219ZM7.57509 4.62495L6.91674 2.83745H7.73074L8.71414 4.62495H7.57509ZM7.56849 5.44995H8.72349L6.52074 8.10865L7.56849 5.44995Z" fill="#E73828" />
-                </svg>
+                {profileData?.username}
               </span>
             </div>
-            <span className="font-nunito font-medium text-base md:text-[16px] leading-[22px] text-[#070707] dark:text-white">
-              {user?.user_types?.title || 'Wholesale Account'}
-            </span>
+            {/* Hide badge if user is not a business */}
+            {
+              (profileData?.user_types?.slug) && (
+                <div className="flex flex-row items-center gap-2">
+                  {/* VIP badge */}
+                  <span className="flex flex-row justify-center items-center border border-[#E73828] rounded-[20px] px-2 py-1 gap-1">
+                    <span className="font-nunito font-medium text-[12px] leading-[16px] text-black dark:text-white">
+                      {profileData?.user_types?.slug || ''}
+                    </span>
+                    <svg width="11" height="12" viewBox="0 0 11 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3.02494 2.01245C2.95107 2.01249 2.87857 2.03237 2.815 2.07C2.75144 2.10764 2.69915 2.16165 2.66359 2.2264L1.15109 4.9764C1.11123 5.04894 1.09411 5.13178 1.10196 5.21418C1.1098 5.29657 1.14225 5.3747 1.19509 5.4384L5.18259 10.2509C5.2213 10.2976 5.26983 10.3352 5.32473 10.361C5.37963 10.3868 5.43955 10.4002 5.50021 10.4002C5.56088 10.4002 5.6208 10.3868 5.6757 10.361C5.7306 10.3352 5.77913 10.2976 5.81784 10.2509L9.80534 5.4384C9.85818 5.3747 9.89063 5.29657 9.89847 5.21418C9.90632 5.13178 9.8892 5.04894 9.84934 4.9764L8.33684 2.2264C8.30124 2.16157 8.24886 2.1075 8.18519 2.06986C8.12152 2.03222 8.0489 2.01239 7.97494 2.01245H3.02494ZM2.28574 4.62495L3.26859 2.83745H4.09359L3.46769 4.62495H2.28574ZM3.37914 5.44995L4.44009 8.06135L2.27584 5.44995H3.37914ZM5.49389 8.4645L4.26959 5.44995H6.68189L5.49389 8.4645ZM4.34219 4.62495L4.96754 2.83745H6.03729L6.69564 4.62495H4.34219ZM7.57509 4.62495L6.91674 2.83745H7.73074L8.71414 4.62495H7.57509ZM7.56849 5.44995H8.72349L6.52074 8.10865L7.56849 5.44995Z" fill="#E73828" />
+                    </svg>
+                  </span>
+                  <span className="font-nunito font-medium text-base md:text-[16px] leading-[22px] text-[#070707] dark:text-white">
+                    {profileData?.user_types?.title || 'Wholesale Account'}
+                  </span>
+                </div>
+              )
+            }
+
+
+
           </div>
 
           {/* Manual Refresh Button */}
-          <div className="flex items-center gap-4">
+          {/* <div className="flex items-center gap-4">
             <button
               onClick={handleManualRefresh}
-              disabled={isRefreshing || isFetching}
+              disabled={isLoadingProfile || isFetching}
               className="flex items-center gap-2 px-4 py-2 bg-[#E73828] hover:bg-[#d63224] disabled:bg-[#E73828]/50 text-white font-['Roboto'] font-medium text-sm rounded-[20px] transition-all duration-200 disabled:cursor-not-allowed"
             >
-              {isRefreshing || isFetching ? (
+              {isLoadingProfile || isFetching ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   <span>Refreshing...</span>
@@ -292,7 +352,7 @@ export default function AccountDashboard() {
                 </>
               )}
             </button>
-          </div>
+          </div> */}
 
           {/* Summary Cards */}
           <div className="flex flex-col lg:flex-row gap-4 w-full">
@@ -303,7 +363,11 @@ export default function AccountDashboard() {
                   Your Balance
                 </span>
                 <span className="font-['Roboto'] font-semibold text-xl md:text-2xl leading-[28px] text-[#5FD568]">
-                  {user?.credits_balance} $
+                  {isLoadingProfile ? (
+                    <span className="animate-pulse">Loading...</span>
+                  ) : (
+                    `${profileData?.credits_balance || 0} $`
+                  )}
                 </span>
               </div>
             </div>
@@ -315,7 +379,11 @@ export default function AccountDashboard() {
                   Total Purchases
                 </span>
                 <span className="font-['Roboto'] font-semibold text-xl md:text-2xl leading-[28px] text-[#E73828]">
-                  {user?.total_purchases} $
+                  {isLoadingProfile ? (
+                    <span className="animate-pulse">Loading...</span>
+                  ) : (
+                    `${profileData?.total_purchases || 0} $`
+                  )}
                 </span>
               </div>
             </div>
@@ -327,7 +395,11 @@ export default function AccountDashboard() {
                   Received
                 </span>
                 <span className="font-['Roboto'] font-semibold text-xl md:text-2xl leading-[28px] text-[#5FD568]">
-                  {user?.received_amount} $
+                  {isLoadingProfile ? (
+                    <span className="animate-pulse">Loading...</span>
+                  ) : (
+                    `${profileData?.received_amount || 0} $`
+                  )}
                 </span>
               </div>
             </div>

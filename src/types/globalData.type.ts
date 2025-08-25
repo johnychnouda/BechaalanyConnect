@@ -51,6 +51,28 @@ export type SettingsType = {
     slug: string;
     code: string;
   };
+
+  export type LoggingPageSettingsType = {
+    sign_in_title: string;
+    sign_in_subtitle: string;
+    login_button: string;
+    google_button: string;
+    sign_up_title: string;
+    sign_up_subtitle: string;
+    sign_up_button: string;
+    username_placeholder: string;
+    email_placeholder: string;
+    country_placeholder: string;
+    phone_number_placeholder: string;
+    password_placeholder: string;
+    confirm_password_placeholder: string;
+    forget_password_label: string;
+    register_business_user_label: string;
+    user_type_placeholder: string;
+    store_name_placeholder: string;
+    store_location_placeholder: string;
+  };
+
   
   export type GeneralDataType = {
     settings: SettingsType;
@@ -60,6 +82,7 @@ export type SettingsType = {
     user_types: UserType[];
     countries: CountryType[];
     user_current_balance: number;
+    logging_page_settings: LoggingPageSettingsType;
   };
   
   export type GlobalContextType = {

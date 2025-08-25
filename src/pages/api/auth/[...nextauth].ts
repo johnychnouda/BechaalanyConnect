@@ -52,22 +52,29 @@ export default NextAuth({
             name: "credentials",
             credentials: {
                 email: { label: "Email", type: "email" },
-                password: { label: "Password", type: "password" }
+                password: { label: "Password", type: "password" },
+                lang: { label: "Language", type: "text" }
             },
-            async authorize(credentials) {
+            async authorize(credentials, req) {
                 if (!credentials?.email || !credentials?.password) {
                     throw new Error('Missing credentials');
                 }
 
                 try {
-                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/login`, {
+                    // Get language from credentials or fallback to Accept-Language header or default to 'en'
+                    const lang = credentials.lang || req?.headers?.['accept-language']?.split(',')[0]?.split('-')[0] || 'en';
+                    
+                    // Use locale-aware login endpoint
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/${lang}/login`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
+                            'Accept-Language': lang,
                         },
                         body: JSON.stringify({
                             email: credentials.email,
                             password: credentials.password,
+                            lang: lang,
                         }),
                     });
 
@@ -174,7 +181,10 @@ export default NextAuth({
              // Handle session refresh trigger - only update essential data
              if (trigger === "update" && token.laravelToken) {
                 try {
-                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/profile`, {
+                    // Get the locale from the token or fallback to 'en'
+                    const locale = token.laravelUser?.locale || 'en';
+                    
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/${locale}/user/profile`, {
                         method: 'GET',
                         headers: {
                             'Authorization': `Bearer ${token.laravelToken}`,

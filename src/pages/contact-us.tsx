@@ -87,7 +87,8 @@ export default function ContactUs() {
         email: data.email,
         phone: data.phone,
         subject: data.subject,
-        message: data.message
+        message: data.message,
+        lang: router.locale || 'en'
       });
 
       setSubmitSuccess(true);

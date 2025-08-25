@@ -24,7 +24,6 @@ export default function AccountSidebar({ onClose, menuItems }: { onClose?: () =>
     label: item.title,
     icon: item.full_path.icon
   }));
-
   const SidebarContent = () => (
     <>
       {/* Title */}
@@ -36,7 +35,7 @@ export default function AccountSidebar({ onClose, menuItems }: { onClose?: () =>
         {links?.map((link, index) => (
           <Link href={link.href} key={index}>
             <div className={`flex items-center justify-center gap-1 px-2 py-2 rounded-lg transition-all duration-200 ${
-              currentPath === link.href
+              currentPath === link.href || (currentPath.includes('add-credits') && link.href.includes('add-credits'))
                 ? 'bg-[#E73828]/10 text-[#E73828] dark:text-white'
                 : 'text-[#070707] hover:bg-[#E73828]/5 hover:text-[#E73828] dark:text-white'
             }`}>

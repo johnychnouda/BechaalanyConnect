@@ -13,6 +13,7 @@ import { useAuth } from '@/context/AuthContext';
 import { showError, showSuccess } from '@/utils/toast';
 import CardSkeleton from '@/components/ui/card-skeleton';
 import { useGlobalContext } from "@/context/GlobalContext";
+import { useCreditOperations } from "@/services/credits.service";
 
 interface ProductVariation {
   id: number;
@@ -58,10 +59,10 @@ interface SelectedAmount {
 }
 
 const ProductPage: React.FC = () => {
-
   const router = useRouter();
-  const { user } = useAuth();
-  const { refreshOrders, refreshUserSession, generalData } = useGlobalContext();
+  const { deductFromBalance } = useCreditOperations();
+  const { user, refreshUserData } = useAuth();
+  const { refreshOrders, generalData } = useGlobalContext();
   const { category: categorySlug, subcategory: subcategorySlug, productId: productSlug } = router.query;
   const [isLoading, setIsLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -212,12 +213,18 @@ const ProductPage: React.FC = () => {
         total_price: total,
         recipient_phone_number: recipientPhoneNumber,
         recipient_user: recipientUser,
-        statuses_id: 3
+        statuses_id: 3,
+        lang: router.locale || 'en'
       });
 
       showSuccess('Order placed successfully!');
+      // Deduct amount from credits store for immediate UI feedback
+      const productName = selectedProductVariation?.name || product?.name || 'Product';
+      deductFromBalance(total, `Purchase of ${productName} (Qty: ${quantity}) for $${total}`);
       // Refresh orders after successful placement
       refreshOrders();
+      // Optional: Still refresh user data as backup
+      // await refreshUserData(true);
       // Reset form fields after successful submission
       setRecipientPhoneNumber('');
       setRecipientUser('');

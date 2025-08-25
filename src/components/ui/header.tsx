@@ -12,6 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import BlurredPrice from "./BlurredPrice";
 import Notification from "./notification";
 import { useNotificationStore } from "@/store/notification.store";
+import { useCreditsBalance, useIsCreditsUpdating } from "@/store/credits.store";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import { useGlobalContext } from "@/context/GlobalContext";
@@ -26,18 +27,18 @@ export default function Header({ children }: PropsWithChildren) {
   const { generalData } = useGlobalContext();
   const { theme } = useAppTheme();
   const isMounted = useIsMounted();
-  const { isAuthenticated, user, refreshUserData, isRefreshing } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { count } = useNotificationStore();
   const { isRTL } = useLanguage();
+  const creditsBalance = useCreditsBalance();
+  const isCreditsUpdating = useIsCreditsUpdating();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
 
   if (!isMounted) return null;
 
-  const handleRefreshCredits = async () => {
-    await refreshUserData();
-  };
+
 
   return (
     <>
@@ -83,33 +84,15 @@ export default function Header({ children }: PropsWithChildren) {
         <div className="hidden lg:flex items-center  gap-1 sm:gap-2 lg:gap-4 ml-auto flex-nowrap min-w-0 max-w-full overflow-x-auto whitespace-nowrap">
           {isAuthenticated ? (
             <>
-              {/* <Notification
+              <Notification
                 count={count}
-              /> */}
+              />
               {user && (
                 <div className="flex items-center gap-2">
-                  <BlurredPrice price={Number(user.credits_balance)} />
-                  <button
-                    onClick={handleRefreshCredits}
-                    disabled={isRefreshing}
-                    className="p-1 rounded-full hover:bg-app-red/10 transition-colors duration-200 disabled:opacity-50"
-                    title="Refresh credits balance"
-                    aria-label="Refresh credits balance"
-                  >
-                    <svg
-                      className={`w-4 h-4 text-app-red transition-all duration-200 ${isRefreshing ? 'animate-spin' : 'hover:scale-110'}`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
-                  </button>
+                  <BlurredPrice 
+                    price={creditsBalance || user.credits_balance || 0} 
+                    className={isCreditsUpdating ? 'opacity-50 transition-opacity' : ''} 
+                  />
                 </div>
               )}
               <ButtonLink

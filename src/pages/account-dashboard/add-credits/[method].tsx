@@ -5,11 +5,13 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { useCreditOperations } from "@/services/credits.service";
 
 
 export default function AddCreditMethod() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, refreshUserData } = useAuth();
+  const { addPendingRequest } = useCreditOperations();
 
   const getSingleCreditType = async () => {
     const response = await fetchSingleCreditType(router.locale as string, router.query.method as string);
@@ -91,6 +93,14 @@ export default function AddCreditMethod() {
       const response = await submitCreditRequest(formData);
 
       toast.success('Credit request submitted successfully!');
+
+      // Add pending request to credits store for immediate UI feedback
+      // Laravel typically returns the created record with 'id' field
+      const requestId = response?.id || response?.credit_transfer_id || `req_${Date.now()}_${user.id}`;
+      addPendingRequest(requestId.toString(), sendValue);
+
+      // Optional: Still refresh user data as backup
+      // await refreshUserData(true);
 
       // Reset form
       setSendValue(0);

@@ -5,6 +5,7 @@ import BackButton from "@/components/ui/back-button";
 import { fetchCreditTypes } from "@/services/api.service";
 import { CreditsType } from "@/types/CreeditsDataTyype";
 import Image from "next/image";
+import Link from "next/link";
 
 
 
@@ -36,7 +37,7 @@ export default function AddCredits() {
             <div
               key={option.title}
             >
-              <a
+              <Link
                href={`/account-dashboard/add-credits/${option.slug}`}
                className="relative flex items-center justify-center rounded-[32px] h-[clamp(120px,15vw,220px)] w-full mx-auto transition-all duration-200 focus:outline-none hover:scale-105 cursor-pointer"
               >
@@ -46,7 +47,7 @@ export default function AddCredits() {
                   className="object-contain"
                   fill
                 />
-              </a>
+              </Link>
             </div>
           ))}
         </div>
