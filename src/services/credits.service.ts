@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 
 export class CreditsService {
   private static instance: CreditsService;
+  private processedRequests: Set<string> = new Set(); // Track processed request IDs
   
   public static getInstance(): CreditsService {
     if (!CreditsService.instance) {
@@ -47,6 +48,15 @@ export class CreditsService {
         return;
       }
 
+      // Prevent duplicate processing of the same request
+      if (this.processedRequests.has(requestId)) {
+        console.log('Credit request already processed, skipping:', requestId);
+        return;
+      }
+
+      // Mark as processed immediately to prevent race conditions
+      this.processedRequests.add(requestId);
+
       const { approvePendingRequest, updateBalance } = useCreditsStore.getState();
       const { addNotification } = useNotificationStore.getState();
       
@@ -84,6 +94,8 @@ export class CreditsService {
       console.log(`✅ Credit approved: $${creditAmount} added to balance for request ${requestId}`);
     } catch (error) {
       console.error('Error approving credit request:', error, { requestId, amount });
+      // Remove from processed set if there was an error, so it can be retried
+      this.processedRequests.delete(requestId);
     }
   }
 
@@ -191,10 +203,37 @@ export class CreditsService {
     const { getProjectedBalance } = useCreditsStore.getState();
     return getProjectedBalance();
   }
+
+  /**
+   * Clean up old processed requests to prevent memory leaks
+   */
+  public cleanupProcessedRequests(): void {
+    // Keep only the last 50 processed requests
+    if (this.processedRequests.size > 100) {
+      const array = Array.from(this.processedRequests);
+      const keep = array.slice(-50);
+      this.processedRequests = new Set(keep);
+      console.log('Cleaned up old processed credit requests');
+    }
+  }
+
+  /**
+   * Clear all processed requests (useful for logout)
+   */
+  public clearProcessedRequests(): void {
+    this.processedRequests.clear();
+  }
 }
 
 // Export singleton instance
 export const creditsService = CreditsService.getInstance();
+
+// Cleanup processed requests every 10 minutes
+if (typeof window !== 'undefined') {
+  setInterval(() => {
+    creditsService.cleanupProcessedRequests();
+  }, 10 * 60 * 1000);
+}
 
 // Export convenient hooks for components
 export const useCreditOperations = () => {

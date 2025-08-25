@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { creditsService } from '@/services/credits.service';
 
@@ -17,12 +17,38 @@ interface CreditNotification {
  */
 export const useCreditNotifications = () => {
   const { isAuthenticated, token } = useAuth();
+  
+  // Track processed notifications to prevent infinite loops
+  const processedNotifications = useRef<Set<string>>(new Set());
+  const isPolling = useRef<boolean>(false);
+  const consecutiveErrors = useRef<number>(0);
+  const maxErrors = 5; // Stop polling after 5 consecutive errors
 
   useEffect(() => {
-    if (!isAuthenticated || !token) return;
+    if (!isAuthenticated || !token) {
+      // Clear processed notifications when user logs out
+      processedNotifications.current.clear();
+      creditsService.clearProcessedRequests();
+      consecutiveErrors.current = 0;
+      return;
+    }
 
     // Option 1: Long Polling approach - Works with your Laravel backend
     const pollForNotifications = async () => {
+      // Prevent concurrent polling
+      if (isPolling.current) {
+        console.log('Skipping poll - already in progress');
+        return;
+      }
+      
+      // Stop polling if too many consecutive errors
+      if (consecutiveErrors.current >= maxErrors) {
+        console.error('Too many consecutive errors, stopping credit notification polling');
+        return;
+      }
+      
+      isPolling.current = true;
+      
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/notifications/credits`, {
           headers: {
@@ -39,15 +65,38 @@ export const useCreditNotifications = () => {
             return;
           }
           
-          notifications.forEach((notification) => {
+          // Filter out already processed notifications to prevent infinite loops
+          const newNotifications = notifications.filter(notification => {
+            if (!notification || !notification.request_id) {
+              return false;
+            }
+            
+            // Create unique identifier for this notification
+            const notificationId = `${notification.request_id}-${notification.type}`;
+            
+            // Check if already processed
+            if (processedNotifications.current.has(notificationId)) {
+              return false;
+            }
+            
+            return true;
+          });
+
+          if (newNotifications.length === 0) {
+            console.log('No new credit notifications to process');
+          } else {
+            console.log(`Processing ${newNotifications.length} new credit notifications`);
+          }
+
+          newNotifications.forEach((notification) => {
             try {
               console.log('Processing credit notification:', notification);
               
-              // Validate notification structure
-              if (!notification || !notification.request_id) {
-                console.error('Invalid notification structure:', notification);
-                return;
-              }
+              // Create unique identifier for this notification
+              const notificationId = `${notification.request_id}-${notification.type}`;
+              
+              // Mark as processed BEFORE processing to prevent race conditions
+              processedNotifications.current.add(notificationId);
               
               switch (notification.type) {
                 case 'credit_approved':
@@ -67,15 +116,29 @@ export const useCreditNotifications = () => {
               }
             } catch (notificationError) {
               console.error('Error processing individual notification:', notificationError, notification);
+              // Remove from processed set if processing failed, so it can be retried
+              const notificationId = `${notification.request_id}-${notification.type}`;
+              processedNotifications.current.delete(notificationId);
             }
           });
 
-          if (notifications.length > 0) {
-            console.log(`Processed ${notifications.length} credit notification(s)`);
+          if (newNotifications.length > 0) {
+            console.log(`Processed ${newNotifications.length} new credit notification(s)`);
           }
+          
+          // Reset error counter on successful processing
+          consecutiveErrors.current = 0;
         }
       } catch (error) {
         console.error('Failed to fetch credit notifications:', error);
+        consecutiveErrors.current += 1;
+        
+        // If too many errors, log warning
+        if (consecutiveErrors.current >= maxErrors) {
+          console.error(`Credit notification polling disabled after ${maxErrors} consecutive errors. Please refresh the page.`);
+        }
+      } finally {
+        isPolling.current = false;
       }
     };
 
@@ -85,7 +148,23 @@ export const useCreditNotifications = () => {
     // Initial poll
     pollForNotifications();
 
-    return () => clearInterval(interval);
+    // Cleanup old processed notifications every 10 minutes to prevent memory leaks
+    const cleanupInterval = setInterval(() => {
+      // Keep only the last 100 processed notifications
+      if (processedNotifications.current.size > 100) {
+        const array = Array.from(processedNotifications.current);
+        const keep = array.slice(-50); // Keep last 50
+        processedNotifications.current = new Set(keep);
+        console.log('Cleaned up old processed notifications');
+      }
+    }, 10 * 60 * 1000);
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(cleanupInterval);
+      // Reset error counter on cleanup
+      consecutiveErrors.current = 0;
+    };
   }, [isAuthenticated, token]);
 
   // Option 2: Server-Sent Events (SSE) - Uncomment and adapt if your backend supports SSE
