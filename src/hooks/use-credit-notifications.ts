@@ -34,20 +34,39 @@ export const useCreditNotifications = () => {
         if (response.ok) {
           const notifications: CreditNotification[] = await response.json();
           
+          if (!Array.isArray(notifications)) {
+            console.error('Expected notifications array but got:', notifications);
+            return;
+          }
+          
           notifications.forEach((notification) => {
-            console.log('Processing credit notification:', notification);
-            
-            switch (notification.type) {
-              case 'credit_approved':
-                creditsService.approveCreditRequest(notification.request_id, notification.amount);
-                console.log(`✅ Credit approved: $${notification.amount} for request ${notification.request_id}`);
-                break;
-              case 'credit_rejected':
-                creditsService.rejectCreditRequest(notification.request_id);
-                console.log(`❌ Credit rejected for request ${notification.request_id}`);
-                break;
-              default:
-                console.log(`ℹ️ Credit status update: ${notification.type} for request ${notification.request_id}`);
+            try {
+              console.log('Processing credit notification:', notification);
+              
+              // Validate notification structure
+              if (!notification || !notification.request_id) {
+                console.error('Invalid notification structure:', notification);
+                return;
+              }
+              
+              switch (notification.type) {
+                case 'credit_approved':
+                  if (notification.amount && notification.amount > 0) {
+                    creditsService.approveCreditRequest(notification.request_id, notification.amount);
+                    console.log(`✅ Credit approved: $${notification.amount} for request ${notification.request_id}`);
+                  } else {
+                    console.error('Invalid amount for credit approval:', notification);
+                  }
+                  break;
+                case 'credit_rejected':
+                  creditsService.rejectCreditRequest(notification.request_id);
+                  console.log(`❌ Credit rejected for request ${notification.request_id}`);
+                  break;
+                default:
+                  console.log(`ℹ️ Credit status update: ${notification.type} for request ${notification.request_id}`);
+              }
+            } catch (notificationError) {
+              console.error('Error processing individual notification:', notificationError, notification);
             }
           });
 

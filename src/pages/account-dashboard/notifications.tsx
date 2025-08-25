@@ -3,7 +3,52 @@ import styled from 'styled-components';
 import { useNotificationStore } from '@/store/notification.store';
 import { useAppTheme } from '@/hooks/use-app-theme';
 
-const NotificationsPage: React.FC = () => {
+// Error Boundary Component for notifications
+class NotificationErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Notification Error Boundary caught an error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '20px', textAlign: 'center' }}>
+          <h2>Something went wrong with notifications</h2>
+          <p>We're having trouble loading your notifications. Please refresh the page.</p>
+          <button 
+            onClick={() => this.setState({ hasError: false })}
+            style={{ 
+              padding: '10px 20px', 
+              background: '#E73828', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '5px',
+              cursor: 'pointer'
+            }}
+          >
+            Try Again
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+const NotificationsPageContent: React.FC = () => {
   const {
     notifications,
     filter,
@@ -18,34 +63,49 @@ const NotificationsPage: React.FC = () => {
   const { theme } = useAppTheme();
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
+    try {
+      if (!dateString) return 'Invalid Date';
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Invalid Date';
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error, 'for dateString:', dateString);
+      return 'Invalid Date';
+    }
   };
 
   const formatDateHeader = (dateString: string) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+    try {
+      if (!dateString) return 'Unknown Date';
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Unknown Date';
+      
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
 
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
-    } else {
-      return date.toLocaleDateString('en-US', {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric'
-      });
+      if (date.toDateString() === today.toDateString()) {
+        return 'Today';
+      } else if (date.toDateString() === yesterday.toDateString()) {
+        return 'Yesterday';
+      } else {
+        return date.toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric'
+        });
+      }
+    } catch (error) {
+      console.error('Error formatting date header:', error, 'for dateString:', dateString);
+      return 'Unknown Date';
     }
   };
 
@@ -60,11 +120,24 @@ const NotificationsPage: React.FC = () => {
   const groupedNotifications = useMemo(() => {
     const groups: { [key: string]: typeof notifications } = {};
     filteredNotifications.forEach(notification => {
-      const date = new Date(notification.date).toDateString();
-      if (!groups[date]) {
-        groups[date] = [];
+      try {
+        if (!notification || !notification.date) {
+          console.warn('Invalid notification or missing date:', notification);
+          return;
+        }
+        const date = new Date(notification.date);
+        if (isNaN(date.getTime())) {
+          console.warn('Invalid date in notification:', notification.date);
+          return;
+        }
+        const dateKey = date.toDateString();
+        if (!groups[dateKey]) {
+          groups[dateKey] = [];
+        }
+        groups[dateKey].push(notification);
+      } catch (error) {
+        console.error('Error grouping notification:', error, notification);
       }
-      groups[date].push(notification);
     });
     return groups;
   }, [filteredNotifications]);
@@ -743,5 +816,13 @@ const RequestId = styled.span`
     background-color: rgba(255, 255, 255, 0.1);
   }
 `;
+
+const NotificationsPage: React.FC = () => {
+  return (
+    <NotificationErrorBoundary>
+      <NotificationsPageContent />
+    </NotificationErrorBoundary>
+  );
+};
 
 export default NotificationsPage;

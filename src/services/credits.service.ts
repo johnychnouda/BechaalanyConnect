@@ -41,37 +41,50 @@ export class CreditsService {
    * Mark a credit request as approved and update balance
    */
   public approveCreditRequest(requestId: string, amount?: number): void {
-    const { approvePendingRequest, updateBalance } = useCreditsStore.getState();
-    const { addNotification } = useNotificationStore.getState();
-    
-    const credits = useCreditsStore.getState();
-    const pendingRequest = credits.pendingRequests.find(r => r.id === requestId);
-    
-    // Use the amount from the notification if provided, otherwise use pending request amount
-    const creditAmount = amount || pendingRequest?.amount || 0;
-    
-    // If we have a pending request, use the store method to move it to balance
-    if (pendingRequest) {
-      approvePendingRequest(requestId);
-    } else {
-      // If no pending request found (maybe from external approval), directly add to balance
-      updateBalance(creditAmount);
+    try {
+      if (!requestId || typeof requestId !== 'string') {
+        console.error('Invalid request ID for credit approval:', requestId);
+        return;
+      }
+
+      const { approvePendingRequest, updateBalance } = useCreditsStore.getState();
+      const { addNotification } = useNotificationStore.getState();
+      
+      const credits = useCreditsStore.getState();
+      const pendingRequest = credits.pendingRequests.find(r => r.id === requestId);
+      
+      // Use the amount from the notification if provided, otherwise use pending request amount
+      const creditAmount = amount || pendingRequest?.amount || 0;
+      
+      if (creditAmount <= 0) {
+        console.error('Invalid credit amount for approval:', creditAmount);
+        return;
+      }
+      
+      // If we have a pending request, use the store method to move it to balance
+      if (pendingRequest) {
+        approvePendingRequest(requestId);
+      } else {
+        // If no pending request found (maybe from external approval), directly add to balance
+        updateBalance(creditAmount);
+      }
+      
+      // Add approval notification
+      addNotification({
+        status: 'success',
+        title: 'Credit Request Approved',
+        description: `Great news! Your credit request has been approved and $${creditAmount} has been added to your balance.`,
+        date: new Date().toISOString(),
+        readStatus: 'unread',
+        type: 'credit',
+        amount: creditAmount,
+        request_id: requestId,
+      });
+      
+      console.log(`✅ Credit approved: $${creditAmount} added to balance for request ${requestId}`);
+    } catch (error) {
+      console.error('Error approving credit request:', error, { requestId, amount });
     }
-    
-    // Add approval notification
-    addNotification({
-      status: 'success',
-      title: 'Credit Request Approved',
-      description: `Great news! Your credit request has been approved and $${creditAmount} has been added to your balance.`,
-      date: new Date().toISOString(),
-      readStatus: 'unread',
-      type: 'credit',
-      amount: creditAmount,
-      request_id: requestId,
-    });
-    
-    // Optional: Keep minimal logging for important events
-    // console.log(`✅ Credit approved: $${creditAmount} added to balance for request ${requestId}`);
   }
 
   /**

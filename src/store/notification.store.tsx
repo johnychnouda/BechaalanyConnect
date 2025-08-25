@@ -48,15 +48,42 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   }),
 
   addNotification: (notification) => set((state) => {
-    const newNotification = {
-      ...notification,
-      id: Date.now() + Math.random(), // Generate unique ID
-    };
-    const updatedNotifications = [newNotification, ...state.notifications];
-    return {
-      notifications: updatedNotifications,
-      count: updatedNotifications.filter(n => n.readStatus === 'unread').length
-    };
+    try {
+      // Validate required notification fields
+      if (!notification || typeof notification !== 'object') {
+        console.error('Invalid notification object:', notification);
+        return state;
+      }
+
+      // Ensure required fields exist with defaults
+      const safeNotification = {
+        status: notification.status || 'success',
+        title: notification.title || 'Notification',
+        description: notification.description || '',
+        date: notification.date || new Date().toISOString(),
+        readStatus: notification.readStatus || 'unread',
+        type: notification.type || 'system',
+        amount: notification.amount,
+        request_id: notification.request_id,
+        id: Date.now() + Math.random(), // Generate unique ID
+      };
+
+      // Validate the date field
+      const testDate = new Date(safeNotification.date);
+      if (isNaN(testDate.getTime())) {
+        console.warn('Invalid date in notification, using current date:', safeNotification.date);
+        safeNotification.date = new Date().toISOString();
+      }
+
+      const updatedNotifications = [safeNotification, ...state.notifications];
+      return {
+        notifications: updatedNotifications,
+        count: updatedNotifications.filter(n => n.readStatus === 'unread').length
+      };
+    } catch (error) {
+      console.error('Error adding notification:', error, notification);
+      return state; // Return unchanged state if error occurs
+    }
   }),
   
   markAsRead: (id) => set((state) => {
