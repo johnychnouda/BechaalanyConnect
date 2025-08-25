@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+
 /**
  * Background synchronization utility for credits balance
  * Uses Service Worker for efficient background updates
@@ -84,7 +86,6 @@ export const backgroundSyncManager = BackgroundSyncManager.getInstance();
  * Hook for using background sync
  */
 export const useBackgroundSync = () => {
-  const { useState, useEffect } = require('react');
   const [lastSyncTime, setLastSyncTime] = useState<number>(0);
 
   useEffect(() => {
