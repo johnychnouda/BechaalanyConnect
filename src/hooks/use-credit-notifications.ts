@@ -24,8 +24,6 @@ export const useCreditNotifications = () => {
   const consecutiveErrors = useRef<number>(0);
   const maxErrors = 5; // Stop polling after 5 consecutive errors
   const lastPollTime = useRef<number>(0);
-  const mountTimeRef = useRef<number>(Date.now());
-  const instanceId = useRef<string>(`poll-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   
   // Production-specific settings
   const isProduction = process.env.NODE_ENV === 'production';
@@ -52,19 +50,17 @@ export const useCreditNotifications = () => {
       
       // Enforce minimum interval between polls (production safety)
       if (timeSinceLastPoll < minPollInterval) {
-        console.log(`[${instanceId.current}] Skipping poll - too soon (${timeSinceLastPoll}ms < ${minPollInterval}ms)`);
         return;
       }
       
       // Prevent concurrent polling
       if (isPolling.current) {
-        console.log(`[${instanceId.current}] Skipping poll - already in progress`);
         return;
       }
       
       // Stop polling if too many consecutive errors
       if (consecutiveErrors.current >= maxErrors) {
-        console.error(`[${instanceId.current}] Too many consecutive errors (${consecutiveErrors.current}), stopping credit notification polling`);
+        console.error('Too many consecutive errors, stopping credit notification polling');
         return;
       }
       
@@ -74,11 +70,9 @@ export const useCreditNotifications = () => {
         const recoveryTime = 5 * 60 * 1000; // 5 minutes
         
         if (timeSinceLastFail < recoveryTime) {
-          console.warn(`[${instanceId.current}] Circuit breaker is open - skipping poll (${Math.round((recoveryTime - timeSinceLastFail) / 1000)}s until retry)`);
           return;
         } else {
           // Try to close circuit breaker
-          console.log(`[${instanceId.current}] Attempting to close circuit breaker after ${Math.round(timeSinceLastFail / 1000)}s`);
           circuitBreakerRef.current.isOpen = false;
           circuitBreakerRef.current.failCount = 0;
         }
@@ -87,10 +81,7 @@ export const useCreditNotifications = () => {
       isPolling.current = true;
       lastPollTime.current = currentTime;
       
-      // Production debugging
-      if (isProduction) {
-        console.log(`[${instanceId.current}] Starting poll #${Date.now()} - Processed: ${processedNotifications.current.size}, Errors: ${consecutiveErrors.current}`);
-      }
+
       
       try {
         // Add cache-busting and request tracking for production
@@ -100,12 +91,9 @@ export const useCreditNotifications = () => {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
-          'X-Request-ID': `${instanceId.current}-${currentTime}`,
         };
         
-        if (isProduction) {
-          console.log(`[${instanceId.current}] Fetching: ${apiUrl}`);
-        }
+
         
         const response = await fetch(apiUrl, {
           headers: requestHeaders,
@@ -117,14 +105,12 @@ export const useCreditNotifications = () => {
           const notifications: CreditNotification[] = await response.json();
           
           if (!Array.isArray(notifications)) {
-            console.error(`[${instanceId.current}] Expected notifications array but got:`, typeof notifications, notifications);
+            console.error('Expected notifications array but got:', typeof notifications, notifications);
             consecutiveErrors.current += 1;
             return;
           }
           
-          if (isProduction) {
-            console.log(`[${instanceId.current}] Received ${notifications.length} notifications from API`);
-          }
+
           
           // Filter out already processed notifications to prevent infinite loops
           const newNotifications = notifications.filter(notification => {
@@ -143,23 +129,13 @@ export const useCreditNotifications = () => {
             return true;
           });
 
-          if (newNotifications.length === 0) {
-            if (isProduction) {
-              console.log(`[${instanceId.current}] No new credit notifications to process (${notifications.length} total, ${processedNotifications.current.size} already processed)`);
-            }
-          } else {
-            console.log(`[${instanceId.current}] Processing ${newNotifications.length} new credit notifications (${notifications.length} total received)`);
+          if (newNotifications.length > 0) {
+            console.log(`Processing ${newNotifications.length} new credit notifications`);
           }
 
           newNotifications.forEach(async (notification, index) => {
             try {
-              console.log(`[${instanceId.current}] Processing credit notification ${index + 1}/${newNotifications.length}:`, {
-                id: notification.id,
-                type: notification.type,
-                request_id: notification.request_id,
-                amount: notification.amount,
-                created_at: notification.created_at
-              });
+              console.log('Processing credit notification:', notification.type, notification.request_id);
               
               // Create unique identifier for this notification using both request_id and backend notification id
               const notificationId = `${notification.request_id}-${notification.type}-${notification.id}`;
@@ -167,14 +143,12 @@ export const useCreditNotifications = () => {
               // Mark as processed BEFORE processing to prevent race conditions
               processedNotifications.current.add(notificationId);
               
-              if (isProduction) {
-                console.log(`[${instanceId.current}] Marked notification as processed:`, notificationId);
-              }
+
               
               switch (notification.type) {
                 case 'credit_approved':
                   if (notification.amount && notification.amount > 0) {
-                    console.log(`[${instanceId.current}] ✅ Processing credit approval: $${notification.amount} for request ${notification.request_id}`);
+                    console.log(`✅ Credit approved: $${notification.amount} for request ${notification.request_id}`);
                     creditsService.approveCreditRequest(notification.request_id, notification.amount);
                     
                     // Send acknowledgment to backend (optional - helps ensure notification is truly marked as read)
@@ -184,22 +158,19 @@ export const useCreditNotifications = () => {
                         headers: {
                           'Authorization': `Bearer ${token}`,
                           'Content-Type': 'application/json',
-                          'X-Request-ID': `${instanceId.current}-ack-${Date.now()}`,
                         },
                       });
                       
-                      if (isProduction) {
-                        console.log(`[${instanceId.current}] Acknowledgment sent for notification ${notification.id}: ${ackResponse.status}`);
-                      }
+
                     } catch (ackError) {
-                      console.warn(`[${instanceId.current}] Error sending notification acknowledgment:`, ackError);
+                      console.warn('Error sending notification acknowledgment:', ackError);
                     }
                   } else {
-                    console.error(`[${instanceId.current}] Invalid amount for credit approval:`, notification);
+                    console.error('Invalid amount for credit approval:', notification);
                   }
                   break;
                 case 'credit_rejected':
-                  console.log(`[${instanceId.current}] ❌ Processing credit rejection for request ${notification.request_id}`);
+                  console.log(`❌ Credit rejected for request ${notification.request_id}`);
                   creditsService.rejectCreditRequest(notification.request_id);
                   
                   // Send acknowledgment to backend (optional)
@@ -209,22 +180,19 @@ export const useCreditNotifications = () => {
                       headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
-                        'X-Request-ID': `${instanceId.current}-ack-${Date.now()}`,
                       },
                     });
                     
-                    if (isProduction) {
-                      console.log(`[${instanceId.current}] Acknowledgment sent for notification ${notification.id}: ${ackResponse.status}`);
-                    }
+
                   } catch (ackError) {
-                    console.warn(`[${instanceId.current}] Error sending notification acknowledgment:`, ackError);
+                    console.warn('Error sending notification acknowledgment:', ackError);
                   }
                   break;
                 default:
-                  console.log(`[${instanceId.current}] ℹ️ Credit status update: ${notification.type} for request ${notification.request_id}`);
+                  console.log(`ℹ️ Credit status update: ${notification.type} for request ${notification.request_id}`);
               }
             } catch (notificationError) {
-              console.error(`[${instanceId.current}] Error processing individual notification:`, notificationError, notification);
+              console.error('Error processing individual notification:', notificationError, notification);
               // Remove from processed set if processing failed, so it can be retried
               const notificationId = `${notification.request_id}-${notification.type}-${notification.id}`;
               processedNotifications.current.delete(notificationId);
@@ -233,7 +201,7 @@ export const useCreditNotifications = () => {
           });
 
           if (newNotifications.length > 0) {
-            console.log(`[${instanceId.current}] ✅ Successfully processed ${newNotifications.length} new credit notification(s)`);
+            console.log(`✅ Successfully processed ${newNotifications.length} new credit notification(s)`);
           }
           
           // Reset error counter on successful processing
@@ -241,16 +209,15 @@ export const useCreditNotifications = () => {
           
           // Reset circuit breaker on success
           if (circuitBreakerRef.current.isOpen) {
-            console.log(`[${instanceId.current}] Closing circuit breaker after successful poll`);
             circuitBreakerRef.current.isOpen = false;
             circuitBreakerRef.current.failCount = 0;
           }
         } else {
-          console.warn(`[${instanceId.current}] API response not OK:`, response.status, response.statusText);
+          console.warn('API response not OK:', response.status, response.statusText);
           consecutiveErrors.current += 1;
         }
       } catch (error) {
-        console.error(`[${instanceId.current}] Failed to fetch credit notifications:`, error);
+        console.error('Failed to fetch credit notifications:', error);
         consecutiveErrors.current += 1;
         
         // Update circuit breaker state
@@ -261,20 +228,16 @@ export const useCreditNotifications = () => {
           // Open circuit breaker if too many failures
           if (circuitBreakerRef.current.failCount >= 3) {
             circuitBreakerRef.current.isOpen = true;
-            console.error(`[${instanceId.current}] Circuit breaker opened after ${circuitBreakerRef.current.failCount} failures`);
+            console.error('Circuit breaker opened after consecutive failures');
           }
         }
         
         // If too many errors, log warning
         if (consecutiveErrors.current >= maxErrors) {
-          console.error(`[${instanceId.current}] Credit notification polling disabled after ${maxErrors} consecutive errors. Please refresh the page.`);
+          console.error('Credit notification polling disabled after consecutive errors. Please refresh the page.');
         }
       } finally {
         isPolling.current = false;
-        
-        if (isProduction) {
-          console.log(`[${instanceId.current}] Poll completed - Next poll in ${minPollInterval}ms`);
-        }
       }
     };
 
@@ -284,7 +247,6 @@ export const useCreditNotifications = () => {
     // Initial poll with slight delay to avoid race conditions on mount
     const initialDelay = isProduction ? 2000 : 1000;
     const initialTimeout = setTimeout(() => {
-      console.log(`[${instanceId.current}] Starting initial poll (${Date.now() - mountTimeRef.current}ms after mount)`);
       pollForNotifications();
     }, initialDelay);
 
@@ -300,7 +262,6 @@ export const useCreditNotifications = () => {
     }, 10 * 60 * 1000);
 
     return () => {
-      console.log(`[${instanceId.current}] Cleaning up credit notifications polling`);
       clearTimeout(initialTimeout);
       clearInterval(interval);
       clearInterval(cleanupInterval);
