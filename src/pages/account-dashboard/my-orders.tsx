@@ -8,6 +8,7 @@ import { fetchUserOrders } from "@/services/api.service";
 import { useGlobalContext } from "@/context/GlobalContext";
 import { generateBulkOrderReceipts } from "@/utils/pdf-generator";
 import { useRouter } from "next/router";
+import { useLanguage } from "@/hooks/use-language";
 
 const ITEMS_PER_PAGE = 5; // Number of items to show initially and per load more
 
@@ -21,7 +22,8 @@ export default function MyOrders() {
   const [autoRefreshing, setAutoRefreshing] = useState(false);
   const [displayedItemsCount, setDisplayedItemsCount] = useState(ITEMS_PER_PAGE);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-
+  const { dashboardSettings, generalData } = useGlobalContext();
+  const { locale } = useLanguage();
 
   // Fetch orders from API
   const fetchOrders = async (isAutoRefresh = false) => {
@@ -130,7 +132,7 @@ export default function MyOrders() {
   const filterButtons = [
     {
       key: "all",
-      label: "All Payments",
+      label: dashboardSettings?.dashboard_page_settings?.all_payments_label,
       className: activeFilter === "all"
         ? "bg-[#F3F3F3] border border-[#E0E0E0] text-[#070707]"
         : "bg-white border border-[#E0E0E0] text-[#070707]",
@@ -138,7 +140,7 @@ export default function MyOrders() {
     },
     {
       key: "accepted",
-      label: "Accepted",
+      label: dashboardSettings?.dashboard_page_settings?.accepted_label,
       className: activeFilter === "accepted"
         ? "bg-[#5FD568] border border-[#5FD568] text-white"
         : "bg-white border border-[#5FD568] text-[#5FD568]",
@@ -153,7 +155,7 @@ export default function MyOrders() {
     },
     {
       key: "rejected",
-      label: "Rejected",
+      label: dashboardSettings?.dashboard_page_settings?.rejected_label,
       className: activeFilter === "rejected"
         ? "bg-[#E73828] border border-[#E73828] text-white"
         : "bg-white border border-[#E73828] text-[#E73828]",
@@ -169,7 +171,7 @@ export default function MyOrders() {
     },
     {
       key: "pending",
-      label: "Pending",
+      label: dashboardSettings?.dashboard_page_settings?.pending_label,
       className: activeFilter === "pending"
         ? "bg-[#FB923C] border border-[#FB923C] text-white"
         : "bg-white border border-[#FB923C] text-[#FB923C]",
@@ -225,9 +227,9 @@ export default function MyOrders() {
     <DashboardLayout>
       <div className="flex flex-col gap-0 md:gap-0">
         <div className="w-fit mb-6 md:mb-8">
-          <BackButton href="/account-dashboard" />
+          <BackButton label={generalData?.settings?.back_button_label} />
         </div>
-        <div className="text-[#E73828] text-[36px] font-semibold font-['Roboto'] leading-[42px] uppercase mt-0 tracking-tight">MY ORDERS</div>
+        <div className="text-[#E73828] text-[36px] font-semibold font-['Roboto'] leading-[42px] uppercase mt-0 tracking-tight">{dashboardSettings?.dashboard_page_settings?.my_orders_page_title}</div>
       </div>
       <div className="flex flex-col lg:flex-row items-start md:justify-between w-full pb-6 gap-[25px] border-b border-[rgba(0,0,0,0.1)] mb-8" style={{ boxSizing: 'border-box' }}>
         <div className="flex flex-row w-full lg:w-auto gap-2 overflow-x-auto whitespace-nowrap" style={{ minHeight: '35px' }}>
@@ -290,7 +292,7 @@ export default function MyOrders() {
                 <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16" />
               </svg>
             )}
-            Refresh Orders
+            {dashboardSettings?.dashboard_page_settings?.refresh_order_button}
           </button>
         </div>
       </div>
@@ -306,7 +308,9 @@ export default function MyOrders() {
       {autoRefreshing && (
         <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm flex items-center gap-2">
           <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
-          Auto-refreshing orders...
+          {
+            locale === 'en' ? 'Auto-refreshing orders...' : 'جاري التحديث...'
+          }
         </div>
       )}
 
@@ -317,7 +321,9 @@ export default function MyOrders() {
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            No orders found.
+            {
+              locale === 'en' ? 'No orders found.' : 'لا يوجد طلبات مضافة'
+            }
           </div>
         ) : (
           <>
@@ -336,13 +342,13 @@ export default function MyOrders() {
                   {isLoadingMore ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>Loading...</span>
+                      <span>{locale === 'en' ? 'Loading...' : 'جاري التحديث...'}</span>
                     </>
                   ) : (
                     <>
-                      <span>Load More</span>
+                      <span>{locale === 'en' ? 'Load More' : 'تحميل المزيد'}</span>
                       <span className="text-sm opacity-75">
-                        ({filteredOrders.length - displayedItemsCount} more)
+                        ({filteredOrders.length - displayedItemsCount} {locale === 'en' ? 'more' : 'أكثر'})
                       </span>
                     </>
                   )}
@@ -354,7 +360,7 @@ export default function MyOrders() {
             {!hasMoreItems && filteredOrders.length > 0 && (
               <div className="w-full flex justify-center items-center py-4">
                 <span className="font-['Roboto'] font-normal text-sm text-[#8E8E8E] dark:text-[#a0a0a0]">
-                  No more orders to load
+                  {locale === 'en' ? 'No more orders to load' : 'لا يوجد طلبات مضافة أخرى'}
                 </span>
               </div>
             )}

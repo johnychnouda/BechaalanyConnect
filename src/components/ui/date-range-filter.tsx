@@ -1,3 +1,4 @@
+import { useLanguage } from '@/hooks/use-language';
 import React from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -9,6 +10,9 @@ interface DateRangeFilterProps {
   onFromDateChange?: (date: Date | null) => void;
   onToDateChange?: (date: Date | null) => void;
   onSearch?: () => void;
+  fromLabel?: string;
+  toLabel?: string;
+  searchButton?: string;
 }
 
 export default function DateRangeFilter({
@@ -17,10 +21,14 @@ export default function DateRangeFilter({
   toDate = null,
   onFromDateChange,
   onToDateChange,
-  onSearch
+  onSearch,
+  fromLabel,
+  toLabel,
+  searchButton,
 }: DateRangeFilterProps) {
   
   const prevDatesRef = React.useRef({ fromDate: null as Date | null, toDate: null as Date | null });
+  const { locale } = useLanguage();
   
   // Call onDateChange whenever both dates are set and have changed
   React.useEffect(() => {
@@ -46,7 +54,7 @@ export default function DateRangeFilter({
     <div className="flex flex-col gap-4 w-full lg:flex-row lg:items-end lg:gap-[25px] lg:h-[66px]">
       <div className="flex flex-col items-start p-0 gap-1 w-full lg:w-[377px] lg:h-[66px] mt-5">
         <span className="w-full lg:w-[377px] h-[19px] font-['Roboto'] font-semibold text-base leading-[19px] text-[#070707] dark:text-white">
-          From
+          {fromLabel}
         </span>
         <DatePicker
           selected={fromDate}
@@ -61,7 +69,7 @@ export default function DateRangeFilter({
       </div>
       <div className="flex flex-col items-start p-0 gap-1 w-full lg:w-[377px] lg:h-[66px]">
         <span className="w-full lg:w-[377px] h-[19px] font-['Roboto'] font-semibold text-base leading-[19px] text-[#070707] dark:text-white">
-          Till
+          {toLabel}
         </span>
         <DatePicker
           selected={toDate}
@@ -80,7 +88,7 @@ export default function DateRangeFilter({
           onClick={handleSearch}
           className="flex flex-row justify-center items-center p-2 px-6 gap-[10px] w-auto h-[43px] bg-[#E73828] rounded-[50.5px] font-['Roboto'] font-bold text-xs leading-[14px] uppercase text-white border border-[#E73828] transition-colors duration-200 hover:bg-white hover:text-[#E73828] hover:border-[#E73828] focus:outline-none focus:ring-2 focus:ring-[#E73828]"
         >
-          Search
+          {searchButton}
         </button>
          {(fromDate || toDate) && (
            <button
@@ -95,7 +103,7 @@ export default function DateRangeFilter({
              }}
              className="flex flex-row justify-center items-center p-2 px-6 gap-[10px] w-auto h-[43px] bg-gray-500 rounded-[50.5px] font-['Roboto'] font-bold text-xs leading-[14px] uppercase text-white border border-gray-500 transition-colors duration-200 hover:bg-white hover:text-gray-500 hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500"
            >
-             Clear
+             {locale === 'en' ? 'Clear' : 'مسح'}
            </button>
          )}
       </div>

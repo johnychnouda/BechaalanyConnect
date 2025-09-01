@@ -13,7 +13,7 @@ const statusMeta = {
     ) },
   };
 
-function PaymentRow({ payment, expanded, onToggle }: {
+function PaymentRow({ payment, expanded, onToggle, locale }: {
     payment: {
         id: number;
         status: 'accepted' | 'rejected' | 'pending';
@@ -21,7 +21,7 @@ function PaymentRow({ payment, expanded, onToggle }: {
         value: string;
         date: string;
         screenshot: string | null;
-    }; expanded: boolean; onToggle: () => void
+    }; expanded: boolean; onToggle: () => void; locale: string;
 }) {
 
     const meta = statusMeta[payment.status as 'accepted' | 'rejected' | 'pending'];
@@ -39,21 +39,17 @@ function PaymentRow({ payment, expanded, onToggle }: {
                 <div className="px-6 pb-4 pt-0 animate-fade-in">
                     <div className="flex flex-col gap-2 mb-2 text-right">
                         <div className="flex flex-row justify-between items-center">
-                            <span className="text-[16px] text-[#070707] font-normal">Total</span>
+                            <span className="text-[16px] text-[#070707] font-normal">{locale === 'en' ? 'Total' : 'المبلغ'}</span>
                             <span className="text-[16px] text-[#8E8E8E] font-normal">{payment.value}</span>
                         </div>
                         <div className="flex flex-row justify-between items-center">
-                            <span className="text-[16px] text-[#070707] font-normal">Value</span>
-                            <span className="text-[16px] text-[#8E8E8E] font-normal">{payment.value}</span>
-                        </div>
-                        <div className="flex flex-row justify-between items-center">
-                            <span className="text-[16px] text-[#070707] font-normal">Date</span>
+                            <span className="text-[16px] text-[#070707] font-normal">{locale === 'en' ? 'Date' : 'التاريخ'}</span>
                             <span className="text-[16px] text-[#8E8E8E] font-normal">{formatDate(payment.date)}</span>
                         </div>
                     </div>
                     {payment.screenshot && (
                         <div className="mt-4 flex flex-col items-start">
-                            <span className="block text-[16px] text-[#070707] mb-1">Screenshot</span>
+                            <span className="block text-[16px] text-[#070707] mb-1">{locale === 'en' ? 'Screenshot' : 'الشاشة'}</span>
                             <img src={payment.screenshot} alt="Payment Screenshot" className="rounded-lg border border-[#E0E0E0] w-[267px] h-[475px] object-contain" />
                         </div>
                     )}

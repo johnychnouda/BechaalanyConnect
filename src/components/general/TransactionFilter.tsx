@@ -5,6 +5,12 @@ import DateRangeFilter from '@/components/ui/date-range-filter';
 interface TransactionFilterProps {
   onDateChange?: (from: string, to: string) => void;
   onFilterChange?: (filter: string) => void;
+  fromLabel?: string;
+  toLabel?: string;
+  searchButton?: string;
+  allTransfersLabel?: string;
+  receivedFilterLabel?: string;
+  purchasedFilterLabel?: string;
 }
 
 const formatDateToString = (date: Date | null): string => {
@@ -19,6 +25,12 @@ const formatDateToString = (date: Date | null): string => {
 const TransactionFilter: React.FC<TransactionFilterProps> = ({
   onDateChange,
   onFilterChange,
+  fromLabel,
+  toLabel,
+  searchButton,
+  allTransfersLabel,
+  receivedFilterLabel,
+  purchasedFilterLabel,
 }) => {
   const [fromDate, setFromDate] = React.useState<Date | null>(null);
   const [toDate, setToDate] = React.useState<Date | null>(null);
@@ -43,11 +55,17 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
         onFromDateChange={setFromDate}
         onToDateChange={setToDate}
         onDateChange={handleDateChange}
+        fromLabel={fromLabel}
+        toLabel={toLabel}
+        searchButton={searchButton}
       />
       <div className="flex flex-row items-start p-0 gap-4 w-full h-[35px] overflow-x-auto whitespace-nowrap min-w-0">
         <DashboardFilterButtonGroup
           activeFilter={activeFilter}
           onFilterChange={handleFilterClick}
+          allTransfersLabel={allTransfersLabel}
+          receivedFilterLabel={receivedFilterLabel}
+          purchasedFilterLabel={purchasedFilterLabel}
         />
       </div>
     </div>

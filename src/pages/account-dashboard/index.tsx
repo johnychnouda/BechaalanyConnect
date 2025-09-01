@@ -1,33 +1,16 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import DashboardLayout from "@/components/ui/dashboard-layout";
-import WhatsAppButton from "@/components/ui/whatsapp-button";
 import TransactionFilter from "@/components/general/TransactionFilter";
 import { formatDate } from "@/utils/date";
 import { motion } from 'framer-motion';
 
 import BackButton from "@/components/ui/back-button";
-import { fetchDashboardSettings, fetchUserOrders, fetchUserPayments, fetchCurrentUser } from "@/services/api.service";
+import { fetchUserOrders, fetchUserPayments, fetchCurrentUser } from "@/services/api.service";
 import { useRouter } from "next/router";
 import { useGlobalContext } from "@/context/GlobalContext";
 import { useLanguage } from "@/hooks/use-language";
 import { toast } from "react-toastify";
-const statusMeta = {
-  accepted: {
-    color: "#5FD568", label: "Accepted", icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#5FD568" /><path d="M7 13.5L11 17L17 11" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-    )
-  },
-  rejected: {
-    color: "#E73828", label: "Rejected", icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#E73828" /><path d="M8 8L16 16M16 8L8 16" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-    )
-  },
-  pending: {
-    color: "#FB923C", label: "Pending", icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FB923C" /><path d="M12 7V12L15 14" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-    )
-  },
-};
+
 
 const ITEMS_PER_PAGE = 5; // Number of items to show initially and per load more
 
@@ -215,26 +198,6 @@ export default function AccountDashboard() {
     setDisplayedItemsCount(ITEMS_PER_PAGE);
   };
 
-  // const handleManualRefresh = async () => {
-  //   // Refresh both profile data (balance, etc.) and orders/payments
-  //   try {
-  //     setIsLoadingProfile(true);
-  //     const freshProfileData = await fetchCurrentUser(locale);
-  //     setProfileData(freshProfileData.user);
-  //     setProfileError(null);
-  //   } catch (error) {
-  //     console.error('Failed to refresh profile data:', error);
-  //     setProfileError('Failed to refresh profile data.');
-  //   } finally {
-  //     setIsLoadingProfile(false);
-  //   }
-
-  //   setHasError(false);
-  //   fetchOrdersAndPayments(); // This fetches fresh orders and payments
-  //   setDateFilter(null);
-  //   setDisplayedItemsCount(ITEMS_PER_PAGE);
-  // };
-
   const handleLoadMore = () => {
     setIsLoadingMore(true);
     // Simulate loading delay for better UX
@@ -282,7 +245,7 @@ export default function AccountDashboard() {
     <DashboardLayout>
       <div className="flex flex-col gap-6 md:gap-14">
         <div className="w-fit mb-2">
-          <BackButton href="/" label="Home Page" />
+          <BackButton href="/" label={dashboardSettings?.dashboard_page_settings.homepage_button_label} />
         </div>
         {/* Content */}
         <>
@@ -326,33 +289,7 @@ export default function AccountDashboard() {
                 </div>
               )
             }
-
-
-
           </div>
-
-          {/* Manual Refresh Button */}
-          {/* <div className="flex items-center gap-4">
-            <button
-              onClick={handleManualRefresh}
-              disabled={isLoadingProfile || isFetching}
-              className="flex items-center gap-2 px-4 py-2 bg-[#E73828] hover:bg-[#d63224] disabled:bg-[#E73828]/50 text-white font-['Roboto'] font-medium text-sm rounded-[20px] transition-all duration-200 disabled:cursor-not-allowed"
-            >
-              {isLoadingProfile || isFetching ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Refreshing...</span>
-                </>
-              ) : (
-                <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M23 4v6h-6M1 20v-6h6M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4a9 9 0 0 1-14.85 3.36L23 14" />
-                  </svg>
-                  <span>Refresh Data</span>
-                </>
-              )}
-            </button>
-          </div> */}
 
           {/* Summary Cards */}
           <div className="flex flex-col lg:flex-row gap-4 w-full">
@@ -360,11 +297,11 @@ export default function AccountDashboard() {
             <div className="flex flex-col justify-center items-start p-4 md:p-[21px_16px] gap-[10px] w-full h-[104px] bg-[rgba(7,7,7,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[10px] overflow-hidden">
               <div className="flex flex-col items-start p-0 gap-2 w-full">
                 <span className="font-['Roboto'] font-semibold text-base leading-[19px] text-[#070707] dark:text-white">
-                  Your Balance
+                  {dashboardSettings?.dashboard_page_settings.balance_label}
                 </span>
                 <span className="font-['Roboto'] font-semibold text-xl md:text-2xl leading-[28px] text-[#5FD568]">
                   {isLoadingProfile ? (
-                    <span className="animate-pulse">Loading...</span>
+                    <span className="animate-pulse">{locale === 'en' ? 'Loading...' : 'جاري التحميل...'}</span>
                   ) : (
                     `${profileData?.credits_balance || 0} $`
                   )}
@@ -376,11 +313,11 @@ export default function AccountDashboard() {
             <div className="flex flex-col justify-center items-start p-4 md:p-[21px_16px] gap-[10px] w-full h-[104px] bg-[rgba(7,7,7,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[10px] overflow-hidden">
               <div className="flex flex-col items-start p-0 gap-2 w-full">
                 <span className="font-['Roboto'] font-semibold text-base leading-[19px] text-[#070707] dark:text-white">
-                  Total Purchases
+                  {dashboardSettings?.dashboard_page_settings.total_purchases_label}
                 </span>
                 <span className="font-['Roboto'] font-semibold text-xl md:text-2xl leading-[28px] text-[#E73828]">
                   {isLoadingProfile ? (
-                    <span className="animate-pulse">Loading...</span>
+                    <span className="animate-pulse">{locale === 'en' ? 'Loading...' : 'جاري التحميل...'}</span>
                   ) : (
                     `${profileData?.total_purchases || 0} $`
                   )}
@@ -392,11 +329,11 @@ export default function AccountDashboard() {
             <div className="flex flex-col justify-center items-start p-4 md:p-[21px_16px] gap-[10px] w-full h-[104px] bg-[rgba(7,7,7,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[10px] overflow-hidden">
               <div className="flex flex-col items-start p-0 gap-2 w-full">
                 <span className="font-['Roboto'] font-semibold text-base leading-[19px] text-[#070707] dark:text-white">
-                  Received
+                  {dashboardSettings?.dashboard_page_settings.received_amount_label}
                 </span>
                 <span className="font-['Roboto'] font-semibold text-xl md:text-2xl leading-[28px] text-[#5FD568]">
                   {isLoadingProfile ? (
-                    <span className="animate-pulse">Loading...</span>
+                    <span className="animate-pulse">{locale === 'en' ? 'Loading...' : 'جاري التحميل...'}</span>
                   ) : (
                     `${profileData?.received_amount || 0} $`
                   )}
@@ -410,10 +347,16 @@ export default function AccountDashboard() {
             <TransactionFilter
               onDateChange={handleDateChange}
               onFilterChange={handleFilterChange}
+              fromLabel={dashboardSettings?.dashboard_page_settings.from_label}
+              toLabel={dashboardSettings?.dashboard_page_settings.to_label}
+              searchButton={dashboardSettings?.dashboard_page_settings.search_button}
+              allTransfersLabel={dashboardSettings?.dashboard_page_settings.all_transfers_label}
+              receivedFilterLabel={dashboardSettings?.dashboard_page_settings.received_filter_label}
+              purchasedFilterLabel={dashboardSettings?.dashboard_page_settings.purchased_filter_label}
             />
             {dateFilter && dateFilter.from && dateFilter.to && (
               <div className="flex items-center gap-2 text-sm text-[#8E8E8E] dark:text-[#fff]">
-                <span>Filtered by Date: {new Date(dateFilter.from).toLocaleDateString()} - {new Date(dateFilter.to).toLocaleDateString()}</span>
+                <span>{locale === 'en' ? 'Filtered by Date:' : 'تمت عملية التصفية بالتاريخ:'} {new Date(dateFilter.from).toLocaleDateString()} - {new Date(dateFilter.to).toLocaleDateString()}</span>
               </div>
             )}
           </div>
@@ -427,7 +370,9 @@ export default function AccountDashboard() {
             ) : hasError ? (
               <div className="w-full flex flex-col justify-center items-center py-8 gap-4">
                 <span className="font-['Roboto'] font-normal text-base text-[#E73828] dark:text-[#ff6b6b] text-center">
-                  Failed to load transactions. Please try again.
+                  {
+                    locale === 'en' ? 'Failed to load transactions. Please try again.' : 'فشلت عملية التحميل. يرجى المحاولة مرة أخرى.'
+                  }
                 </span>
                 <button
                   onClick={() => {
@@ -437,10 +382,12 @@ export default function AccountDashboard() {
                   disabled={isFetching}
                   className="px-6 py-3 bg-[#E73828] hover:bg-[#d63224] disabled:bg-[#E73828]/50 text-white font-['Roboto'] font-medium text-base rounded-[25px] transition-all duration-200 disabled:cursor-not-allowed"
                 >
-                  {isFetching ? 'Loading...' : 'Retry'}
+                  {isFetching ? locale === 'en' ? 'Loading...' : 'جاري التحميل...' : locale === 'en' ? 'Retry' : 'إعادة المحاولة'}
                 </button>
                 <p className="text-sm text-[#8E8E8E] dark:text-[#a0a0a0] text-center max-w-md">
-                  If you see "Too Many Attempts" error, please wait a few minutes before retrying.
+                  {
+                    locale === 'en' ? 'If you see "Too Many Attempts" error, please wait a few minutes before retrying.' : 'إذا رأيت خطأ "Too Many Attempts", يرجى الإنتظار بضع دقائق قبل المحاولة مرة أخرى.'
+                  }
                 </p>
               </div>
             ) : (
@@ -448,7 +395,9 @@ export default function AccountDashboard() {
                 {filteredItems.length === 0 && (
                   <div className="w-full flex justify-center items-center py-8">
                     <span className="font-['Roboto'] font-normal text-base text-[#8E8E8E] dark:text-[#a0a0a0]">
-                      No transactions found
+                      {
+                        locale === 'en' ? 'No transactions found' : 'لا يوجد تحويلات'
+                      }
                     </span>
                   </div>
                 )}
@@ -524,13 +473,13 @@ export default function AccountDashboard() {
                       {isLoadingMore ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          <span>Loading...</span>
+                          <span>{locale === 'en' ? 'Loading...' : 'جاري التحميل...'}</span>
                         </>
                       ) : (
                         <>
-                          <span>Load More</span>
+                          <span>{locale === 'en' ? 'Load More' : 'تحميل المزيد'}</span>
                           <span className="text-sm opacity-75">
-                            ({filteredItems.length - displayedItemsCount} more)
+                            ({filteredItems.length - displayedItemsCount} {locale === 'en' ? 'more' : 'أكثر'})
                           </span>
                         </>
                       )}

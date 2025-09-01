@@ -5,12 +5,16 @@ import { fetchUserPayments } from "@/services/api.service";
 import { useAuth } from "@/context/AuthContext";
 import PaymentRow from "./paymentRow";
 import { useRouter } from "next/router";
+import { useGlobalContext } from "@/context/GlobalContext";
+import { useLanguage } from "@/hooks/use-language";
 
 const ITEMS_PER_PAGE = 5; // Number of items to show initially and per load more
 
 export default function MyPayments() {
   const { user } = useAuth();
   const router = useRouter();
+  const { dashboardSettings, generalData } = useGlobalContext();
+  const { locale } = useLanguage();
   const [payments, setPayments] = useState<Array<{
     id: number;
     status: 'accepted' | 'rejected' | 'pending';
@@ -60,7 +64,7 @@ export default function MyPayments() {
   const filterButtons = [
     {
       key: "all",
-      label: "All Payments",
+      label: dashboardSettings?.dashboard_page_settings?.all_payments_label,
       className: activeFilter === "all"
         ? "bg-[#F3F3F3] border border-[#E0E0E0] text-[#070707]"
         : "bg-white border border-[#E0E0E0] text-[#070707]",
@@ -68,7 +72,7 @@ export default function MyPayments() {
     },
     {
       key: "accepted",
-      label: "Accepted",
+      label: dashboardSettings?.dashboard_page_settings?.accepted_label,
       className: activeFilter === "accepted"
         ? "bg-[#5FD568] border border-[#5FD568] text-white"
         : "bg-white border border-[#5FD568] text-[#5FD568]",
@@ -83,7 +87,7 @@ export default function MyPayments() {
     },
     {
       key: "rejected",
-      label: "Rejected",
+      label: dashboardSettings?.dashboard_page_settings?.rejected_label,
       className: activeFilter === "rejected"
         ? "bg-[#E73828] border border-[#E73828] text-white"
         : "bg-white border border-[#E73828] text-[#E73828]",
@@ -99,7 +103,7 @@ export default function MyPayments() {
     },
     {
       key: "pending",
-      label: "Pending",
+      label: dashboardSettings?.dashboard_page_settings?.pending_label,
       className: activeFilter === "pending"
         ? "bg-[#FB923C] border border-[#FB923C] text-white"
         : "bg-white border border-[#FB923C] text-[#FB923C]",
@@ -144,9 +148,9 @@ export default function MyPayments() {
     <DashboardLayout>
       <div className="flex flex-col gap-4">
         <div className="w-fit">
-          <BackButton href="/account-dashboard" />
+          <BackButton label={generalData?.settings?.back_button_label} />
         </div>
-        <div className="text-[#E73828] text-[36px] font-semibold font-['Roboto'] leading-[42px] uppercase mb-8 mt-0 tracking-tight">MY PAYMENTS</div>
+        <div className="text-[#E73828] text-[36px] font-semibold font-['Roboto'] leading-[42px] uppercase mb-8 mt-0 tracking-tight">{dashboardSettings?.dashboard_page_settings?.my_payments_page_title}</div>
         <div className="flex flex-col items-start w-full pb-6 gap-[25px] border-b border-[rgba(0,0,0,0.1)] mb-8" style={{ boxSizing: 'border-box' }}>
           <div className="flex flex-row gap-2 w-full overflow-x-auto whitespace-nowrap" style={{ height: '35px' }}>
             {filterButtons.map(btn => (
@@ -180,7 +184,9 @@ export default function MyPayments() {
           </div>
         ) : filteredPayments.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            No payments found.
+            {
+              locale === 'en' ? 'No payments found.' : 'لا يوجد دفعات مضافة'
+            }
           </div>
         ) : (
           <>
@@ -191,6 +197,7 @@ export default function MyPayments() {
                   payment={payment}
                   expanded={expandedId === payment.id}
                   onToggle={() => setExpandedId(expandedId === payment.id ? null : payment.id)}
+                  locale={locale}
                 />
               ))}
             </div>
@@ -206,13 +213,13 @@ export default function MyPayments() {
                   {isLoadingMore ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>Loading...</span>
+                      <span>{locale === 'en' ? 'Loading...' : 'جاري التحديث...'}</span>
                     </>
                   ) : (
                     <>
-                      <span>Load More</span>
+                      <span>{locale === 'en' ? 'Load More' : 'تحميل المزيد'}</span>
                       <span className="text-sm opacity-75">
-                        ({filteredPayments.length - displayedItemsCount} more)
+                        ({filteredPayments.length - displayedItemsCount} {locale === 'en' ? 'more' : 'أكثر'})
                       </span>
                     </>
                   )}
@@ -224,7 +231,7 @@ export default function MyPayments() {
             {!hasMoreItems && filteredPayments.length > 0 && (
               <div className="w-full flex justify-center items-center py-4">
                 <span className="font-['Roboto'] font-normal text-sm text-[#8E8E8E] dark:text-[#a0a0a0]">
-                  No more payments to load
+                  {locale === 'en' ? 'No more payments to load' : 'لا يوجد دفعات مضافة أخرى'}
                 </span>
               </div>
             )}

@@ -85,12 +85,12 @@ const CustomDropdown: React.FC<{
 export default function AccountSettings() {
 
   const { isRefreshing } = useAuth();
-  const { generalData } = useGlobalContext();
+  const { generalData, dashboardSettings } = useGlobalContext();
   const countries = generalData?.countries || [];
   const userTypes = generalData?.user_types || [];
   const { locale } = useLanguage();
   const router = useRouter();
-  
+
   // Profile data state
   const [profileData, setProfileData] = useState<any>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
@@ -127,11 +127,11 @@ export default function AccountSettings() {
     const fetchProfileData = async () => {
       setIsLoadingProfile(true);
       setProfileError(null);
-      
+
       try {
         const freshProfileData = await fetchCurrentUser(locale);
         setProfileData(freshProfileData);
-        
+
         // Update form state with fresh data
         const formData = {
           username: freshProfileData.user.username || "",
@@ -141,18 +141,18 @@ export default function AccountSettings() {
           storeName: freshProfileData.user.business_name || "",
           storeLocation: freshProfileData.user.business_location || "",
         };
-        
+
         setAccountInfo(formData);
         setOriginalAccountInfo(formData); // Set original values for change tracking
-        
+
       } catch (error) {
-        setProfileError('Failed to load profile data. Please refresh the page.');
-        toast.error('Failed to load profile data. Please refresh the page.');
+        setProfileError(locale === 'en' ? 'Failed to load profile data. Please refresh the page.' : 'فشل تحميل بيانات الحساب. الرجاء تحديث الصفحة.');
+        toast.error(locale === 'en' ? 'Failed to load profile data. Please refresh the page.' : 'فشل تحميل بيانات الحساب. الرجاء تحديث الصفحة.');
       } finally {
         setIsLoadingProfile(false);
       }
     };
-    
+
     fetchProfileData();
   }, [locale]); // Only depend on locale, fetch fresh data every time
 
@@ -192,13 +192,13 @@ export default function AccountSettings() {
 
   const handleInfoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Check if there are any changes
     if (!hasFormChanges()) {
-      toast.info("No changes detected. Please modify the form before saving.");
+      toast.info(locale === 'en' ? 'No changes detected. Please modify the form before saving.' : 'لم يتم التعرف على أي تغييرات. الرجاء تعديل النموذج قبل الحفظ.');
       return;
     }
-    
+
     const restructuredAccountInfo = {
       username: accountInfo.username,
       country: accountInfo.country,
@@ -210,11 +210,11 @@ export default function AccountSettings() {
     }
     try {
       await updateUserInfo(locale, restructuredAccountInfo);
-      
+
       // Fetch fresh profile data from API
       const freshProfileData = await fetchCurrentUser(locale);
       setProfileData(freshProfileData);
-      
+
       // Update form state with fresh data
       const updatedFormData = {
         username: freshProfileData.user.username || "",
@@ -224,15 +224,15 @@ export default function AccountSettings() {
         storeName: freshProfileData.user.business_name || "",
         storeLocation: freshProfileData.user.business_location || "",
       };
-      
+
       setAccountInfo(updatedFormData);
       setOriginalAccountInfo(updatedFormData); // Update original values after successful save
-      
-      toast.success("Account data updated successfully!");
-      
+
+      toast.success(locale === 'en' ? 'Account data updated successfully!' : 'تم تحديث بيانات الحساب بنجاح!');
+
     } catch (error) {
       console.error("Error saving account info:", error);
-      toast.error("Failed to save account info. Please try again.");
+      toast.error(locale === 'en' ? 'Failed to save account info. Please try again.' : 'فشل تحديث بيانات الحساب. الرجاء المحاولة مرة أخرى.');
     }
   };
 
@@ -240,7 +240,7 @@ export default function AccountSettings() {
     e.preventDefault();
     // Save password logic
     console.log("Changing password:", security);
-    alert("Password changed!");
+    alert(locale === 'en' ? 'Password changed!' : 'تم تغيير كلمة المرور!');
     setShowSecurity(false);
   };
 
@@ -251,7 +251,7 @@ export default function AccountSettings() {
 
   const handleResetForm = () => {
     setAccountInfo({ ...originalAccountInfo });
-    toast.info("Form reset to original values");
+    toast.info(locale === 'en' ? 'Form reset to original values' : 'تم إعادة تعيين النموذج إلى القيم الأصلية');
   };
 
 
@@ -260,10 +260,10 @@ export default function AccountSettings() {
     <DashboardLayout>
       <div className="flex flex-col gap-4">
         <div className="w-fit">
-          <BackButton href="/account-dashboard" />
+          <BackButton label={generalData?.settings?.back_button_label} href="/account-dashboard" />
         </div>
         <div className="text-[#E73828] font-semibold font-['Roboto'] uppercase mb-8 mt-0 tracking-tight whitespace-nowrap text-[22px] xs:text-[26px] sm:text-[30px] md:text-[36px] lg:text-[40px] xl:text-[42px] leading-tight text-center sm:text-left">
-          ACCOUNT SETTINGS
+          {dashboardSettings?.dashboard_page_settings?.account_settings_page_title}
         </div>
         <div className="flex flex-col md:flex-row gap-12">
           {/* Sidebar (left) is handled by DashboardLayout */}
@@ -289,136 +289,129 @@ export default function AccountSettings() {
                   </div>
                 </div>
               )}
-              
+
               <form onSubmit={handleInfoSubmit} className="mb-12">
-                <div className="text-[22px] font-semibold text-[#E73828] mb-6">Account Info</div>
-              <div className="mb-4">
-                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Username</label>
-                <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
-                  <input name="username" value={accountInfo.username} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" />
+                <div className="text-[22px] font-semibold text-[#E73828] mb-6">{dashboardSettings?.dashboard_page_settings?.account_info_label}</div>
+                <div className="mb-4">
+                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.username_placeholder}</label>
+                  <div className="flex flex-row items-center p-[12px_24px] mt-2 gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
+                    <input name="username" value={accountInfo.username} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" />
+                  </div>
                 </div>
-              </div>
-              {/* <div className="mb-4">
+                {/* <div className="mb-4">
                 <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Email</label>
                 <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#E73828] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
                   <input name="email" value={accountInfo.email} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="email" />
                 </div>
               </div> */}
-              {/* Phone Number */}
-              <div className="flex flex-col items-start gap-1 w-full">
-                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Phone Number</label>
-                <div className="flex flex-row items-center p-[12px_24px] gap-2 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
-                  <span className="font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white select-none">{phonePrefix || ''}</span>
-                  <input
-                    name="phone"
-                    value={accountInfo.phone}
-                    onChange={handleInfoChange}
-                    className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none"
-                    placeholder="Phone Number"
-                    style={{ direction: 'ltr' }}
+                {/* Phone Number */}
+                <div className="flex flex-col items-start gap-1 w-full mb-4">
+                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.phone_number_placeholder}</label>
+                  <div className="flex flex-row rtl:flex-row-reverse rtl:justify-end items-center p-[12px_24px] mt-2 gap-2 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
+                    <div className="font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white select-none rtl:text-right">{locale == 'en' ? `+${phonePrefix}` : `${phonePrefix}+` || ''}</div>
+                    <div className="max-w-[calc(100%-70px)]">
+                      <input
+                        name="phone"
+                        value={accountInfo.phone}
+                        onChange={handleInfoChange}
+                        className="w-fit font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none rtl:text-right"
+                        placeholder={generalData?.logging_page_settings?.phone_number_placeholder}
+                        style={{ direction: 'ltr' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                {/* Country */}
+                <div className="flex flex-col items-start gap-1 w-full mb-4">
+                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.country_placeholder}</label>
+                  <CustomDropdown
+                    options={countries.map(country => ({
+                      value: country.slug,
+                      label: country.title
+                    }))}
+                    value={accountInfo.country}
+                    onChange={(value) => handleDropdownChange('country', value)}
+                    className="w-full mt-2"
                   />
                 </div>
-              </div>
-              {/* Country */}
-              <div className="flex flex-col items-start gap-1 w-full">
-                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Country</label>
-                <CustomDropdown
-                  options={countries.map(country => ({
-                    value: country.slug,
-                    label: country.title
-                  }))}
-                  value={accountInfo.country}
-                  onChange={(value) => handleDropdownChange('country', value)}
-                  className="w-full"
-                />
-              </div>
-              {/* User Type */}
-              <div className="flex flex-col items-start gap-1 w-full">
-                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">User Type</label>
-                <CustomDropdown
-                  options={userTypes.map(userType => ({
-                    value: userType.id.toString(),
-                    label: userType.title
-                  }))}
-                  value={accountInfo.userType.toString()}
-                  onChange={(value) => handleDropdownChange('userType', value)}
-                  className="w-full"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Store Name</label>
-                <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
-                  <input name="storeName" value={accountInfo.storeName} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" />
+                {/* User Type */}
+                <div className="flex flex-col items-start gap-1 w-full mb-4">
+                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.user_type_placeholder}</label>
+                  <CustomDropdown
+                    options={userTypes.map(userType => ({
+                      value: userType.id.toString(),
+                      label: userType.title
+                    }))}
+                    value={accountInfo.userType.toString()}
+                    onChange={(value) => handleDropdownChange('userType', value)}
+                    className="w-full mt-2"
+                  />
                 </div>
-              </div>
-              <div className="mb-8">
-                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Store Location</label>
-                <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
-                  <input name="storeLocation" value={accountInfo.storeLocation} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" />
+                <div className="mb-4">
+                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.store_name_placeholder}</label>
+                  <div className="flex flex-row items-center p-[12px_24px] mt-2 gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
+                    <input name="storeName" value={accountInfo.storeName} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" />
+                  </div>
                 </div>
-              </div>
-              <div className="flex flex-row items-center justify-between gap-2 flex-nowrap w-full overflow-x-auto mb-8" style={{ minWidth: 0 }}>
-                <span className="text-[#E73828] font-semibold whitespace-nowrap min-w-0">
-                  Account Security
-                </span>
-                <button
-                  type="button"
-                  className="bg-[#E73828] text-white rounded-full px-6 py-2 font-bold whitespace-nowrap hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200 text-base min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0"
-                  style={{ flexShrink: 1, maxWidth: '200px' }}
-                  onClick={() => setShowSecurity(true)}
-                >
-                  CHANGE PASSWORD
-                </button>
-              </div>
-              <div className="flex flex-row flex-nowrap w-full gap-4 overflow-x-auto mb-4">
-                <button
-                  type="submit"
-                  disabled={!hasFormChanges() || isRefreshing || isLoadingProfile}
-                  className={`rounded-full py-3 font-bold text-lg transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap ${
-                    !hasFormChanges() || isRefreshing || isLoadingProfile
+                <div className="mb-8">
+                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.store_location_placeholder}</label>
+                  <div className="flex flex-row items-center p-[12px_24px] mt-2 gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
+                    <input name="storeLocation" value={accountInfo.storeLocation} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" />
+                  </div>
+                </div>
+
+                <div className="flex flex-row flex-nowrap w-full gap-4 overflow-x-auto mb-4">
+                  <button
+                    type="submit"
+                    disabled={!hasFormChanges() || isRefreshing || isLoadingProfile}
+                    className={`rounded-full py-3 font-bold text-lg transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap ${!hasFormChanges() || isRefreshing || isLoadingProfile
                       ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
                       : 'bg-[#E73828] text-white hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828]'
-                  }`}
-                  style={{ flexShrink: 1, maxWidth: '200px' }}
-                  onClick={handleInfoSubmit}
-                  title={!hasFormChanges() ? 'No changes to save' : ''}
-                >
-                  {isRefreshing ? 'SAVING...' : 'SAVE'}
-                </button>
-                
-                {hasFormChanges() && (
+                      }`}
+                    style={{ flexShrink: 1, maxWidth: '200px' }}
+                    onClick={handleInfoSubmit}
+                    title={!hasFormChanges() ? 'No changes to save' : ''}
+                  >
+                    {isRefreshing ? locale === 'en' ? 'SAVING...' : 'جاري التحديث...' : locale === 'en' ? 'SAVE CHANGES' : 'حفظ التغييرات'}
+                  </button>
+
+                  {hasFormChanges() && (
+                    <button
+                      type="button"
+                      onClick={handleResetForm}
+                      disabled={isRefreshing || isLoadingProfile}
+                      className="border-2 border-[#E73828] text-[#E73828] rounded-full py-3 font-bold text-lg hover:bg-[#E73828] hover:text-white transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ flexShrink: 1, maxWidth: '200px' }}
+                      title="Reset form to original values"
+                    >
+                      {locale === 'en' ? 'RESET' : 'إعادة تعيين'}
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-row items-center justify-between gap-2 flex-nowrap w-full overflow-x-auto mb-8" style={{ minWidth: 0 }}>
                   <button
                     type="button"
-                    onClick={handleResetForm}
-                    disabled={isRefreshing || isLoadingProfile}
-                    className="border-2 border-[#E73828] text-[#E73828] rounded-full py-3 font-bold text-lg hover:bg-[#E73828] hover:text-white transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-[#E73828] text-white rounded-full px-6 py-2 font-bold whitespace-nowrap border border-[#E73828] hover:bg-white hover:text-[#E73828] hover:border-[#E73828] transition-colors duration-200 text-base min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0"
                     style={{ flexShrink: 1, maxWidth: '200px' }}
-                    title="Reset form to original values"
+                    onClick={() => setShowSecurity(true)}
                   >
-                    RESET
+                    {locale === 'en' ? 'CHANGE PASSWORD' : 'تغيير كلمة المرور'}
                   </button>
-                )}
-              </div>
-              
-              {/* Form status indicator */}
-              <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                {hasFormChanges() ? (
-                  <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
-                    <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                    </svg>
-                    You have unsaved changes
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-                    <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    All changes saved
-                  </div>
-                )}
-              </div>
-              
+                </div>
+
+                {/* Form status indicator */}
+                <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                  {hasFormChanges() && (
+                    <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
+                      <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                      {locale === 'en' ? 'You have unsaved changes' : 'لديك تغييرات غير محفوظة'}
+                    </div>
+                  )}
+                </div>
+
               </form>
             </div>
             {showSecurity && (

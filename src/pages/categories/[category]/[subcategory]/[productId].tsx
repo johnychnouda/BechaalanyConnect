@@ -172,7 +172,7 @@ const ProductPage: React.FC = () => {
         </div>
         {/*Back Button*/}
         <div className="w-full px-4 md:px-12 mb-4">
-          <BackButton href={`/categories/${categorySlug}/${subcategorySlug}`} />
+          <BackButton label={generalData?.settings.back_button_label} href={`/categories/${categorySlug}/${subcategorySlug}`} />
         </div>
         <div className="flex items-center justify-center h-64">
           <ComingSoon />
@@ -245,7 +245,7 @@ const ProductPage: React.FC = () => {
           <Breadcrumb items={breadcrumbItems} />
         </div>
         <div className="w-full px-4 md:px-12 mb-4">
-          <BackButton href={`/categories/${categorySlug}/${subcategorySlug}`} />
+          <BackButton label={generalData?.settings.back_button_label} href={`/categories/${categorySlug}/${subcategorySlug}`} />
         </div>
 
         {/* Main Content */}
@@ -278,7 +278,7 @@ const ProductPage: React.FC = () => {
 
             {/* Amount Select */}
             <div className="mb-2">
-              <label className="block text-gray-800 font-semibold mb-1">Amount</label>
+              <label className="block text-gray-800 font-semibold mb-1">{generalData?.settings.amount}</label>
               <div ref={dropdownRef} className="relative w-full">
                 <button
                   type="button"
@@ -319,7 +319,7 @@ const ProductPage: React.FC = () => {
             {/* Quantity Selector */}
             {product?.product_type_id !== 1 && (
               <div className="mb-2">
-                <label className="block text-gray-800 font-semibold mb-1">Quantity</label>
+                <label className="block text-gray-800 font-semibold mb-1">{generalData?.settings.quantity}</label>
                 <div className="flex items-center border border-app-red rounded-full px-2 py-1 w-full bg-white justify-between min-w-[160px]">
                   <button
                     className="w-8 h-8 flex items-center justify-center rounded-full border-none text-2xl text-black font-normal transition-transform duration-150 hover:scale-110 hover:bg-app-red/10 hover:text-black p-0"
@@ -340,7 +340,7 @@ const ProductPage: React.FC = () => {
             {/* If product type id is 1, add input to enter User ID */}
             {product?.product_type_id === 1 && (
               <div className="mb-2">
-                <label className="block text-gray-800 font-semibold mb-1">User ID *</label>
+                <label className="block text-gray-800 font-semibold mb-1">{generalData?.settings.user_id_label}</label>
                 <input
                   name="recipient_user"
                   type="text"
@@ -348,7 +348,7 @@ const ProductPage: React.FC = () => {
                   value={recipientUser}
                   onChange={(e) => setRecipientUser(e.target.value)}
                   className="w-full border border-app-red rounded-full px-2 py-1 bg-white"
-                  placeholder="Enter User ID"
+                  placeholder={generalData?.settings.user_id_placeholder}
                 />
               </div>
             )}
@@ -356,7 +356,7 @@ const ProductPage: React.FC = () => {
             {/* If product type id is 3, add input to enter User phone number */}
             {product?.product_type_id === 3 && (
               <div className="mb-2">
-                <label className="block text-gray-800 font-semibold mb-1">Phone Number *</label>
+                <label className="block text-gray-800 font-semibold mb-1">{generalData?.settings.phone_number_label}</label>
                 <input
                   name="recipient_phone_number"
                   type="tel"
@@ -364,14 +364,14 @@ const ProductPage: React.FC = () => {
                   value={recipientPhoneNumber}
                   onChange={(e) => setRecipientPhoneNumber(e.target.value)}
                   className="w-full border border-app-red rounded-full px-2 py-1 bg-white"
-                  placeholder="Enter Phone Number"
+                  placeholder={generalData?.settings.phone_number_placeholder}
                 />
               </div>
             )}
 
             {/* Total */}
             <div className="flex justify-between items-center border-t border-gray-200 pt-3 mt-2 mb-2">
-              <span className="text-black text-lg font-bold">Total</span>
+              <span className="text-black text-lg font-bold">{generalData?.settings.total}</span>
               <span className="text-2xl font-bold text-app-red">${total.toFixed(2)}</span>
             </div>
 
@@ -386,7 +386,7 @@ const ProductPage: React.FC = () => {
                   type="submit"
                   className="bg-app-red text-white font-bold py-2 px-6 rounded-full w-full mt-2 transition duration-300 text-lg hover:bg-white hover:text-app-red border border-app-red"
                 >
-                  BUY NOW
+                  {generalData?.settings.buy_now_button}
                 </button>
             }
           </form>
@@ -396,7 +396,7 @@ const ProductPage: React.FC = () => {
         {
           relatedProducts.length > 0 && (
             <div className="w-full px-4 md:px-12 pt-6 pb-2">
-              <h2 className="text-app-red text-[20px] font-bold mb-4 mt-2">RELATED PRODUCTS</h2>
+              <h2 className="text-app-red text-[20px] font-bold mb-4 mt-2">{generalData?.settings.related_products}</h2>
               <div className="grid grid-cols-4 gap-2">
                 {relatedProducts.map((prod: Product, index: number) => (
                   <Card

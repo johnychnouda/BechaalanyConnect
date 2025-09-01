@@ -6,12 +6,13 @@ import { fetchCreditTypes } from "@/services/api.service";
 import { CreditsType } from "@/types/CreeditsDataTyype";
 import Image from "next/image";
 import Link from "next/link";
+import { useGlobalContext } from "@/context/GlobalContext";
 
 
 
 export default function AddCredits() {
   const router = useRouter();
-
+  const { generalData, dashboardSettings } = useGlobalContext();
   const getCreditTypes = async () => {
     const response = await fetchCreditTypes(router.locale as string);
     return response.credits_types;
@@ -29,9 +30,9 @@ export default function AddCredits() {
     <DashboardLayout>
       <div className="flex flex-col gap-3">
         <div className="w-fit">
-          <BackButton href="/account-dashboard" />
+          <BackButton label={generalData?.settings?.back_button_label} />
         </div>
-        <div className="text-[#E73828] text-[clamp(24px,5vw,36px)] font-semibold font-['Roboto'] leading-[clamp(28px,6vw,42px)] uppercase tracking-tight">ADD CREDITS</div>
+        <div className="text-[#E73828] text-[clamp(24px,5vw,36px)] font-semibold font-['Roboto'] leading-[clamp(28px,6vw,42px)] uppercase tracking-tight">{dashboardSettings?.dashboard_page_settings?.add_credits_page_title}</div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full mx-1 justify-center">
           {creditTypes.map(option => (
             <div

@@ -2,7 +2,7 @@ import React from 'react';
 import clsx from 'clsx';
 
 interface DashboardFilterButtonProps {
-  label: string;
+  label?: string;
   icon?: React.ReactNode;
   isActive: boolean;
   onClick: () => void;
@@ -75,23 +75,29 @@ interface DashboardFilterButtonGroupProps {
   activeFilter: string;
   onFilterChange: (filter: string) => void;
   className?: string;
+  allTransfersLabel?: string;
+  receivedFilterLabel?: string;
+  purchasedFilterLabel?: string;
 }
 
 export function DashboardFilterButtonGroup({
   activeFilter,
   onFilterChange,
-  className
+  className,
+  allTransfersLabel,
+  receivedFilterLabel,
+  purchasedFilterLabel,
 }: DashboardFilterButtonGroupProps) {
   const filters = [
     {
       key: 'all',
-      label: 'All Transfers',
+      label: allTransfersLabel,
       width: 'w-[103px]',
       type: 'all' as const
     },
     {
       key: 'purchased',
-      label: 'Purchased',
+      label: purchasedFilterLabel,
       icon: (
         <svg width="19" height="19" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="9.50006" cy="9.50006" r="9.50006" fill="#E73828"/>
@@ -122,7 +128,7 @@ export function DashboardFilterButtonGroup({
     },
     {
       key: 'received',
-      label: 'Received',
+      label: receivedFilterLabel,
       icon: (
         <svg width="19" height="19" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg" className="transform rotate-180">
           <circle cx="9.50006" cy="9.50006" r="9.50006" fill="#5FD568"/>
@@ -158,7 +164,7 @@ export function DashboardFilterButtonGroup({
       {filters.map((filter) => (
         <DashboardFilterButton
           key={filter.key}
-          label={filter.label}
+          label={filter.label || ''}
           icon={filter.icon}
           isActive={activeFilter === filter.key}
           onClick={() => onFilterChange(filter.key)}

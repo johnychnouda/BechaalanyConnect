@@ -6,12 +6,16 @@ import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useCreditOperations } from "@/services/credits.service";
+import { useGlobalContext } from "@/context/GlobalContext";
+import { useLanguage } from "@/hooks/use-language";
 
 
 export default function AddCreditMethod() {
   const router = useRouter();
   const { user, refreshUserData } = useAuth();
   const { addPendingRequest } = useCreditOperations();
+  const { generalData, dashboardSettings } = useGlobalContext();
+  const { locale } = useLanguage();
 
   const getSingleCreditType = async () => {
     const response = await fetchSingleCreditType(router.locale as string, router.query.method as string);
@@ -38,7 +42,7 @@ export default function AddCreditMethod() {
   // Copy handler for number
   const handleCopy = () => {
     navigator.clipboard.writeText(creditType.number);
-    toast.success('Copied!');
+    toast.success(locale === 'en' ? 'Copied!' : 'تم النسخ!');
   };
 
   // Attach handler for file upload
@@ -64,17 +68,17 @@ export default function AddCreditMethod() {
     event.preventDefault();
 
     if (!user) {
-      toast.error('Please login to submit a credit request');
+      toast.error(locale === 'en' ? 'Please login to submit a credit request' : 'الرجاء تسجيل الدخول لتقديم طلب الائتمان');
       return;
     }
 
     if (!selectedFile) {
-      toast.error('Please select a receipt image');
+      toast.error(locale === 'en' ? 'Please select a receipt image' : 'الرجاء اختيار صورة الإيصال');
       return;
     }
 
     if (!sendValue || sendValue <= 0) {
-      toast.error('Please enter a valid amount');
+      toast.error(locale === 'en' ? 'Please enter a valid amount' : 'الرجاء إدخال قيمة صالحة');
       return;
     }
 
@@ -92,7 +96,7 @@ export default function AddCreditMethod() {
       // Call the API service
       const response = await submitCreditRequest(formData);
 
-      toast.success('Credit request submitted successfully!');
+      toast.success(locale === 'en' ? 'Credit request submitted successfully!' : 'تم تقديم طلب الائتمان بنجاح!');
 
       // Add pending request to credits store for immediate UI feedback
       // Laravel typically returns the created record with 'id' field
@@ -112,7 +116,7 @@ export default function AddCreditMethod() {
 
     } catch (error: any) {
       console.error('Error submitting credit request:', error);
-      toast.error(error?.message || 'Failed to submit request. Please try again.');
+      toast.error(error?.message || locale === 'en' ? 'Failed to submit request. Please try again.' : 'فشل تقديم طلب الائتمان. الرجاء المحاولة مرة أخرى.');
     } finally {
       setIsSubmitting(false);
     }
@@ -120,13 +124,13 @@ export default function AddCreditMethod() {
 
   return (
     <DashboardLayout>
-      <div className="text-[#E73828] text-[36px] font-semibold font-['Roboto'] leading-[42px] uppercase mb-8 mt-0 tracking-tight">ADD CREDITS</div>
+      <div className="text-[#E73828] text-[36px] font-semibold font-['Roboto'] leading-[42px] uppercase mb-8 mt-0 tracking-tight">{dashboardSettings?.dashboard_page_settings?.add_credits_page_title}</div>
       <div className="flex flex-col items-start p-0 gap-[32px] w-full max-w-[578px] mx-auto min-w-0" style={{ position: 'relative', top: '0', left: '0' }}>
         <div className="w-full font-['Roboto'] font-semibold text-[36px] leading-[42px] uppercase text-[#E73828]">{creditType?.title}</div>
         <form className="flex flex-col items-start p-0 gap-[24px] w-full" onSubmit={handleSubmit}>
           {/* Number Row */}
           <div className="flex flex-row items-center p-0 gap-[12px] w-full min-w-0">
-            <label className="w-[106px] min-w-[106px] font-['Roboto'] font-semibold text-[16px] leading-[19px] text-[#070707] dark:text-white">{creditType?.title} Number:</label>
+            <label className="w-[106px] min-w-[106px] font-['Roboto'] font-semibold text-[16px] leading-[19px] text-[#070707] dark:text-white">{locale === 'en' ? `${creditType?.title} Number:` : `${creditType?.title} رقم:`}</label>
             <div className="flex flex-row justify-between items-center px-[24px] py-[12px] gap-[10px] flex-1 border border-[rgba(7,7,7,0.2)] rounded-[50.5px] bg-white min-w-0">
               <span className="font-['Roboto'] font-normal text-[14px] sm:text-[16px] md:text-[18px] lg:text-[20px] leading-[19px] text-[#070707] whitespace-nowrap truncate overflow-hidden">{creditType.number}</span>
               <button type="button" className="w-[20px] h-[20px] flex items-center justify-center flex-shrink-0" title="Copy" onClick={handleCopy}>
@@ -136,7 +140,7 @@ export default function AddCreditMethod() {
           </div>
           {/* Value to be sent Row */}
           <div className="flex flex-row items-center p-0 gap-[12px] w-full min-w-0">
-            <label className="w-[116px] min-w-[116px] font-['Roboto'] font-semibold text-[16px] leading-[19px] text-[#070707] dark:text-white">Value</label>
+            <label className="w-[116px] min-w-[116px] font-['Roboto'] font-semibold text-[16px] leading-[19px] text-[#070707] dark:text-white">{locale === 'en' ? 'Value' : 'القيمة'}</label>
             <div className="flex flex-row items-center px-[24px] py-[12px] gap-[10px] flex-1 border border-[rgba(7,7,7,0.2)] rounded-[50.5px] bg-white min-w-0">
               <input
                 name="amount"
@@ -151,13 +155,13 @@ export default function AddCreditMethod() {
           </div>
           {/* Screenshot Row */}
           <div className="flex flex-col items-start p-0 gap-[4px] w-full min-w-0">
-            <label className="w-[82px] min-w-[82px] font-['Roboto'] font-semibold text-[16px] leading-[19px] text-[#070707] dark:text-white">Screenshot</label>
+            <label className="w-[82px] min-w-[82px] font-['Roboto'] font-semibold text-[16px] leading-[19px] text-[#070707] dark:text-white">{locale === 'en' ? 'Screenshot' : 'الشاشة'}</label>
             <div className="flex flex-row justify-between items-center px-[24px] py-[12px] gap-[4px] w-full border border-[#070707] rounded-[50.5px] bg-white min-w-0">
               <input
                 type="text"
                 value={screenshot}
                 onChange={e => setScreenshot(e.target.value)}
-                placeholder={'Screenshot'}
+                placeholder={locale === 'en' ? 'Screenshot' : 'الشاشة'}
                 className="font-['Roboto'] font-normal text-[16px] leading-[19px] text-[#070707] bg-transparent border-none outline-none flex-1 min-w-0"
                 style={{ minWidth: '0' }}
                 readOnly
@@ -179,7 +183,7 @@ export default function AddCreditMethod() {
             {/* File preview */}
             {selectedFile && (
               <div className="mt-2 p-2 bg-gray-100 rounded-lg">
-                <p className="text-sm text-gray-600">Selected file: {selectedFile.name}</p>
+                <p className="text-sm text-gray-600">{locale === 'en' ? 'Selected file:' : 'الملف المحدد:'} {selectedFile.name}</p>
                 <p className="text-xs text-gray-500">Size: {(selectedFile.size / 1024).toFixed(2)} KB</p>
               </div>
             )}
@@ -192,7 +196,7 @@ export default function AddCreditMethod() {
                 disabled={isSubmitting}
                 className="w-full h-[19px] font-['Roboto'] font-bold text-[16px] leading-[19px] text-white uppercase bg-transparent border-none outline-none group-hover:text-[#E73828] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'SUBMITTING...' : 'REQUEST'}
+                {isSubmitting ? locale === 'en' ? 'SUBMITTING...' : 'جاري التسليم...' : locale === 'en' ? 'REQUEST' : 'طلب'}
               </button>
             </div>
           </div>
