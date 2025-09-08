@@ -8,6 +8,7 @@ interface ReceiptPreviewModalProps {
   order: ProcessedOrder | null;
   onDownload: () => void;
   isDownloading: boolean;
+  locale?: string;
 }
 
 export default function ReceiptPreviewModal({
@@ -15,7 +16,8 @@ export default function ReceiptPreviewModal({
   onClose,
   order,
   onDownload,
-  isDownloading
+  isDownloading,
+  locale
 }: ReceiptPreviewModalProps) {
   const [customerInfo, setCustomerInfo] = useState<{ name: string; email: string; phone: string } | null>(null);
 
@@ -44,7 +46,9 @@ export default function ReceiptPreviewModal({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Receipt Preview
+            {
+              locale === 'ar' ? 'معاينة الفاتورة' : 'Receipt Preview'
+            }
           </h2>
           <button
             onClick={onClose}
@@ -64,45 +68,47 @@ export default function ReceiptPreviewModal({
               Bechaalany Connect
             </h1>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Order Receipt
+              {
+                locale === 'ar' ? 'فاتورة الطلب' : 'Order Receipt'
+              }
             </p>
           </div>
 
           {/* Receipt Details */}
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Receipt Details</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{ locale === 'ar' ? 'تفاصيل الفاتورة' : 'Receipt Details' }</h3>
               <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
-                <p>Order ID: #{order.id}</p>
-                <p>Date: {formatDate(order.date)}</p>
-                <p>Status: {order.status.charAt(0).toUpperCase() + order.status.slice(1)}</p>
+                <p>{ locale === 'ar' ? 'رقم الطلب' : 'Order ID' }: #{order.id}</p>
+                <p>{ locale === 'ar' ? 'التاريخ' : 'Date' }: {formatDate(order.date)}</p>
+                <p>{ locale === 'ar' ? 'الحالة' : 'Status' }: {order.status.charAt(0).toUpperCase() + order.status.slice(1)}</p>
               </div>
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Product Information</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{ locale === 'ar' ? 'معلومات المنتج' : 'Product Information' }</h3>
               <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
-                <p>Product: {order.title.split(' | ')[0]}</p>
-                <p>Variation: {order.title.split(' | ')[1] || 'Standard'}</p>
-                <p>Quantity: {order.quantity}</p>
+                <p>{ locale === 'ar' ? 'المنتج' : 'Product' }: {order.title.split(' | ')[0]}</p>
+                <p>{ locale === 'ar' ? 'التغيير' : 'Variation' }: {order.title.split(' | ')[1] || 'Standard'}</p>
+                <p>{ locale === 'ar' ? 'الكمية' : 'Quantity' }: {order.quantity}</p>
               </div>
             </div>
           </div>
 
           {/* Pricing Table */}
           <div className="mb-6">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Pricing Details</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-3">{ locale === 'ar' ? 'تفاصيل السعر' : 'Pricing Details' }</h3>
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-600 dark:text-gray-400">Unit Price:</span>
+                <span className="text-gray-600 dark:text-gray-400">{ locale === 'ar' ? 'السعر الوحدة' : 'Unit Price' }:</span>
                 <span className="font-medium">${unitPrice.toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-600 dark:text-gray-400">Quantity:</span>
+                <span className="text-gray-600 dark:text-gray-400">{ locale === 'ar' ? 'الكمية' : 'Quantity' }:</span>
                 <span className="font-medium">{order.quantity}</span>
               </div>
               <div className="border-t border-gray-200 dark:border-gray-600 pt-2">
                 <div className="flex justify-between items-center">
-                  <span className="font-semibold text-gray-900 dark:text-white">Total:</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{ locale === 'ar' ? 'المجموع' : 'Total' }:</span>
                   <span className="font-bold text-lg text-[#E73828]">{order.value}</span>
                 </div>
               </div>
@@ -157,7 +163,7 @@ export default function ReceiptPreviewModal({
           {/* Recipient Information */}
           {order.recipient_info && (
             <div className="mb-6">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Recipient Information</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{ locale === 'ar' ? 'معلومات المستلم' : 'Recipient Information' }</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                 {order.recipient_info}
               </p>
@@ -166,8 +172,8 @@ export default function ReceiptPreviewModal({
 
           {/* Footer */}
           <div className="text-center text-sm text-gray-500 dark:text-gray-400 mb-6">
-            <p>Thank you for your purchase!</p>
-            <p>For support, contact our customer service team.</p>
+            <p>{ locale === 'ar' ? 'شكرا لك على عمليتك الشراء!' : 'Thank you for your purchase!' }</p>
+            <p>{ locale === 'ar' ? 'للدعم، يرجى الاتصال بفريق خدمة العملاء.' : 'For support, contact our customer service team.' }</p>
           </div>
         </div>
 
@@ -177,7 +183,7 @@ export default function ReceiptPreviewModal({
             onClick={onClose}
             className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
-            Cancel
+            { locale === 'ar' ? 'إلغاء' : 'Cancel' }
           </button>
           <button
             onClick={onDownload}
@@ -187,7 +193,7 @@ export default function ReceiptPreviewModal({
             {isDownloading ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>Downloading...</span>
+                <span>{ locale === 'ar' ? 'جاري التحميل...' : 'Downloading...' }</span>
               </>
             ) : (
               <>
@@ -196,7 +202,7 @@ export default function ReceiptPreviewModal({
                   <polyline points="7,10 12,15 17,10" />
                   <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
-                <span>Download PDF</span>
+                <span>{ locale === 'ar' ? 'تحميل PDF' : 'Download PDF' }</span>
               </>
             )}
           </button>

@@ -73,9 +73,9 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                 </button>
                 {isAuthenticated && (
                     <div className="flex items-center justify-center w-full gap-2">
-                        {/* <Notification
+                        <Notification
                             count={count}
-                        /> */}
+                        />
                         {user && <BlurredPrice price={user.credits_balance} />}
                         <ButtonLink
                             onClick={() => {
@@ -138,7 +138,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                                         className="group flex items-center justify-center gap-2 font-['Roboto'] font-semibold text-[13px] bg-[#E73828] text-white border border-[#E73828] rounded-lg px-4 py-2.5 transition-all duration-200 hover:bg-white hover:text-[#E73828] hover:border-[#E73828] shadow-sm"
                                     >
                                         <ArrowRightOnRectangleIcon className="w-4 h-4 text-white" />
-                                        <span>Logout</span>
+                                        <span>{generalData?.settings.logout_button}</span>
                                     </button>
                                 </div>
                             </div>

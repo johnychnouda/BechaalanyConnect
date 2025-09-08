@@ -27,6 +27,7 @@ const SearchPage = () => {
     const [results, setResults] = useState<Product[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const locale = router.locale;
 
     useEffect(() => {
         if (!searchTerm || typeof searchTerm !== 'string') {
@@ -47,15 +48,15 @@ const SearchPage = () => {
 
     return (
         <div className="container mx-auto px-4 py-6">
-            <h1 className="text-2xl font-bold mb-4">Search Results</h1>
+            <h1 className="text-2xl font-bold mb-4">{locale === 'ar' ? 'نتائج البحث' : 'Search Results'}</h1>
             {typeof searchTerm !== 'string' || !searchTerm ? (
-                <div className="text-gray-500">Please enter a search term.</div>
+                <div className="text-gray-500">{locale === 'ar' ? 'الرجاء إدخال مصطلح البحث.' : 'Please enter a search term.'}</div>
             ) : loading ? (
-                <div className="text-gray-500">Loading...</div>
+                <div className="text-gray-500">{locale === 'ar' ? 'جاري التحميل...' : 'Loading...'}</div>
             ) : error ? (
                 <div className="text-red-500">{error}</div>
             ) : results.length === 0 ? (
-                <div className="text-gray-400">No results found for "{searchTerm}".</div>
+                <div className="text-gray-400">{locale === 'ar' ? `لم يتم العثور على نتائج "${searchTerm}".` : `No results found for "${searchTerm}".`}</div>
             ) : (
                 <ul className="divide-y divide-gray-100 bg-white dark:bg-background-dark rounded shadow">
                     {results.map(product => (

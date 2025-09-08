@@ -12,6 +12,7 @@ export interface ProcessedOrder {
   date: string;
   quantity: number;
   recipient_info: string;
+  code?: string;
   Customer?: {
     username: string;
     email: string;
@@ -56,7 +57,7 @@ function orderRow({ order }: { order: ProcessedOrder }) {
 
     setIsExporting(true);
     try {
-      await generateOrderReceiptFromProcessedOrder(order);
+      await generateOrderReceiptFromProcessedOrder(order, locale);
       setShowPreview(false); // Close modal after successful download
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -92,11 +93,17 @@ function orderRow({ order }: { order: ProcessedOrder }) {
                 </>
               )}
             </div>
+            {
+              order?.status === 'accepted' && order?.code && (
+                <div className="text-xs text-[#070707] font-normal mt-3" dangerouslySetInnerHTML={{ __html: order?.code }}></div>
+              )
+            } 
             <div>
               <span className="h-[14px] font-['Roboto'] font-normal text-xs leading-[14px] text-[#8E8E8E]">
                 {formatDate(order.date)}
               </span>
             </div>
+
           </div>
         </div>
 
@@ -131,6 +138,7 @@ function orderRow({ order }: { order: ProcessedOrder }) {
         order={order}
         onDownload={handleDownload}
         isDownloading={isExporting}
+        locale={locale}
       />
     </>
   );

@@ -21,6 +21,7 @@ function PaymentRow({ payment, expanded, onToggle, locale }: {
         value: string;
         date: string;
         screenshot: string | null;
+        rejected_reason: string | null;
     }; expanded: boolean; onToggle: () => void; locale: string;
 }) {
 
@@ -46,6 +47,12 @@ function PaymentRow({ payment, expanded, onToggle, locale }: {
                             <span className="text-[16px] text-[#070707] font-normal">{locale === 'en' ? 'Date' : 'التاريخ'}</span>
                             <span className="text-[16px] text-[#8E8E8E] font-normal">{formatDate(payment.date)}</span>
                         </div>
+                        {payment.rejected_reason && (
+                            <div className="flex flex-row justify-between items-center">
+                                <span className="text-[16px] text-[#070707] font-normal">{locale === 'en' ? 'Rejection Reason' : 'سبب الرفض'}</span>
+                                <span className="text-[16px] text-[#8E8E8E] font-normal">{payment.rejected_reason}</span>
+                            </div>
+                        )}
                     </div>
                     {payment.screenshot && (
                         <div className="mt-4 flex flex-col items-start">

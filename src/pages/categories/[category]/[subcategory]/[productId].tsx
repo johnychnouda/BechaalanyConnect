@@ -63,6 +63,7 @@ const ProductPage: React.FC = () => {
   const { deductFromBalance } = useCreditOperations();
   const { user, refreshUserData } = useAuth();
   const { refreshOrders, generalData } = useGlobalContext();
+  const { locale } = useRouter();
   const { category: categorySlug, subcategory: subcategorySlug, productId: productSlug } = router.query;
   const [isLoading, setIsLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -195,12 +196,12 @@ const ProductPage: React.FC = () => {
 
     // Validate required fields based on product type
     if (product?.product_type_id === 1 && !recipientUser.trim()) {
-      showError('Please enter a User ID');
+      showError(locale === 'en' ? 'Please enter a User ID' : 'الرجاء إدخال رقم المستخدم');
       return;
     }
 
     if (product?.product_type_id === 3 && !recipientPhoneNumber.trim()) {
-      showError('Please enter a Phone Number');
+      showError(locale === 'en' ? 'Please enter a Phone Number' : 'الرجاء إدخال رقم الهاتف');
       return;
     }
 
@@ -217,7 +218,7 @@ const ProductPage: React.FC = () => {
         lang: router.locale || 'en'
       });
 
-      showSuccess('Order placed successfully!');
+      showSuccess(locale === 'en' ? 'Order placed successfully!' : 'تم وضع الطلب بنجاح!');
       // Deduct amount from credits store for immediate UI feedback
       const productName = selectedProductVariation?.name || product?.name || 'Product';
       deductFromBalance(total, `Purchase of ${productName} (Qty: ${quantity}) for $${total}`);
@@ -231,7 +232,7 @@ const ProductPage: React.FC = () => {
       setQuantity(1);
       setSubmitLoading(false);
     } catch (error) {
-      showError(`${error ? error : 'Failed to place order. Please try again.'}`);
+      showError(`${error ? error : locale === 'en' ? 'Failed to place order. Please try again.' : 'فشل وضع الطلب. الرجاء المحاولة مرة أخرى.'}`);
       console.error('Error saving order:', error);
       setSubmitLoading(false);
     }

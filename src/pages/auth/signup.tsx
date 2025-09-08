@@ -436,6 +436,7 @@ export default function SignupPage() {
         error={verifyError}
         success={success}
         onResend={ResendCode}
+        locale={locale}
       />
     </>
   );

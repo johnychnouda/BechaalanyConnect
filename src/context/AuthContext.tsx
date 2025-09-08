@@ -35,6 +35,7 @@ export interface Order {
     business_location?: string;
     business_name?: string;
   }
+  code?: string;
 }
 
 export interface Product {

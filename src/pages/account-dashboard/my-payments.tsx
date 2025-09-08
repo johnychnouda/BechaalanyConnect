@@ -22,6 +22,7 @@ export default function MyPayments() {
     value: string;
     date: string;
     screenshot: string | null;
+    rejected_reason: string | null;
   }>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +50,7 @@ export default function MyPayments() {
             value: item.amount + '$',
             date: item.created_at,
             screenshot: item.full_path?.receipt_image || null,
+            rejected_reason: item.rejected_reason || null,
           };
         });
         setPayments(mappedPayments);

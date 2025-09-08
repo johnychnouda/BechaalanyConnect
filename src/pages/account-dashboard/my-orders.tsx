@@ -121,7 +121,8 @@ export default function MyOrders() {
           country: order.users.country,
           business_location: order.users.business_location,
           business_name: order.users.business_name
-        }
+        },
+        code: order?.code
       };
     });
   }, [orders]);
