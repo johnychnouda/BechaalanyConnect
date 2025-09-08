@@ -364,7 +364,7 @@ const ProductPage: React.FC = () => {
                   // required
                   value={recipientPhoneNumber}
                   onChange={(e) => setRecipientPhoneNumber(e.target.value)}
-                  className="w-full border border-app-red rounded-full px-2 py-1 bg-white"
+                  className={`w-full outline-none border border-app-red rounded-full px-2 py-1 bg-white ${locale === 'ar' ? 'rtl:text-right' : ''}`}
                   placeholder={generalData?.settings.phone_number_placeholder}
                 />
               </div>
