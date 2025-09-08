@@ -146,8 +146,8 @@ const ProductPage: React.FC = () => {
   }, []);
 
   const breadcrumbItems = [
-    { label: 'Homepage', href: '/' },
-    { label: 'Categories', href: '/categories' },
+    { label: generalData?.settings.homepage_label || '', href: '/' },
+    { label: generalData?.settings.categories_label || '', href: '/categories' },
     { label: currentCategory, href: `/categories/${categorySlug}` },
     { label: currentSubcategory, href: `/categories/${categorySlug}/${subcategorySlug}` },
     { label: product?.name || '' }
