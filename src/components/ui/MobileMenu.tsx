@@ -8,7 +8,6 @@ import ProfileIcon from "@/assets/icons/profile.icon";
 import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/router";
-import Image from "next/image";
 import { SearchIcon } from "@/assets/icons/search.icon";
 
 interface MobileMenuProps {
@@ -134,7 +133,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                             <div className="flex flex-col gap-2 mt-4">
                                 <div className=" pt-4 border-t border-[#070707]/20 w-full   flex flex-col items-center">
                                     <button
-                                        onClick={() => { logout(); router.push('/'); }}
+                                        onClick={() => { logout(); router.push(router.locale === "ar" ? "/ar" : "/"); }}
                                         className="group flex items-center justify-center gap-2 font-['Roboto'] font-semibold text-[13px] bg-[#E73828] text-white border border-[#E73828] rounded-lg px-4 py-2.5 transition-all duration-200 hover:bg-white hover:text-[#E73828] hover:border-[#E73828] shadow-sm"
                                     >
                                         <ArrowRightOnRectangleIcon className="w-4 h-4 text-white" />

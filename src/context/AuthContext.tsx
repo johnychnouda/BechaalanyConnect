@@ -255,7 +255,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithGoogle = async () => {
     setLoading(true);
     try {
-      await signIn("google", { callbackUrl: "/" });
+      await signIn("google", { callbackUrl: locale === "ar" ? "/ar" : "/" });
     } catch (error) {
       setLoading(false);
       throw error;
@@ -281,7 +281,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
       
-      await signOut({ callbackUrl: "/" });
+      await signOut({ callbackUrl: locale === "ar" ? "/ar" : "/" });
       clearSessionCache();
     } catch (error) {
       setLoading(false);
