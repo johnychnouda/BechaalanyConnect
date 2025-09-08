@@ -80,6 +80,12 @@ export type LoggingPageSettingsType = {
   user_type_placeholder: string;
   store_name_placeholder: string;
   store_location_placeholder: string;
+  forgot_password_title: string;
+  forgot_password_subtitle: string;
+  send_reset_link_button: string;
+  reset_password_title: string;
+  reset_password_subtitle: string;
+  reset_password_button: string;
 };
 
 
