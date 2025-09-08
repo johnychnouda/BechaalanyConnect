@@ -29,6 +29,8 @@ interface NotificationStore {
   markAllAsRead: () => void;
   clearAll: () => void;
   loadMore: () => void;
+  deleteNotification: (id: number) => void; // Delete single notification
+  deleteAllRead: () => void; // Delete all read notifications
 }
 
 const initialNotifications: Notification[] = [];
@@ -112,6 +114,22 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
     count: 0,
     page: 1,
     hasMore: false
+  }),
+  
+  deleteNotification: (id) => set((state) => {
+    const updatedNotifications = state.notifications.filter(notification => notification.id !== id);
+    return {
+      notifications: updatedNotifications,
+      count: updatedNotifications.filter(n => n.readStatus === 'unread').length
+    };
+  }),
+  
+  deleteAllRead: () => set((state) => {
+    const updatedNotifications = state.notifications.filter(notification => notification.readStatus !== 'read');
+    return {
+      notifications: updatedNotifications,
+      count: updatedNotifications.filter(n => n.readStatus === 'unread').length
+    };
   }),
   
   loadMore: () => {

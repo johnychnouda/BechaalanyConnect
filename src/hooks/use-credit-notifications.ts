@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/hooks/use-language';
 import { creditsService } from '@/services/credits.service';
 
 interface CreditNotification {
@@ -17,6 +18,7 @@ interface CreditNotification {
  */
 export const useCreditNotifications = () => {
   const { isAuthenticated, token } = useAuth();
+  const { locale } = useLanguage();
   
   // Track processed notifications to prevent infinite loops
   const processedNotifications = useRef<Set<string>>(new Set());
@@ -85,7 +87,8 @@ export const useCreditNotifications = () => {
       
       try {
         // Add cache-busting and request tracking for production
-        const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/user/notifications/credits`;
+        // Use a dedicated endpoint for credit notifications only
+        const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/${locale}/user/notifications/credits`;
         const requestHeaders = {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -113,8 +116,14 @@ export const useCreditNotifications = () => {
 
           
           // Filter out already processed notifications to prevent infinite loops
+          // Only process credit-related notifications (those with request_id)
           const newNotifications = notifications.filter(notification => {
-            if (!notification || !notification.request_id) {
+            if (!notification) {
+              return false;
+            }
+            
+            // Only process credit notifications (must have request_id)
+            if (!notification.request_id) {
               return false;
             }
             
@@ -153,7 +162,7 @@ export const useCreditNotifications = () => {
                     
                     // Send acknowledgment to backend (optional - helps ensure notification is truly marked as read)
                     try {
-                      const ackResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/notifications/${notification.id}/acknowledge`, {
+                      const ackResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/${locale}/user/notifications/${notification.id}/acknowledge`, {
                         method: 'POST',
                         headers: {
                           'Authorization': `Bearer ${token}`,
@@ -175,7 +184,7 @@ export const useCreditNotifications = () => {
                   
                   // Send acknowledgment to backend (optional)
                   try {
-                    const ackResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/notifications/${notification.id}/acknowledge`, {
+                    const ackResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/${locale}/user/notifications/${notification.id}/acknowledge`, {
                       method: 'POST',
                       headers: {
                         'Authorization': `Bearer ${token}`,
@@ -269,7 +278,7 @@ export const useCreditNotifications = () => {
       consecutiveErrors.current = 0;
       isPolling.current = false;
     };
-  }, [isAuthenticated, token]);
+  }, [isAuthenticated, token, locale]);
 
   // Option 2: Server-Sent Events (SSE) - Uncomment and adapt if your backend supports SSE
   /*

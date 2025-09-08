@@ -39,7 +39,8 @@ class CreditNotificationErrorBoundary extends React.Component<
 function CreditNotificationLogic() {
   try {
     // Initialize credit notifications with error handling
-    useCreditNotifications();
+    // Temporarily disabled for testing
+    // useCreditNotifications();
   } catch (error) {
     console.error('Error initializing credit notifications:', error);
   }

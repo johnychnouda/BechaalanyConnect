@@ -84,9 +84,9 @@ export default function Header({ children }: PropsWithChildren) {
         <div className="hidden lg:flex items-center  gap-1 sm:gap-2 lg:gap-4 ml-auto flex-nowrap min-w-0 max-w-full overflow-x-auto whitespace-nowrap">
           {isAuthenticated ? (
             <>
-              <Notification
+              {/* <Notification
                 count={count}
-              />
+              /> */}
               {user && (
                 <div className="flex items-center gap-2">
                   <BlurredPrice 

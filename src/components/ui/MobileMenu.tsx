@@ -72,9 +72,9 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                 </button>
                 {isAuthenticated && (
                     <div className="flex items-center justify-center w-full gap-2">
-                        <Notification
+                        {/* <Notification
                             count={count}
-                        />
+                        /> */}
                         {user && <BlurredPrice price={user.credits_balance} />}
                         <ButtonLink
                             onClick={() => {

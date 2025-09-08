@@ -1,7 +1,9 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { useNotificationStore } from '@/store/notification.store';
 import { useAppTheme } from '@/hooks/use-app-theme';
+import { useAuth } from '@/context/AuthContext';
+import { useLanguage } from '@/hooks/use-language';
 
 // Error Boundary Component for notifications
 class NotificationErrorBoundary extends React.Component<
@@ -57,10 +59,141 @@ const NotificationsPageContent: React.FC = () => {
     markAsRead,
     markAllAsRead,
     clearAll,
-    loadMore
+    loadMore,
+    setNotifications,
+    deleteNotification,
+    deleteAllRead
   } = useNotificationStore();
 
   const { theme } = useAppTheme();
+  const { isAuthenticated, token } = useAuth();
+  const { locale } = useLanguage();
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
+
+  // Fetch notifications from backend on mount
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (!isAuthenticated || !token || hasLoaded) {
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/${locale}/user/notifications`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const backendNotifications = await response.json();
+          
+          // Map backend notifications to frontend format
+          const mappedNotifications = backendNotifications.map((notification: any) => ({
+            id: notification.id,
+            status: notification.type === 'credit_approved' ? 'success' : 
+                   notification.type === 'credit_rejected' ? 'rejected' : 'success',
+            title: notification.type === 'credit_approved' ? 'Credit Request Approved' :
+                   notification.type === 'credit_rejected' ? 'Credit Request Rejected' :
+                   'Notification',
+            description: notification.message || 
+                        (notification.type === 'credit_approved' ? `Your credit request has been approved and $${notification.amount} has been added to your balance.` :
+                         notification.type === 'credit_rejected' ? `Your credit request for $${notification.amount} has been rejected.` :
+                         'You have a new notification.'),
+            date: notification.created_at,
+            readStatus: notification.read_at ? 'read' : 'unread',
+            type: notification.type?.includes('credit') ? 'credit' : 'system',
+            amount: notification.amount,
+            request_id: notification.request_id,
+          }));
+
+          setNotifications(mappedNotifications);
+          setHasLoaded(true);
+        } else {
+          console.error('Failed to fetch notifications:', response.status, response.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchNotifications();
+  }, [isAuthenticated, token, locale, hasLoaded, setNotifications]);
+
+  // Handle deleting a single notification
+  const handleDeleteNotification = async (notificationId: number) => {
+    if (!isAuthenticated || !token) return;
+
+    try {
+      const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/user/notifications/${notificationId}`;
+      console.log('Delete single URL:', url);
+      console.log('Token:', token ? 'Present' : 'Missing');
+      
+      // Call backend delete endpoint
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('Delete single response status:', response.status);
+      console.log('Delete single response headers:', Object.fromEntries(response.headers.entries()));
+
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log('Delete single success:', responseData);
+        // Remove from local store
+        deleteNotification(notificationId);
+      } else {
+        const errorData = await response.text();
+        console.error('Failed to delete notification:', response.status, response.statusText, errorData);
+      }
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
+  };
+
+  // Handle deleting all read notifications
+  const handleDeleteAllRead = async () => {
+    if (!isAuthenticated || !token) return;
+
+    try {
+      const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/user/notifications/delete-read`;
+      console.log('Delete all read URL:', url);
+      console.log('Token:', token ? 'Present' : 'Missing');
+      
+      // Call backend delete all read endpoint
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('Delete all read response status:', response.status);
+      console.log('Delete all read response headers:', Object.fromEntries(response.headers.entries()));
+
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log('Delete all read success:', responseData);
+        // Remove all read notifications from local store
+        deleteAllRead();
+      } else {
+        const errorData = await response.text();
+        console.error('Failed to delete read notifications:', response.status, response.statusText, errorData);
+      }
+    } catch (error) {
+      console.error('Error deleting read notifications:', error);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     try {
@@ -157,6 +290,12 @@ const NotificationsPageContent: React.FC = () => {
                   <ActionBadge>{notifications.filter(n => n.readStatus !== 'read').length}</ActionBadge>
                 </ActionContent>
               </ActionButton>
+              <ActionButton onClick={handleDeleteAllRead}>
+                <ActionContent>
+                  <ActionTitle>Delete Read</ActionTitle>
+                  <ActionBadge>{notifications.filter(n => n.readStatus === 'read').length}</ActionBadge>
+                </ActionContent>
+              </ActionButton>
               <ActionButton onClick={clearAll}>
                 <ActionContent>
                   <ActionTitle>Clear All</ActionTitle>
@@ -204,7 +343,12 @@ const NotificationsPageContent: React.FC = () => {
         </FilterContainer>
 
         <ListArea>
-          {hasNotifications ? (
+          {isLoading ? (
+            <EmptyState>
+              <span className="empty-icon">⏳</span>
+              <span className="empty-text">Loading notifications...</span>
+            </EmptyState>
+          ) : hasNotifications ? (
             <>
               {Object.entries(groupedNotifications).map(([date, notifications]) => (
                 <NotificationGroup key={date}>
@@ -249,7 +393,18 @@ const NotificationsPageContent: React.FC = () => {
                             )} */}
                           </NotifTexts>
                         </NotifLeft>
-                        <NotifDate>{formatDate(notif.date)}</NotifDate>
+                        <NotifRight>
+                          <NotifDate>{formatDate(notif.date)}</NotifDate>
+                          <DeleteButton 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteNotification(notif.id);
+                            }}
+                            title="Delete notification"
+                          >
+                            ×
+                          </DeleteButton>
+                        </NotifRight>
                       </NotificationCard>
                     ))}
                   </NotificationList>
@@ -690,6 +845,14 @@ const NotifDesc = styled.div`
   }
 `;
 
+const NotifRight = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+`;
+
 const NotifDate = styled.div`
   font-family: 'Roboto';
   font-style: normal;
@@ -699,12 +862,36 @@ const NotifDate = styled.div`
   color: var(--color-app-black);
   text-align: right;
   white-space: nowrap;
-  flex-shrink: 0;
-  margin-left: 8px;
-  align-self: center;
 
   .dark & {
     color: var(--color-app-white);
+  }
+`;
+
+const DeleteButton = styled.button`
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #E73828;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+
+  &:hover {
+    opacity: 1;
+    background: #d32f2f;
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 `;
 
