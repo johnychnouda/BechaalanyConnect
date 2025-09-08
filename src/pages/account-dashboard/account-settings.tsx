@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import BackButton from "@/components/ui/back-button";
 import { useAuth } from "@/context/AuthContext";
 import { useGlobalContext } from "@/context/GlobalContext";
-import { updateUserInfo, fetchCurrentUser } from "@/services/api.service";
+import { updateUserInfo, fetchCurrentUser, updateUserPassword } from "@/services/api.service";
 import { useLanguage } from "@/hooks/use-language";
 import { toast } from "react-toastify";
 import { useRouter } from "next/router";
@@ -90,6 +90,7 @@ export default function AccountSettings() {
   const userTypes = generalData?.user_types || [];
   const { locale } = useLanguage();
   const router = useRouter();
+  const [changePasswordError, setChangePasswordError] = useState<string | null>(null);
 
   // Profile data state
   const [profileData, setProfileData] = useState<any>(null);
@@ -236,13 +237,26 @@ export default function AccountSettings() {
     }
   };
 
-  const handleSecuritySubmit = (e: React.FormEvent) => {
+  async function handleSecuritySubmit(e: React.FormEvent) {
     e.preventDefault();
     // Save password logic
-    console.log("Changing password:", security);
-    alert(locale === 'en' ? 'Password changed!' : 'تم تغيير كلمة المرور!');
-    setShowSecurity(false);
-  };
+    const restructuredSecurity = {
+      current_password: security.oldPassword,
+      new_password: security.newPassword,
+      new_password_confirmation: security.confirmPassword,
+    }
+    try {
+      await updateUserPassword(locale, restructuredSecurity);
+      toast.success(locale === 'en' ? 'Password changed!' : 'تم تغيير كلمة المرور!');
+      setShowSecurity(false);
+
+      setSecurity({ oldPassword: "", newPassword: "", confirmPassword: "" });
+
+    } catch (error: any) {
+      setChangePasswordError(error);
+    }
+
+  }
 
   const handleDiscard = () => {
     setSecurity({ oldPassword: "", newPassword: "", confirmPassword: "" });
@@ -416,32 +430,39 @@ export default function AccountSettings() {
             </div>
             {showSecurity && (
               <form onSubmit={handleSecuritySubmit} id="security-section">
-                <div className="text-[22px] font-semibold text-[#E73828] mb-6">Account Security</div>
+                <div className="text-[22px] font-semibold text-[#E73828] mb-6">{locale === 'en' ? 'Account Security' : 'أمان الحساب'}</div>
                 <div className="mb-4">
-                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Old Password</label>
+                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{locale === 'en' ? 'Old Password' : 'كلمة المرور القديمة'}</label>
                   <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
-                    <input name="oldPassword" value={security.oldPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="password" placeholder="Old Password" />
+                    <input name="oldPassword" value={security.oldPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="password" placeholder={locale === 'en' ? 'Old Password' : 'كلمة المرور القديمة'} />
                   </div>
                 </div>
                 <div className="mb-4">
-                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">New Password</label>
+                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{locale === 'en' ? 'New Password' : 'كلمة المرور الجديدة'}</label>
                   <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
-                    <input name="newPassword" value={security.newPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="password" placeholder="New Password" />
+                    <input name="newPassword" value={security.newPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="password" placeholder={locale === 'en' ? 'New Password' : 'كلمة المرور الجديدة'} />
                   </div>
                 </div>
                 <div className="mb-8">
-                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Confirm New Password</label>
+                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{locale === 'en' ? 'Confirm New Password' : 'تأكيد كلمة المرور الجديدة'}</label>
                   <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
-                    <input name="confirmPassword" value={security.confirmPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="password" placeholder="Confirm New Password" />
+                    <input name="confirmPassword" value={security.confirmPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="password" placeholder={locale === 'en' ? 'Confirm New Password' : 'تأكيد كلمة المرور الجديدة'} />
                   </div>
                 </div>
+                {
+                  changePasswordError && (
+                    <div className="text-red-500 text-sm mb-4">
+                      {changePasswordError}
+                    </div>
+                  )
+                }
                 <div className="flex flex-row flex-nowrap w-full gap-4 overflow-x-auto">
                   <button
                     type="submit"
-                    className="bg-[#E73828] text-white rounded-full py-3 font-bold text-lg hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap"
+                    className="bg-[#E73828] text-white rounded-full py-3 font-bold text-lg border border-[#E73828] hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap"
                     style={{ flexShrink: 1, maxWidth: '200px' }}
                   >
-                    SAVE PASSWORD
+                    {locale === 'en' ? 'SAVE PASSWORD' : 'حفظ كلمة المرور'}
                   </button>
                   <button
                     type="button"
@@ -449,7 +470,7 @@ export default function AccountSettings() {
                     style={{ flexShrink: 1, maxWidth: '200px' }}
                     onClick={handleDiscard}
                   >
-                    DISCARD CHANGES
+                    {locale === 'en' ? 'DISCARD CHANGES' : 'تجاهل التغييرات'}
                   </button>
                 </div>
               </form>

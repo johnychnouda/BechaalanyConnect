@@ -197,3 +197,13 @@ export const updateUserInfo = async (locale: string, userData: any) => {
         throw error;
     }
 };
+
+export const updateUserPassword = async (locale: string, passwordData: any) => {
+    try {
+        const { data } = await api.put(`/${locale}/change-password`, passwordData);
+        return data;
+    } catch (error) {
+        console.error('Error updating user password:', error);
+        throw error;
+    }
+};
