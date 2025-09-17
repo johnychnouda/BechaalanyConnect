@@ -25,7 +25,7 @@ const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({ isOpen, onClose, on
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <h2 className="text-3xl font-extrabold text-[#E73828] text-center mb-1 tracking-tight">{ locale === 'ar' ? 'تحقق من بريدك الإلكتروني' : 'VERIFY YOUR EMAIL'}</h2>
-      <p className="text-center text-black text-base mb-6">{ locale === 'ar' ? 'لقد أرسلنا رمز التحقق إلى بريدك الإلكتروني يرجى التحقق من صندوق الوارد وإدخال الرمز أدناه' : "We've sent a verification code to your email<br />please check your inbox and enter the code below"}</p>
+      <p className="text-center text-black text-base mb-6">{ locale === 'ar' ? 'لقد أرسلنا رمز التحقق إلى بريدك الإلكتروني يرجى التحقق من صندوق الوارد وإدخال الرمز أدناه' : "We've sent a verification code to your email please check your inbox and enter the code below"}</p>
       {error && <div className="w-full mb-2 text-center text-red-600 text-sm font-semibold">{error}</div>}
       {success && <div className="w-full mb-2 text-center text-green-600 text-sm font-semibold">{success}</div>}
       <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
@@ -47,7 +47,7 @@ const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({ isOpen, onClose, on
         </button>
       </form>
       <div className="w-full text-center mt-4 text-black text-base">
-        { locale === 'ar' ? 'لم تستلم بريد إلكتروني؟' : "Didn't Receive an Email ?{' '}"}
+        { locale === 'ar' ? 'لم تستلم بريد إلكتروني؟' : "Didn't Receive an Email ? "}
         {onResend && <button type="button" className="text-[#E73828] font-bold hover:underline" onClick={onResend}>{ locale === 'ar' ? 'حاول مرة أخرى' : 'Try Again'}</button>}
       </div>
     </Modal>

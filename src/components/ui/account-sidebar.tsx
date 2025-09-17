@@ -42,12 +42,12 @@ export default function AccountSidebar({ onClose, menuItems, logoutButton }: { o
         ))}
       </div>
       {/* Logout Section */}
-      <div className="mt-4 pt-3 border-t border-[#070707]/20 w-full pb-8 mb-0 flex flex-col items-center">
+      <div className="hidden lg:flex mt-4 pt-3 border-t border-[#070707]/20 w-full pb-8 mb-0 flex-col items-center">
         <button
           onClick={logout}
           className="group flex items-center justify-center gap-2 font-['Roboto'] font-semibold text-[13px] bg-[#E73828] text-white border border-[#E73828] rounded-lg px-4 py-2.5 transition-all duration-200 hover:bg-white hover:text-[#E73828] hover:border-[#E73828] shadow-sm"
         >
-          <span>{logoutButton}</span>
+          {logoutButton}
           <ArrowRightOnRectangleIcon className="w-4 h-4 text-white group-hover:text-app-red rtl:rotate-y-180" />
         </button>
       </div>

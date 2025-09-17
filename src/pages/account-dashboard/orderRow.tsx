@@ -3,6 +3,7 @@ import { formatDate } from "@/utils/date";
 import { generateOrderReceiptFromProcessedOrder } from "@/utils/pdf-generator";
 import { useRouter } from 'next/router';
 import ReceiptPreviewModal from '@/components/ui/receipt-preview-modal';
+import OrderCodes from '@/components/ui/order-codes';
 
 export interface ProcessedOrder {
   id: number;
@@ -95,7 +96,10 @@ function orderRow({ order }: { order: ProcessedOrder }) {
             </div>
             {
               order?.status === 'accepted' && order?.code && (
-                <div className="text-xs text-[#070707] font-normal mt-3" dangerouslySetInnerHTML={{ __html: order?.code }}></div>
+                <OrderCodes 
+                  htmlContent={order.code} 
+                  className="text-xs font-normal mt-3" 
+                />
               )
             } 
             <div>
