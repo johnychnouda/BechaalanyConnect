@@ -21,6 +21,7 @@ import PageLoader from '@/components/ui/PageLoader';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { clearSessionTokens, hasMultipleSessionTokens, logSessionTokens } from '@/utils/clear-session-tokens';
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 
 
@@ -147,6 +148,7 @@ export default function App({
                                     pauseOnHover
                                     theme={"colored"}
                                   />
+                                  <SpeedInsights />
 
                                 </NextIntlClientProvider>
                 </QueryClientProvider>
