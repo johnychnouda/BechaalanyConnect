@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
+import { type GetServerSideProps } from 'next';
 import BackButton from '@/components/ui/back-button';
 import ComingSoon from '@/components/ui/coming-soon';
 import Breadcrumb from '@/components/ui/breadcrumb';
@@ -67,6 +68,17 @@ const SubCategoryPage: React.FC = () => {
     return null;
   }
 
+  const shouldRedirectToSingleProduct = useMemo(() => {
+    return !isLoading && products && products.length === 1;
+  }, [isLoading, products]);
+
+  useEffect(() => {
+    if (shouldRedirectToSingleProduct) {
+      const onlyProduct = products[0];
+      router.replace(`/categories/${categorySlug}/${subcategorySlug}/${onlyProduct.slug}`);
+    }
+  }, [shouldRedirectToSingleProduct, products, router, categorySlug, subcategorySlug]);
+
   const breadcrumbItems = [
     { label: generalData?.settings?.homepage_label || '', href: '/' },
     { label: generalData?.settings?.categories_label || '', href: '/categories' },
@@ -90,7 +102,7 @@ const SubCategoryPage: React.FC = () => {
             <CardSkeleton key={i} />
           ))}
         </div>
-      ) : (
+      ) : shouldRedirectToSingleProduct ? null : (
         products.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 mt-4 sm:mt-8">
             {products.map((product) => (
@@ -115,3 +127,29 @@ const SubCategoryPage: React.FC = () => {
 };
 
 export default SubCategoryPage; 
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  try {
+    const locale = context.locale || 'en';
+    const { category, subcategory } = context.params as { category: string; subcategory: string };
+
+    const data = await fetchProductsData(locale, category, subcategory);
+    const products = data?.products || [];
+
+    if (Array.isArray(products) && products.length === 1) {
+      const productSlug = products[0]?.slug;
+      if (productSlug) {
+        return {
+          redirect: {
+            destination: `/categories/${category}/${subcategory}/${productSlug}?single=1`,
+            permanent: false
+          }
+        };
+      }
+    }
+
+    return { props: {} };
+  } catch (_err) {
+    return { props: {} };
+  }
+};

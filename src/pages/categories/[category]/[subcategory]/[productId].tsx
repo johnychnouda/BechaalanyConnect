@@ -64,7 +64,7 @@ const ProductPage: React.FC = () => {
   const { user, refreshUserData } = useAuth();
   const { refreshOrders, generalData } = useGlobalContext();
   const { locale } = useRouter();
-  const { category: categorySlug, subcategory: subcategorySlug, productId: productSlug } = router.query;
+  const { category: categorySlug, subcategory: subcategorySlug, productId: productSlug, single } = router.query;
   const [isLoading, setIsLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -149,7 +149,7 @@ const ProductPage: React.FC = () => {
     { label: generalData?.settings.homepage_label || '', href: '/' },
     { label: generalData?.settings.categories_label || '', href: '/categories' },
     { label: currentCategory, href: `/categories/${categorySlug}` },
-    { label: currentSubcategory, href: `/categories/${categorySlug}/${subcategorySlug}` },
+    { label: currentSubcategory, href: single ? `/categories/${categorySlug}` : `/categories/${categorySlug}/${subcategorySlug}` },
     { label: product?.name || '' }
   ];
 
@@ -173,7 +173,7 @@ const ProductPage: React.FC = () => {
         </div>
         {/*Back Button*/}
         <div className="w-full px-4 md:px-12 mb-4">
-          <BackButton label={generalData?.settings.back_button_label} href={`/categories/${categorySlug}/${subcategorySlug}`} />
+          <BackButton label={generalData?.settings.back_button_label} href={single ? `/categories/${categorySlug}` : `/categories/${categorySlug}/${subcategorySlug}`} />
         </div>
         <div className="flex items-center justify-center h-64">
           <ComingSoon />
@@ -246,7 +246,7 @@ const ProductPage: React.FC = () => {
           <Breadcrumb items={breadcrumbItems} />
         </div>
         <div className="w-full px-4 md:px-12 mb-4">
-          <BackButton label={generalData?.settings.back_button_label} href={`/categories/${categorySlug}/${subcategorySlug}`} />
+          <BackButton label={generalData?.settings.back_button_label} href={single ? `/categories/${categorySlug}` : `/categories/${categorySlug}/${subcategorySlug}`} />
         </div>
 
         {/* Main Content */}
