@@ -8,6 +8,7 @@ import Error from "next/error";
 import { useGlobalContext } from "@/context/GlobalContext";
 import { fetchSubCategoriesData } from "@/services/api.service";
 import CardSkeleton from "@/components/ui/card-skeleton";
+import SeoHead from "@/components/ui/SeoHead";
 
 interface SubCategory {
   id: number;
@@ -89,6 +90,20 @@ export default function CategoryPage() {
 
   return (
     <div className="container mx-auto px-4 py-6">
+      <SeoHead seo={{
+        title: `${currentCategory || (category as string)} - Bechaalany Connect`,
+        description: `Browse category ${currentCategory || category}`,
+        og: {
+          title: `${currentCategory || (category as string)} - Bechaalany Connect`,
+          description: `Browse category ${currentCategory || category}`,
+          image: generalData?.settings?.full_path?.logo || undefined,
+          url: `${process.env.NEXT_PUBLIC_SITE_URL}/categories/${category}`,
+          type: 'website',
+        },
+        canonical_url: `${process.env.NEXT_PUBLIC_SITE_URL}/categories/${category}`,
+        meta_robots: 'index, follow',
+        keywords: `${currentCategory || (category as string)} - Bechaalany Connect`,
+      }} />
       <Breadcrumb items={breadcrumbItems} />
       <BackButton href="/categories" className="mb-4" label={generalData?.settings.back_button_label || ''} />
       {isLoading ? (

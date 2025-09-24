@@ -14,6 +14,7 @@ import { showError, showSuccess } from '@/utils/toast';
 import CardSkeleton from '@/components/ui/card-skeleton';
 import { useGlobalContext } from "@/context/GlobalContext";
 import { useCreditOperations } from "@/services/credits.service";
+import SeoHead from "@/components/ui/SeoHead";
 
 interface ProductVariation {
   id: number;
@@ -241,6 +242,20 @@ const ProductPage: React.FC = () => {
   return (
     productVariations.length > 0 ? (
       <PageLayout className="flex flex-col min-h-screen px-0 md:px-0 py-0 bg-white">
+        <SeoHead seo={{
+        title: `${currentSubcategory || subcategorySlug} ${selectedAmount.amount} - Bechaalany Connect`,
+        description: `Browse product ${currentSubcategory || subcategorySlug} ${selectedAmount.amount}`,
+        og: {
+          title: `${currentSubcategory || subcategorySlug} ${selectedAmount.amount} - Bechaalany Connect`,
+          description: `Browse product ${currentSubcategory || subcategorySlug} ${selectedAmount.amount}`,
+          image: generalData?.settings?.full_path?.logo || undefined,
+          url: `${process.env.NEXT_PUBLIC_SITE_URL}/categories/${categorySlug}/${subcategorySlug}/${productSlug}`,
+          type: 'website',
+        },
+        canonical_url: `${process.env.NEXT_PUBLIC_SITE_URL}/categories/${categorySlug}/${subcategorySlug}/${productSlug}`,
+        meta_robots: 'index, follow',
+        keywords: `${currentSubcategory || subcategorySlug} ${selectedAmount.amount} - ${currentCategory || categorySlug} - Bechaalany Connect`,
+      }} />
         {/* Breadcrumb */}
         <div className="w-full px-4 md:px-12 pt-6 pb-2">
           <Breadcrumb items={breadcrumbItems} />

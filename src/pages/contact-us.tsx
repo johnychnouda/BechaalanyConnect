@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Head from "next/head";
+import SeoHead from "@/components/ui/SeoHead";
 import Image from "next/image";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -113,10 +113,7 @@ export default function ContactUs() {
 
   return (
     <>
-      <Head>
-        <title>Contact Us - Bechaalany Connect</title>
-        <meta name="description" content="Contact Bechaalany Connect" />
-      </Head>
+      <SeoHead seo={contactUsData?.seo} />
 
       {isLoading ? <PageLoader />
         :

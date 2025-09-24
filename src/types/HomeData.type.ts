@@ -49,4 +49,18 @@ export type HomepageDataType = {
     homepageSettings: HomepageSettingsType;
     categories: CategoryType[];
     latest_products: ProductType[];
+    seo?: {
+        title?: string | null;
+        description?: string | null;
+        keywords?: string | null;
+        canonical_url?: string | null;
+        meta_robots?: string | null;
+        og?: {
+            title?: string | null;
+            description?: string | null;
+            image?: string | null;
+            url?: string | null;
+            type?: string | null;
+        } | null;
+    } | null;
 };

@@ -8,6 +8,7 @@ import { fetchCategoriesData } from '@/services/api.service';
 import { Category } from '@/types/category.type';
 import PageLoader from '@/components/ui/PageLoader';
 import CardSkeleton from '@/components/ui/card-skeleton';
+import SeoHead from '@/components/ui/SeoHead';
 
 const CategoryCard: React.FC<{ category: Category }> = ({ category }) => {
   return (
@@ -64,6 +65,10 @@ const CategoriesPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-6">
+      <SeoHead seo={{
+        title: `${generalData?.settings.categories_label || 'Categories'} - Bechaalany Connect`,
+        description: generalData?.settings.categories_label || 'Browse categories',
+      }} />
       <Breadcrumb items={breadcrumbItems} />
       <BackButton href="/" className="mb-4" label={generalData?.settings.back_button_label || ''} />
 

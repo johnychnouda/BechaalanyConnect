@@ -8,6 +8,7 @@ import Card from '@/components/ui/card';
 import { fetchProductsData } from '@/services/api.service';
 import { useGlobalContext } from '@/context/GlobalContext';
 import CardSkeleton from '@/components/ui/card-skeleton';
+import SeoHead from '@/components/ui/SeoHead';
 
 interface Product {
   id: string;
@@ -88,6 +89,20 @@ const SubCategoryPage: React.FC = () => {
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+      <SeoHead seo={{
+        title: `${currentSubcategory || subcategorySlug} - Bechaalany Connect`,
+        description: `Browse subcategory ${currentSubcategory || subcategorySlug}`,
+        og: {
+          title: `${currentSubcategory || subcategorySlug} - Bechaalany Connect`,
+          description: `Browse subcategory ${currentSubcategory || subcategorySlug}`,
+          image: generalData?.settings?.full_path?.logo || undefined,
+          url: `${process.env.NEXT_PUBLIC_SITE_URL}/categories/${categorySlug}/${subcategorySlug}`,
+          type: 'website',
+        },
+        canonical_url: `${process.env.NEXT_PUBLIC_SITE_URL}/categories/${categorySlug}/${subcategorySlug}`,
+        meta_robots: 'index, follow',
+        keywords: `${currentSubcategory || subcategorySlug} - ${currentCategory || categorySlug} - Bechaalany Connect`,
+      }} />
       <div className="px-2 sm:px-0">
         <Breadcrumb items={breadcrumbItems} />
         <BackButton href={`/categories/${categorySlug}`} className="mb-2 sm:mb-4" label={generalData?.settings.back_button_label || ''} />

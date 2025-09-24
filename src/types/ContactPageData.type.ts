@@ -2,6 +2,20 @@ export type ContactUsDataType = {
     contact_page_setting: ContactPageSettingType
     contact_details: ContactDetailsType
     contact_form_subjects: ContactFormSubjectType[]
+    seo?: {
+        title?: string | null;
+        description?: string | null;
+        keywords?: string | null;
+        canonical_url?: string | null;
+        meta_robots?: string | null;
+        og?: {
+            title?: string | null;
+            description?: string | null;
+            image?: string | null;
+            url?: string | null;
+            type?: string | null;
+        } | null;
+    } | null;
 }
 
 export type ContactPageSettingType = {

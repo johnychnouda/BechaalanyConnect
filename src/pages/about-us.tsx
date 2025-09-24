@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Head from "next/head";
+import SeoHead from "@/components/ui/SeoHead";
 import Image from "next/image";
 import Link from "next/link";
 import { FaInstagram, FaFacebook, FaTiktok } from "react-icons/fa";
@@ -39,10 +40,7 @@ export default function AboutUs() {
 
   return (
     <>
-      <Head>
-        <title>About Us - Bechaalany Connect</title>
-        <meta name="description" content="Learn about Bechaalany Connect" />
-      </Head>
+      <SeoHead seo={aboutUsData?.seo} />
       {
         isLoading ? <PageLoader />
           :
