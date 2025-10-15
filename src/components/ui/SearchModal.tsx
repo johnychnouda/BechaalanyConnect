@@ -91,7 +91,13 @@ function SearchModal({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (isOpe
 
     const handleProductClick = (product: Product) => {
         setIsOpen(false);
-        router.push(`/categories/${product.subcategory.category.slug}/${product.subcategory.slug}/${product.slug}`);
+        const categorySlug = product?.subcategory?.category?.slug;
+        const subcategorySlug = product?.subcategory?.slug;
+        const productSlug = product?.slug;
+        const href = categorySlug && subcategorySlug && productSlug
+            ? `/categories/${categorySlug}/${subcategorySlug}/${productSlug}`
+            : `/products/coming-soon?product=${encodeURIComponent(productSlug || String(product.id))}`;
+        router.push(href);
     };
 
     // Slide animation classes

@@ -61,7 +61,15 @@ const SearchPage = () => {
                 <ul className="divide-y divide-gray-100 bg-white dark:bg-background-dark rounded shadow">
                     {results.map(product => (
                         <li key={product.id} className="py-3 px-4 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
-                            <Link href={`/categories/${product.subcategory.category.slug}/${product.subcategory.slug}/${product.slug}`}>
+                            {(() => {
+                                const categorySlug = product?.subcategory?.category?.slug;
+                                const subcategorySlug = product?.subcategory?.slug;
+                                const productSlug = product?.slug;
+                                const href = categorySlug && subcategorySlug && productSlug
+                                    ? `/categories/${categorySlug}/${subcategorySlug}/${productSlug}`
+                                    : `/products/coming-soon?product=${encodeURIComponent(productSlug || String(product.id))}`;
+                                return (
+                                    <Link href={href}>
                                 <div className="flex items-center gap-2">
                                     <div className="relative w-[50px] h-[50px] md:w-[70px] md:h-[70px] lg:w-[100px] lg:h-[100px] aspect-square rounded overflow-hidden">
                                         <Image src={product.full_path.image} alt={product.name} fill className="object-cover" />
@@ -70,7 +78,9 @@ const SearchPage = () => {
                                         <p className="text-sm font-medium">{product.name}</p>
                                     </div>
                                 </div>
-                            </Link>
+                                    </Link>
+                                );
+                            })()}
                         </li>
                     ))}
                 </ul>
