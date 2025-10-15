@@ -40,6 +40,8 @@ export default function CategoryPage() {
   const [currentCategory, setCurrentCategory] = useState<string | ''>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 12;
 
   useEffect(() => {
     if (!router.locale || !category) return;
@@ -82,6 +84,38 @@ export default function CategoryPage() {
   // const subCategories = getSubCategories(currentCategory.title);
   const hasContent = subCategories.length > 0;
 
+  // Sync page from query param
+  useEffect(() => {
+    const pageParam = router.query.page;
+    const raw = Array.isArray(pageParam) ? pageParam[0] : pageParam;
+    const parsed = raw ? parseInt(raw as string, 10) : 1;
+    setCurrentPage(Number.isFinite(parsed) && parsed > 0 ? parsed : 1);
+  }, [router.query.page]);
+
+  // Clamp current page when data changes
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(subCategories.length / itemsPerPage));
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [subCategories, currentPage]);
+
+  const totalPages = Math.max(1, Math.ceil(subCategories.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedSubCategories = subCategories.slice(startIndex, startIndex + itemsPerPage);
+
+  const goToPage = (page: number) => {
+    const target = Math.min(Math.max(1, page), totalPages);
+    router.push(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, page: target }
+      },
+      undefined,
+      { shallow: true, scroll: true }
+    );
+  };
+
   const breadcrumbItems = [
     { label: generalData?.settings?.homepage_label || '', href: '/' },
     { label: generalData?.settings?.categories_label || '', href: '/categories' },
@@ -116,7 +150,7 @@ export default function CategoryPage() {
         <div>
           <h1 className="text-2xl font-bold mb-6 dark:text-[#E73828]">{currentCategory}</h1>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {subCategories.map((subCategory) => (
+            {paginatedSubCategories.map((subCategory) => (
               <SubCategoryCard
                 key={subCategory.id}
                 category={subCategory}
@@ -124,6 +158,33 @@ export default function CategoryPage() {
               />
             ))}
           </div>
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-6">
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`px-3 py-1 rounded-full border border-app-red ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-app-red hover:text-white'} text-black`}
+              >
+                Prev
+              </button>
+              {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
+                <button
+                  key={pageNum}
+                  onClick={() => goToPage(pageNum)}
+                  className={`px-3 py-1 rounded-full border ${pageNum === currentPage ? 'bg-app-red text-white border-app-red' : 'border-app-red text-black hover:bg-app-red hover:text-white'}`}
+                >
+                  {pageNum}
+                </button>
+              ))}
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`px-3 py-1 rounded-full border border-app-red ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-app-red hover:text-white'} text-black`}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <ComingSoon title={currentCategory || (category as string)} />

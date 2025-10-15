@@ -31,7 +31,7 @@ export default function Card({
       <Link
         href={href}
         className={clsx(
-          "block rounded-lg overflow-hidden shadow-sm hover:shadow-md hover:border-red-500 border border-transparent transition-all duration-300 ease-in-out group relative w-full",
+          "block rounded-lg overflow-hidden shadow-md hover:shadow-md hover:border-red-500 border transition-all duration-300 ease-in-out group relative w-full",
           className
         )}
       >
