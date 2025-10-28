@@ -72,17 +72,6 @@ export default function CategoryPage() {
       });
   }, [router.locale, category]);
 
-  // if (isLoading) {
-  //   return <div>Loading...</div>;
-  // }
-
-  // If no category or categories, show 404
-  if (!category || !category.length) {
-    return <Error statusCode={404} />;
-  }
-
-  // const subCategories = getSubCategories(currentCategory.title);
-  const hasContent = subCategories.length > 0;
 
   // Sync page from query param
   useEffect(() => {
@@ -98,8 +87,14 @@ export default function CategoryPage() {
     if (currentPage > totalPages) {
       setCurrentPage(1);
     }
-  }, [subCategories, currentPage]);
+  }, [subCategories, currentPage, itemsPerPage]);
 
+  // If no category or categories, show 404 - MUST BE AFTER ALL HOOKS
+  if (!category || !category.length) {
+    return <Error statusCode={404} />;
+  }
+
+  const hasContent = subCategories.length > 0;
   const totalPages = Math.max(1, Math.ceil(subCategories.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedSubCategories = subCategories.slice(startIndex, startIndex + itemsPerPage);

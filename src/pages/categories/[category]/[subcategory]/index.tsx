@@ -65,10 +65,6 @@ const SubCategoryPage: React.FC = () => {
       });
   }, [router.locale, categorySlug, subcategorySlug]);
 
-  if (!categorySlug || !subcategorySlug || !products) {
-    return null;
-  }
-
   const shouldRedirectToSingleProduct = useMemo(() => {
     return !isLoading && products && products.length === 1;
   }, [isLoading, products]);
@@ -79,6 +75,11 @@ const SubCategoryPage: React.FC = () => {
       router.replace(`/categories/${categorySlug}/${subcategorySlug}/${onlyProduct.slug}`);
     }
   }, [shouldRedirectToSingleProduct, products, router, categorySlug, subcategorySlug]);
+
+  // Early return check AFTER all hooks
+  if (!categorySlug || !subcategorySlug) {
+    return null;
+  }
 
   const breadcrumbItems = [
     { label: generalData?.settings?.homepage_label || '', href: '/' },
