@@ -22,12 +22,13 @@ import MobileMenu from "./MobileMenu";
 import SearchModal from "./SearchModal";
 import { SearchIcon } from "@/assets/icons/search.icon";
 import { LoginIcon } from "@/assets/icons/login.icon";
+import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
 
 export default function Header({ children }: PropsWithChildren) {
   const { generalData } = useGlobalContext();
   const { theme } = useAppTheme();
   const isMounted = useIsMounted();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   const { count } = useNotificationStore();
   const { isRTL } = useLanguage();
   const creditsBalance = useCreditsBalance();
@@ -101,6 +102,16 @@ export default function Header({ children }: PropsWithChildren) {
               >
                 <ProfileIcon className="w-5 h-5 sm:w-5 sm:h-5 text-app-red group-hover:text-white" />
               </ButtonLink>
+              <button
+                type="button"
+                onClick={logout}
+                aria-label={generalData?.settings.logout_button}
+                title={generalData?.settings.logout_button}
+                className="group flex items-center justify-center gap-1 sm:gap-2 font-['Roboto'] font-semibold text-[11px] md:text-xs bg-app-red text-white border-2 border-app-red rounded-full px-2 sm:px-3 py-1 transition-all duration-200 hover:bg-white hover:text-app-red whitespace-nowrap min-w-0"
+              >
+                <span>{generalData?.settings.logout_button}</span>
+                <ArrowRightOnRectangleIcon className="w-4 h-4 rtl:rotate-y-180" aria-hidden="true" />
+              </button>
             </>
           ) : (
             <>
