@@ -11,9 +11,10 @@ interface VerifyEmailModalProps {
   error?: string;
   success?: string;
   locale?: string;
+  disableBackdropClose?: boolean;
 }
 
-const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({ isOpen, onClose, onVerify, onResend, loading, error, success, locale }) => {
+const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({ isOpen, onClose, onVerify, onResend, loading, error, success, locale, disableBackdropClose }) => {
   const { register, handleSubmit, formState: { errors } } = useForm<{ code: string }>({
     defaultValues: { code: "" },
   });
@@ -23,7 +24,7 @@ const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({ isOpen, onClose, on
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} disableBackdropClose={disableBackdropClose}>
       <h2 className="text-3xl font-extrabold text-[#E73828] text-center mb-1 tracking-tight">{ locale === 'ar' ? 'تحقق من بريدك الإلكتروني' : 'VERIFY YOUR EMAIL'}</h2>
       <p className="text-center text-black text-base mb-6">{ locale === 'ar' ? 'لقد أرسلنا رمز التحقق إلى بريدك الإلكتروني يرجى التحقق من صندوق الوارد وإدخال الرمز أدناه' : "We've sent a verification code to your email please check your inbox and enter the code below"}</p>
       {error && <div className="w-full mb-2 text-center text-red-600 text-sm font-semibold">{error}</div>}
