@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import BackButton from '@/components/ui/back-button';
 import Breadcrumb from '@/components/ui/breadcrumb';
@@ -81,14 +81,19 @@ const ProductPage: React.FC = () => {
   const [recipientUser, setRecipientUser] = useState('');
 
 
-  // Convert product variations to amounts format
-  const amounts: SelectedAmount[] = productVariations.map((variation, index) => ({
-    id: variation.id || index,
-    amount: variation.name,
-    price: variation.price_variations.find((price) => price.user_types_id === user?.user_types?.id)?.price || variation.price,
-    image: variation.full_path?.image,
-    description: variation.description
-  }));
+  // Convert a product variation to the amounts format (localized fields)
+  const toAmount = useCallback(
+    (variation: ProductVariation, index: number): SelectedAmount => ({
+      id: variation.id || index,
+      amount: variation.name,
+      price: variation.price_variations.find((price) => price.user_types_id === user?.user_types?.id)?.price || variation.price,
+      image: variation.full_path?.image,
+      description: variation.description,
+    }),
+    [user?.user_types?.id]
+  );
+
+  const amounts: SelectedAmount[] = productVariations.map(toAmount);
 
 
   useEffect(() => {
@@ -127,12 +132,17 @@ const ProductPage: React.FC = () => {
   }, [router.locale, categorySlug, subcategorySlug, productSlug]);
 
 
-  // Set initial selected amount when variations are loaded
+  // Keep the selected variation in sync with freshly fetched data (e.g. after a
+  // language switch), preserving the chosen variation by id but refreshing its
+  // localized fields (name, description, price). Falls back to the first variation.
   useEffect(() => {
-    if (amounts.length > 0 && !selectedAmount) {
-      setSelectedAmount(amounts[0]);
+    if (productVariations.length === 0) {
+      setSelectedAmount(null);
+      return;
     }
-  }, [amounts, selectedAmount]);
+    const list = productVariations.map(toAmount);
+    setSelectedAmount((prev) => (prev ? list.find((a) => a.id === prev.id) ?? list[0] : list[0]));
+  }, [productVariations, toAmount]);
 
   const [quantity, setQuantity] = useState(1);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -188,6 +198,12 @@ const ProductPage: React.FC = () => {
   const total = selectedAmount.price * quantity;
 
   const selectedProductVariation = productVariations.find((variation) => variation.id === selectedAmount?.id);
+
+  // The selected variation's description is rich HTML (CMS rich-textbox) and may be
+  // empty (e.g. "<p></p>" / "&nbsp;"); only render the section when it has real content.
+  const variationDescriptionHtml = selectedAmount?.description ?? '';
+  const hasVariationDescription =
+    variationDescriptionHtml.replace(/<[^>]*>/g, '').replace(/&nbsp;/gi, '').trim().length > 0;
 
   const handleBuyNow = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -249,7 +265,7 @@ const ProductPage: React.FC = () => {
 
   return (
     productVariations.length > 0 ? (
-      <PageLayout className="flex flex-col min-h-screen px-0 md:px-0 py-0 bg-white">
+      <PageLayout className="flex flex-col min-h-screen px-0 md:px-0 py-0 bg-white pb-24 lg:pb-0">
         <SeoHead seo={{
         title: `${currentSubcategory || subcategorySlug} ${selectedAmount.amount} - Bechaalany Connect`,
         description: `Browse product ${currentSubcategory || subcategorySlug} ${selectedAmount.amount}`,
@@ -264,156 +280,207 @@ const ProductPage: React.FC = () => {
         meta_robots: 'index, follow',
         keywords: `${currentSubcategory || subcategorySlug} ${selectedAmount.amount} - ${currentCategory || categorySlug} - Bechaalany Connect`,
       }} />
-        {/* Breadcrumb */}
-        <div className="w-full px-4 md:px-12 pt-6 pb-2">
-          <Breadcrumb items={breadcrumbItems} />
-        </div>
-        <div className="w-full px-4 md:px-12 mb-4">
-          <BackButton label={generalData?.settings.back_button_label} href={single ? `/categories/${categorySlug}` : `/categories/${categorySlug}/${subcategorySlug}`} />
-        </div>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start w-full px-2 md:px-12 pb-8  mx-auto">
-          {/* Product Image */}
-          <div className="relative h-full w-full mx-auto col-span-1 aspect-square max-h-[600px] max-w-[600px]">
-            <div className="block overflow-hidden rounded-[25px] shadow-sm border border-transparent relative h-full w-full">
-              <div className="relative w-full h-full">
-                {selectedAmount.image ? (
-                  <Image
-                    src={selectedAmount.image}
-                    alt={selectedAmount.amount}
-                    className="w-full h-full object-cover"
-                    fill
-                    objectFit='cover'
-                  />
-                ) : (
-                  <div className="flex items-center justify-center w-full h-full bg-slate-200">
-                    <LogoIcon className="w-full h-full object-cover p-6" />
-                  </div>
-                )}
-              </div>
-            </div>
+        <div className="w-full max-w-7xl mx-auto">
+          {/* Breadcrumb */}
+          <div className="w-full px-4 md:px-12 pt-6 pb-2">
+            <Breadcrumb items={breadcrumbItems} />
+          </div>
+          <div className="w-full px-4 md:px-12 mb-4">
+            <BackButton label={generalData?.settings.back_button_label} href={single ? `/categories/${categorySlug}` : `/categories/${categorySlug}/${subcategorySlug}`} />
           </div>
 
-          {/* Product Details */}
-          <form onSubmit={handleBuyNow} className="w-full max-w-[400px] mx-auto flex flex-col gap-4 col-span-1">
-            <h1 className="text-[32px] font-bold text-app-red leading-tight">{selectedAmount.amount}</h1>
-            <p className="text-gray-700 text-[15px] mb-2 dark:text-white">{product?.description || selectedAmount.description}</p>
+          {/* Main Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start w-full px-4 md:px-12 pb-8">
+            {/* Product Image */}
+            <div className="w-full lg:sticky lg:top-24 self-start">
+              <div className="relative w-full mx-auto aspect-square max-h-[600px] max-w-[600px]">
+                <div className="block overflow-hidden rounded-[25px] shadow-sm border border-transparent relative h-full w-full">
+                  {selectedAmount.image ? (
+                    <Image
+                      src={selectedAmount.image}
+                      alt={selectedAmount.amount}
+                      className="object-cover"
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 600px"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center w-full h-full bg-slate-200">
+                      <LogoIcon className="w-full h-full object-cover p-6" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
 
-            {/* Amount Select */}
-            <div className="mb-2">
-              <label className="block text-gray-800 font-semibold mb-1">{generalData?.settings.amount}</label>
-              <div ref={dropdownRef} className="relative w-full">
-                <button
-                  type="button"
-                  className={`w-full flex justify-between items-center box-border bg-white border border-app-red rounded-full px-4 py-2 text-[16px] font-roboto font-normal uppercase text-app-red transition-all duration-200 cursor-pointer focus:outline-none ${dropdownOpen ? 'ring-2 ring-app-red' : ''} group`}
-                  onClick={() => setDropdownOpen((open) => !open)}
-                >
-                  <span className="text-black">{selectedAmount.amount}</span>
-                  <span className="ml-2 flex items-center">
-                    <svg
-                      width="22"
-                      height="22"
-                      viewBox="0 0 22 22"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="transition-colors duration-200 text-gray-500 group-hover:text-app-red"
-                    >
-                      <path d="M6 9L11 14L16 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </span>
-                </button>
-                {dropdownOpen && (
-                  <div className="absolute left-0 right-0 mt-2 z-20 bg-white border border-app-red rounded-[12px] py-2 flex flex-col" style={{ padding: '8px 0' }}>
-                    {amounts.map((amount: SelectedAmount) => (
-                      <button
-                        key={amount.id}
-                        type="button"
-                        className={`text-left px-4 py-2 text-[16px] font-roboto font-normal uppercase ${amount.id === selectedAmount.id ? 'bg-app-red/10 text-black font-bold' : 'text-black'} hover:bg-app-red/20 transition-all rounded-[8px]`}
-                        onClick={() => { setSelectedAmount(amount); setDropdownOpen(false); }}
-                      >
-                        {amount.amount}
-                      </button>
-                    ))}
-                  </div>
+            {/* Purchase Panel */}
+            <form
+              id="purchase-form"
+              onSubmit={handleBuyNow}
+              className="w-full flex flex-col gap-4 rounded-2xl border border-gray-200 shadow-sm p-5 sm:p-6 bg-white"
+            >
+              <div>
+                <h1 className="text-[28px] sm:text-[32px] font-bold text-app-red leading-tight">{selectedAmount.amount}</h1>
+                {product?.description && (
+                  <p className="text-gray-700 text-[15px] mt-2 dark:text-white">{product.description}</p>
                 )}
               </div>
-            </div>
 
-            {/* Quantity Selector */}
-            {product?.product_type_id !== 1 && (
-              <div className="mb-2">
-                <label className="block text-gray-800 font-semibold mb-1">{generalData?.settings.quantity}</label>
-                <div className="flex items-center border border-app-red rounded-full px-2 py-1 w-full bg-white justify-between min-w-[160px]">
+              {/* Amount Select */}
+              <div>
+                <label htmlFor="amount-trigger" className="block text-gray-800 font-semibold mb-1">{generalData?.settings.amount}</label>
+                <div ref={dropdownRef} className="relative w-full">
                   <button
-                    className="w-8 h-8 flex items-center justify-center rounded-full border-none text-2xl text-black font-normal transition-transform duration-150 hover:scale-110 hover:bg-app-red/10 hover:text-black p-0"
-                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                    id="amount-trigger"
                     type="button"
-                  >-</button>
-                  <span className="text-lg font-normal w-8 text-center text-black select-none">{quantity}</span>
-                  <button
-                    className="w-8 h-8 flex items-center justify-center rounded-full border-none text-2xl text-black font-normal transition-transform duration-150 hover:scale-110 hover:bg-app-red/10 hover:text-black p-0"
-                    onClick={() => setQuantity(q => q + 1)}
-                    type="button"
-                  >+</button>
+                    aria-haspopup="listbox"
+                    aria-expanded={dropdownOpen}
+                    className={`w-full flex justify-between items-center box-border bg-white border border-app-red rounded-full px-4 py-2.5 text-[16px] font-roboto font-normal uppercase text-app-red transition-all duration-200 cursor-pointer focus:outline-none ${dropdownOpen ? 'ring-2 ring-app-red' : ''} group`}
+                    onClick={() => setDropdownOpen((open) => !open)}
+                  >
+                    <span className="text-black">{selectedAmount.amount}</span>
+                    <span className="ml-2 rtl:ml-0 rtl:mr-2 flex items-center">
+                      <svg
+                        width="22"
+                        height="22"
+                        viewBox="0 0 22 22"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className={`transition-transform duration-200 text-gray-500 group-hover:text-app-red ${dropdownOpen ? 'rotate-180' : ''}`}
+                      >
+                        <path d="M6 9L11 14L16 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                  </button>
+                  {dropdownOpen && (
+                    <div role="listbox" aria-label={generalData?.settings.amount} className="absolute left-0 right-0 mt-2 z-20 bg-white border border-app-red rounded-[12px] py-2 flex flex-col max-h-60 overflow-y-auto">
+                      {amounts.map((amount: SelectedAmount) => (
+                        <button
+                          key={amount.id}
+                          type="button"
+                          role="option"
+                          aria-selected={amount.id === selectedAmount.id}
+                          className={`text-left rtl:text-right px-4 py-2 text-[16px] font-roboto font-normal uppercase cursor-pointer ${amount.id === selectedAmount.id ? 'bg-app-red/10 text-black font-bold' : 'text-black'} hover:bg-app-red/20 transition-all rounded-[8px]`}
+                          onClick={() => { setSelectedAmount(amount); setDropdownOpen(false); }}
+                        >
+                          {amount.amount}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
 
-            {/* Product Type */}
-            {/* If product type id is 1, add input to enter User ID */}
-            {product?.product_type_id === 1 && (
-              <div className="mb-2">
-                <label className="block text-gray-800 font-semibold mb-1">{generalData?.settings.user_id_label}</label>
-                <input
-                  name="recipient_user"
-                  type="text"
-                  // required
-                  value={recipientUser}
-                  onChange={(e) => setRecipientUser(e.target.value)}
-                  className="w-full border border-app-red rounded-full px-2 py-1 bg-white"
-                  placeholder={generalData?.settings.user_id_placeholder}
-                />
-              </div>
-            )}
-
-            {/* If product type id is 3, add input to enter User phone number */}
-            {product?.product_type_id === 3 && (
-              <div className="mb-2">
-                <label className="block text-gray-800 font-semibold mb-1">{generalData?.settings.phone_number_label}</label>
-                <input
-                  name="recipient_phone_number"
-                  type="tel"
-                  // required
-                  value={recipientPhoneNumber}
-                  onChange={(e) => setRecipientPhoneNumber(e.target.value)}
-                  className={`w-full outline-none border border-app-red rounded-full px-2 py-1 bg-white ${locale === 'ar' ? 'rtl:text-right' : ''}`}
-                  placeholder={generalData?.settings.phone_number_placeholder}
-                />
-              </div>
-            )}
-
-            {/* Total — blurred until the account's identity is verified */}
-            <div className="flex justify-between items-center border-t border-gray-200 pt-3 mt-2 mb-2">
-              <span className="text-black text-lg font-bold">{generalData?.settings.total}</span>
-              <span className={`text-2xl font-bold text-app-red ${user && !isApproved ? 'filter blur-[6px] select-none' : ''}`}>${total.toFixed(2)}</span>
-            </div>
-
-            {/* Buy Button */}
-            {
-              submitLoading ?
-                <div className="w-full flex justify-center items-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E73828]"></div>
+              {/* Quantity Selector */}
+              {product?.product_type_id !== 1 && (
+                <div>
+                  <span className="block text-gray-800 font-semibold mb-1">{generalData?.settings.quantity}</span>
+                  <div role="group" aria-label={generalData?.settings.quantity} className="flex items-center border border-app-red rounded-full px-2 py-1 w-full bg-white justify-between min-w-[160px]">
+                    <button
+                      aria-label={locale === 'ar' ? 'إنقاص الكمية' : 'Decrease quantity'}
+                      className="w-9 h-9 flex items-center justify-center rounded-full border-none text-2xl text-black font-normal cursor-pointer transition-colors duration-150 hover:bg-app-red/10 p-0"
+                      onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                      type="button"
+                    >-</button>
+                    <span aria-live="polite" className="text-lg font-semibold w-8 text-center text-black select-none">{quantity}</span>
+                    <button
+                      aria-label={locale === 'ar' ? 'زيادة الكمية' : 'Increase quantity'}
+                      className="w-9 h-9 flex items-center justify-center rounded-full border-none text-2xl text-black font-normal cursor-pointer transition-colors duration-150 hover:bg-app-red/10 p-0"
+                      onClick={() => setQuantity(q => q + 1)}
+                      type="button"
+                    >+</button>
+                  </div>
                 </div>
-                :
-                <button
-                  type="submit"
-                  className="bg-app-red text-white font-bold py-2 px-6 rounded-full w-full mt-2 transition duration-300 text-lg hover:bg-white hover:text-app-red border border-app-red"
-                >
-                  {generalData?.settings.buy_now_button}
-                </button>
-            }
-          </form>
+              )}
+
+              {/* Product Type */}
+              {/* If product type id is 1, add input to enter User ID */}
+              {product?.product_type_id === 1 && (
+                <div>
+                  <label htmlFor="recipient_user" className="block text-gray-800 font-semibold mb-1">{generalData?.settings.user_id_label}</label>
+                  <input
+                    id="recipient_user"
+                    name="recipient_user"
+                    type="text"
+                    value={recipientUser}
+                    onChange={(e) => setRecipientUser(e.target.value)}
+                    className="w-full border border-app-red rounded-full px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-app-red"
+                    placeholder={generalData?.settings.user_id_placeholder}
+                  />
+                </div>
+              )}
+
+              {/* If product type id is 3, add input to enter User phone number */}
+              {product?.product_type_id === 3 && (
+                <div>
+                  <label htmlFor="recipient_phone_number" className="block text-gray-800 font-semibold mb-1">{generalData?.settings.phone_number_label}</label>
+                  <input
+                    id="recipient_phone_number"
+                    name="recipient_phone_number"
+                    type="tel"
+                    value={recipientPhoneNumber}
+                    onChange={(e) => setRecipientPhoneNumber(e.target.value)}
+                    className={`w-full outline-none border border-app-red rounded-full px-4 py-2 bg-white focus:ring-2 focus:ring-app-red ${locale === 'ar' ? 'rtl:text-right' : ''}`}
+                    placeholder={generalData?.settings.phone_number_placeholder}
+                  />
+                </div>
+              )}
+
+              {/* Total — blurred until the account's identity is verified */}
+              <div className="flex justify-between items-center bg-app-red/5 rounded-xl px-4 py-3 mt-1">
+                <span className="text-black text-base font-semibold">{generalData?.settings.total}</span>
+                <span className={`text-2xl font-extrabold text-app-red ${user && !isApproved ? 'filter blur-[6px] select-none' : ''}`}>${total.toFixed(2)}</span>
+              </div>
+
+              {/* Buy Button */}
+              {
+                submitLoading ?
+                  <div className="w-full flex justify-center items-center py-3">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E73828]"></div>
+                  </div>
+                  :
+                  <button
+                    type="submit"
+                    disabled={submitLoading}
+                    className="bg-app-red text-white font-bold py-3 px-6 rounded-full w-full transition-colors duration-300 text-lg hover:bg-white hover:text-app-red border border-app-red disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    {generalData?.settings.buy_now_button}
+                  </button>
+              }
+            </form>
+          </div>
+
+          {/* Variation Description (rich HTML, full width) */}
+          {hasVariationDescription && (
+            <section className="w-full px-4 md:px-12 pt-6 pb-2">
+              <h2 className="text-app-red text-[20px] font-bold mb-4 pb-2 border-b border-gray-200">
+                {locale === 'ar' ? 'الوصف' : 'Description'}
+              </h2>
+              <div
+                className="text-gray-700 dark:text-white leading-relaxed [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_a]:text-app-red [&_a]:underline [&_h1]:font-bold [&_h2]:font-bold rtl:[&_ul]:pr-6 rtl:[&_ul]:pl-0 rtl:[&_ol]:pr-6 rtl:[&_ol]:pl-0"
+                dangerouslySetInnerHTML={{ __html: variationDescriptionHtml }}
+              />
+            </section>
+          )}
+
+          {/* Related Products */}
+          {
+            relatedProducts.length > 0 && (
+              <section className="w-full px-4 md:px-12 pt-6 pb-8">
+                <h2 className="text-app-red text-[20px] font-bold mb-4 pb-2 border-b border-gray-200">{generalData?.settings.related_products}</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {relatedProducts.map((prod: Product) => (
+                    <Card
+                      key={prod.id}
+                      id={prod.id.toString()}
+                      title={prod.name}
+                      image={prod.full_path.image}
+                      type="product"
+                      href={`/categories/${categorySlug}/${subcategorySlug}/${prod.slug}`}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
         </div>
 
         <PendingApprovalModal
@@ -422,25 +489,24 @@ const ProductPage: React.FC = () => {
           locale={router.locale || 'en'}
         />
 
-        {/* Related Products */}
-        {
-          relatedProducts.length > 0 && (
-            <div className="w-full px-4 md:px-12 pt-6 pb-2">
-              <h2 className="text-app-red text-[20px] font-bold mb-4 mt-2">{generalData?.settings.related_products}</h2>
-              <div className="grid grid-cols-4 gap-2">
-                {relatedProducts.map((prod: Product, index: number) => (
-                  <Card
-                    key={index}
-                    id={prod.id.toString()}
-                    title={prod.name}
-                    image={prod.full_path.image}
-                    type="product"
-                    href={`/categories/${categorySlug}/${subcategorySlug}/${prod.slug}`}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+        {/* Sticky mobile Buy bar — keeps the CTA in view while scrolling */}
+        <div
+          className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-200 px-4 py-3 flex items-center justify-between gap-3 shadow-[0_-2px_8px_rgba(0,0,0,0.06)]"
+          style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
+        >
+          <div className="flex flex-col leading-tight">
+            <span className="text-xs text-gray-500">{generalData?.settings.total}</span>
+            <span className={`text-lg font-extrabold text-app-red ${user && !isApproved ? 'filter blur-[6px] select-none' : ''}`}>${total.toFixed(2)}</span>
+          </div>
+          <button
+            type="submit"
+            form="purchase-form"
+            disabled={submitLoading}
+            className="bg-app-red text-white font-bold py-2.5 px-8 rounded-full transition-colors duration-300 text-base hover:bg-white hover:text-app-red border border-app-red disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer whitespace-nowrap"
+          >
+            {generalData?.settings.buy_now_button}
+          </button>
+        </div>
       </PageLayout>
     ) : (
       <PageLayout className="flex flex-col min-h-screen px-0 md:px-0 py-0 bg-white">
