@@ -6,19 +6,20 @@ interface ModalProps {
   onClose: () => void;
   children: ReactNode;
   className?: string;
+  disableBackdropClose?: boolean;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, className }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, className, disableBackdropClose = false }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && !disableBackdropClose) onClose();
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, disableBackdropClose]);
 
   // Focus trap
   useEffect(() => {
@@ -39,7 +40,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, className }) =
       aria-modal="true"
       role="dialog"
       tabIndex={-1}
-      onClick={onClose}
+      onClick={disableBackdropClose ? undefined : onClose}
     >
       <div
         className={clsx(

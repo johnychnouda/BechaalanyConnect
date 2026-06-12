@@ -371,6 +371,7 @@ export default function SignupPage() {
         success={success}
         onResend={ResendCode}
         locale={locale}
+        disableBackdropClose
       />
     </>
   );
