@@ -30,6 +30,7 @@ declare module "next-auth" {
             total_purchases?: number;
             received_amount?: number;
             user_types?: UserSalesType;
+            verification_status?: 'unsubmitted' | 'pending' | 'approved' | 'rejected';
         };
     }
 }
@@ -103,8 +104,9 @@ export default NextAuth({
                             total_purchases: user.total_purchases || 0,
                             received_amount: user.received_amount || 0,
                             user_types: user.user_types,
+                            verification_status: user.verification_status,
                         };
-                        
+
                         return {
                             ...essentialUserData,
                             laravelToken: token,
@@ -163,6 +165,7 @@ export default NextAuth({
                             total_purchases: laravelUser.total_purchases || 0,
                             received_amount: laravelUser.received_amount || 0,
                             user_types: laravelUser.user_types,
+                            verification_status: laravelUser.verification_status,
                         };
                     }
                 } catch (error) {
@@ -200,6 +203,7 @@ export default NextAuth({
                             credits_balance: freshUserData.credits_balance || token.laravelUser?.credits_balance,
                             total_purchases: freshUserData.total_purchases || token.laravelUser?.total_purchases,
                             received_amount: freshUserData.received_amount || token.laravelUser?.received_amount,
+                            verification_status: freshUserData.user?.verification_status || token.laravelUser?.verification_status,
                         };
                     }
                 } catch (error) {
@@ -231,6 +235,7 @@ export default NextAuth({
                     total_purchases: token.laravelUser.total_purchases || 0,
                     received_amount: token.laravelUser.received_amount || 0,
                     user_types: token.laravelUser.user_types,
+                    verification_status: token.laravelUser.verification_status,
                 };
             }
             

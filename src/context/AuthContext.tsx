@@ -63,6 +63,7 @@ interface UserType {
   received_amount: number;
   orders?: Order[];
   user_types: UserSalesType;
+  verification_status: 'unsubmitted' | 'pending' | 'approved' | 'rejected';
 }
 
 interface UserSalesType {
@@ -76,6 +77,7 @@ interface AuthContextType {
   user: UserType | null;
   token: string | null;
   isAdmin: boolean;
+  isApproved: boolean;
   login: (email: string, password: string, lang?: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
@@ -168,6 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           credits_balance: freshUserData.credits_balance,
           total_purchases: freshUserData.total_purchases,
           received_amount: freshUserData.received_amount,
+          verification_status: freshUserData.user?.verification_status,
         });
         
         // Clear cache after successful update
@@ -227,10 +230,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     total_purchases: sessionUser.total_purchases || 0,
     received_amount: sessionUser.received_amount || 0,
     orders: session?.laravelUser?.orders || [],
+    verification_status: sessionUser.verification_status || 'unsubmitted',
   } : null);
-  
+
   const token = sessionToken;
   const isAdmin = user?.role === 'admin';
+  const isApproved = user?.verification_status === 'approved';
 
   const login = async (email: string, password: string, lang?: string) => {
     setLoading(true);
@@ -291,10 +296,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider value={{ 
-      isAuthenticated: stableIsAuthenticated, 
-      user, 
-      token, 
-      isAdmin, 
+      isAuthenticated: stableIsAuthenticated,
+      user,
+      token,
+      isAdmin,
+      isApproved,
       login, 
       loginWithGoogle, 
       logout, 

@@ -4,6 +4,7 @@ import { getToken } from 'next-auth/jwt';
 // Define protected paths that require authentication
 const protectedPaths = [
   '/profile',
+  '/account-verification',
   '/account-dashboard',
   '/account-dashboard/account-settings',
   '/account-dashboard/my-orders',
@@ -44,6 +45,16 @@ export async function middleware(req: NextRequest) {
         return NextResponse.redirect(url);
       }
       
+      // Users who haven't submitted (or were rejected on) their identity
+      // documents can only browse — dashboard pages require verification
+      const verificationStatus = (token as any)?.laravelUser?.verification_status;
+      if (
+        pathname.startsWith('/account-dashboard') &&
+        (verificationStatus === 'unsubmitted' || verificationStatus === 'rejected')
+      ) {
+        return NextResponse.redirect(new URL('/account-verification', req.url));
+      }
+
       // Check admin routes - ensure token has role property
       if (isAdminPath) {
         const userRole = (token as any)?.role || (token as any)?.laravelUser?.role;

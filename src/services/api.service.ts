@@ -91,20 +91,31 @@ export const submitContactForm = async (formData: {
     }
 };
 
-export const saveOrder = async (orderData: {
-    users_id: string;
+// The price, owner and status of the order are determined server-side
+export const saveOrder = async (locale: string, orderData: {
     product_variation_id: number;
     quantity: number;
-    total_price: number;
-    recipient_phone_number: string;
-    recipient_user: string;
-    statuses_id: number;
-    lang?: string;
+    recipient_phone_number?: string;
+    recipient_user?: string;
 }) => {
     try {
-        const { data } = await api.post('/save-order', orderData);
+        const { data } = await api.post(`/${locale}/save-order`, orderData);
         return data;
     } catch (error) {
+        throw error;
+    }
+};
+
+export const submitKyc = async (locale: string, formData: FormData) => {
+    try {
+        const { data } = await api.post(`/${locale}/kyc/submit`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return data;
+    } catch (error) {
+        console.error('Error submitting verification documents:', error);
         throw error;
     }
 };

@@ -48,7 +48,6 @@ export default function SignupPage() {
   const { login, loginWithGoogle, loading } = useAuth();
   const [error, setError] = useState("");
   const [showVerify, setShowVerify] = useState(false);
-  const [showPending, setShowPending] = useState(false);
   const [verifyEmail, setVerifyEmail] = useState("");
   const [verifyToken, setVerifyToken] = useState("");
   const [verifyError, setVerifyError] = useState("");
@@ -60,7 +59,6 @@ export default function SignupPage() {
   const [regPassword, setRegPassword] = useState("");
   const { generalData } = useGlobalContext();
   const countries = generalData?.countries || [];
-  const userTypes = generalData?.user_types || [];
   const { locale } = useRouter();
 
   const {
@@ -103,12 +101,8 @@ export default function SignupPage() {
         phone: phone,
         username: data.username,
         country: data.country,
-        userType: data.userType,
-        storeName: data.storeName,
-        location: data.location,
         password: data.password,
         confirmPassword: data.confirmPassword,
-        isBusiness: data.isBusiness || false,
         lang: router.locale || 'en'
       });
       setShowVerify(true);
@@ -129,12 +123,12 @@ export default function SignupPage() {
     try {
       await authService.verifyEmail(code, verifyEmail, verifyToken);
       setShowVerify(false);
-      setShowPending(true);
       if (regPassword) {
         try {
           await login(verifyEmail, regPassword);
           setSuccess(locale === "ar" ? "تم التحقق من البريد الإلكتروني وتم تسجيل الدخول بنجاح!" : "Account verified and logged in successfully!");
-          router.push("/account-dashboard");
+          // New users must complete identity verification before using the platform
+          router.push("/account-verification");
         } catch (loginErr: any) {
           console.error("Auto-login failed:", loginErr);
           setSuccess(locale === "ar" ? "تم التحقق من البريد الإلكتروني بنجاح! يرجى تسجيل الدخول." : "Account verified successfully! Please log in.");
@@ -169,8 +163,6 @@ export default function SignupPage() {
       setSuccess("");
     }
   };
-
-  const isBusiness = watch("isBusiness");
 
   return (
     <>
@@ -310,64 +302,6 @@ export default function SignupPage() {
                 </div>
                 {errors.confirmPassword && (
                   <span className="text-xs text-red-600">{errors.confirmPassword.message as string}</span>
-                )}
-
-                <div className="flex items-center gap-2 mt-2">
-                  <input
-                    type="checkbox"
-                    id="isBusiness"
-                    {...register("isBusiness")}
-                    className="w-4 h-4 accent-[#E73828]"
-                  />
-                  <label htmlFor="isBusiness" className="text-sm sm:text-base text-black">
-                    {generalData?.logging_page_settings.register_business_user_label}
-                  </label>
-                </div>
-
-                {isBusiness && (
-                  <div className="flex flex-col gap-4 mt-2">
-                    <CustomDropdown
-                      options={userTypes.map(ut => ut.title)}
-                      value={userTypes.find(ut => ut.id === watch("userType"))?.title || ""}
-                      onChange={(val) => {
-                        const selected = userTypes.find(ut => ut.title === val);
-                        setValue("userType", selected?.id || 0, { shouldValidate: true });
-                      }}
-                      placeholder={generalData?.logging_page_settings.user_type_placeholder || "User Type"}
-                    />
-                    <input
-                      type="hidden"
-                      {...register("userType", { required: isBusiness ? (locale === "ar" ? "يجب أن يكون لديك نوع مستخدم" : "User type is required") : false })}
-                      name="userType"
-                    />
-                    {errors.userType && (
-                      <span className="text-xs text-red-600">{errors.userType.message as string}</span>
-                    )}
-
-                    <input
-                      type="text"
-                      placeholder={generalData?.logging_page_settings.store_name_placeholder || "Store Name"}
-                      {...register("storeName", {
-                        required: isBusiness ? (locale === "ar" ? "يجب أن يكون لديك اسم متجر" : "Store name is required") : false,
-                      })}
-                      className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black rtl:text-right"
-                    />
-                    {errors.storeName && (
-                      <span className="text-xs text-red-600">{errors.storeName.message as string}</span>
-                    )}
-
-                    <input
-                      type="text"
-                      placeholder={generalData?.logging_page_settings.store_location_placeholder || "Store Location"}
-                      {...register("location", {
-                        required: isBusiness ? (locale === "ar" ? "يجب أن يكون لديك موقع متجر" : "Store location is required") : false,
-                      })}
-                      className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black rtl:text-right"
-                    />
-                    {errors.location && (
-                      <span className="text-xs text-red-600">{errors.location.message as string}</span>
-                    )}
-                  </div>
                 )}
 
                 {submitLoading ? (

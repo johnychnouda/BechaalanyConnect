@@ -53,28 +53,33 @@ const getCachedSession = async () => {
     }
 };
 
+// First path segments of endpoints that don't need authentication.
+// Locale-prefixed URLs (e.g. /en/categories/...) are matched on the segment
+// after the locale.
+const PUBLIC_ENDPOINT_SEGMENTS = [
+    'general',
+    'home',
+    'categories',
+    'about',
+    'contact',
+    'credit-types',
+    'contact-form-submit',
+];
+
+const LOCALES = ['en', 'ar'];
+
+const isPublicEndpoint = (url?: string): boolean => {
+    if (!url) return false;
+    const segments = url.split('?')[0].replace(/^\//, '').split('/');
+    const first = LOCALES.includes(segments[0]) ? segments[1] : segments[0];
+    return PUBLIC_ENDPOINT_SEGMENTS.includes(first);
+};
+
 // Add request interceptor
 api.interceptors.request.use(
     async (config) => {
-        // Define public endpoints that don't need authentication
-        const publicEndpoints = [
-            '/general',
-            '/home',
-            '/categories',
-            '/about',
-            '/contact',
-            '/credit-types',
-            '/contact-form-submit'
-        ];
-
-        // Check if the current request is to a public endpoint
-        const isPublicEndpoint = publicEndpoints.some(endpoint =>
-            config.url && config.url.includes(endpoint)
-        );
-
-
         // Only get session for authenticated endpoints
-        if (!isPublicEndpoint) {
+        if (!isPublicEndpoint(config.url)) {
             const session = await getCachedSession();
             if (session?.laravelToken) {
                 config.headers.Authorization = `Bearer ${session.laravelToken}`;
@@ -83,14 +88,11 @@ api.interceptors.request.use(
         return config;
     },
     (error) => {
-        if (error) {
-            const { data } = error.response;
-            const backendMessage = data.message;
-            return Promise.reject(backendMessage || 'An unexpected error occurred.');
-
-        } else {
-            return Promise.reject(error);
+        // Request-phase errors have no response object
+        if (error?.response?.data?.message) {
+            return Promise.reject(error.response.data.message);
         }
+        return Promise.reject(error);
     }
 );
 
