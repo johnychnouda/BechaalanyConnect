@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { getErrorMessage } from "@/utils/getErrorMessage";
 import { useRouter } from "next/router";
+import { getSession } from "next-auth/react";
 import PageLayout from "@/components/ui/page-layout";
 import { useGlobalContext } from "@/context/GlobalContext";
 
@@ -69,8 +70,23 @@ export default function SigninPage() {
     try {
       await login(data.email, data.password, locale);
       setSuccess(true);
-      // Redirect to dashboard or previous page
-      router.push("/account-dashboard");
+
+      // Users who haven't submitted (or were rejected on) their identity
+      // documents must complete verification before using the platform
+      const session = await getSession();
+      const verificationStatus = session?.user?.verification_status;
+      if (verificationStatus === "unsubmitted" || verificationStatus === "rejected") {
+        router.push("/account-verification");
+        return;
+      }
+
+      // Redirect back to the originally requested page, otherwise the homepage
+      const callbackUrl = router.query.callbackUrl as string | undefined;
+      if (callbackUrl && callbackUrl.startsWith("/")) {
+        router.push(callbackUrl);
+      } else {
+        router.push("/");
+      }
     } catch (err: Error | unknown) {
       setError(getErrorMessage(err, locale === "ar" ? "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى." : "Login failed. Please try again."));
     }

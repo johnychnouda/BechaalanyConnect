@@ -200,14 +200,12 @@ export default function AccountSettings() {
       return;
     }
 
+    // Business fields and user type are managed by the admin only and
+    // cannot be changed from the profile
     const restructuredAccountInfo = {
       username: accountInfo.username,
       country: accountInfo.country,
       phone_number: accountInfo.phone.toString(),
-      // is_business_user: accountInfo.userType === 'business',
-      business_name: accountInfo.storeName,
-      business_location: accountInfo.storeLocation,
-      user_types_id: accountInfo.userType,
     }
     try {
       await updateUserInfo(locale, restructuredAccountInfo);

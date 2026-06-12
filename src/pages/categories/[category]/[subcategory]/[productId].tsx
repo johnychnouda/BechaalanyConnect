@@ -15,6 +15,7 @@ import CardSkeleton from '@/components/ui/card-skeleton';
 import { useGlobalContext } from "@/context/GlobalContext";
 import { useCreditOperations } from "@/services/credits.service";
 import SeoHead from "@/components/ui/SeoHead";
+import PendingApprovalModal from "@/components/ui/pending-approval-modal";
 
 interface ProductVariation {
   id: number;
@@ -62,7 +63,8 @@ interface SelectedAmount {
 const ProductPage: React.FC = () => {
   const router = useRouter();
   const { deductFromBalance } = useCreditOperations();
-  const { user, refreshUserData } = useAuth();
+  const { user, isApproved, refreshUserData } = useAuth();
+  const [showPendingModal, setShowPendingModal] = useState(false);
   const { refreshOrders, generalData } = useGlobalContext();
   const { locale } = useRouter();
   const { category: categorySlug, subcategory: subcategorySlug, productId: productSlug, single } = router.query;
@@ -195,6 +197,16 @@ const ProductPage: React.FC = () => {
       return;
     }
 
+    // Users must be identity-verified (KYC) before placing orders
+    if (!isApproved) {
+      if (user.verification_status === 'pending') {
+        setShowPendingModal(true);
+      } else {
+        router.push('/account-verification');
+      }
+      return;
+    }
+
     // Validate required fields based on product type
     if (product?.product_type_id === 1 && !recipientUser.trim()) {
       showError(locale === 'en' ? 'Please enter a User ID' : 'الرجاء إدخال رقم المستخدم');
@@ -208,15 +220,11 @@ const ProductPage: React.FC = () => {
 
     setSubmitLoading(true);
     try {
-      await saveOrder({
-        users_id: user.id,
+      await saveOrder(router.locale || 'en', {
         product_variation_id: selectedProductVariation?.id || 0,
         quantity: quantity,
-        total_price: total,
         recipient_phone_number: recipientPhoneNumber,
         recipient_user: recipientUser,
-        statuses_id: 3,
-        lang: router.locale || 'en'
       });
 
       showSuccess(locale === 'en' ? 'Order placed successfully!' : 'تم وضع الطلب بنجاح!');
@@ -385,10 +393,10 @@ const ProductPage: React.FC = () => {
               </div>
             )}
 
-            {/* Total */}
+            {/* Total — blurred until the account's identity is verified */}
             <div className="flex justify-between items-center border-t border-gray-200 pt-3 mt-2 mb-2">
               <span className="text-black text-lg font-bold">{generalData?.settings.total}</span>
-              <span className="text-2xl font-bold text-app-red">${total.toFixed(2)}</span>
+              <span className={`text-2xl font-bold text-app-red ${user && !isApproved ? 'filter blur-[6px] select-none' : ''}`}>${total.toFixed(2)}</span>
             </div>
 
             {/* Buy Button */}
@@ -407,6 +415,12 @@ const ProductPage: React.FC = () => {
             }
           </form>
         </div>
+
+        <PendingApprovalModal
+          isOpen={showPendingModal}
+          onClose={() => setShowPendingModal(false)}
+          locale={router.locale || 'en'}
+        />
 
         {/* Related Products */}
         {

@@ -11,12 +11,8 @@ export interface RegisterData {
   phone: string;
   username: string;
   country: string;
-  userType: string;
-  storeName?: string;
-  location?: string;
   password: string;
   confirmPassword: string;
-  isBusiness: boolean;
   lang?: string;
 }
 
@@ -96,12 +92,8 @@ class AuthService {
         phone: data.phone,
         username: data.username,
         country: data.country,
-        userType: data.userType,
-        storeName: data.storeName,
-        location: data.location,
         password: data.password,
         password_confirmation: data.confirmPassword, // Map confirmPassword to password_confirmation
-        isBusiness: data.isBusiness,
         lang: data.lang || 'en'
       };
       

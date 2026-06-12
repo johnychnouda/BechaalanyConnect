@@ -11,6 +11,7 @@ import Header from "@/components/ui/header";
 import WhatsAppButton from "@/components/ui/whatsapp-button";
 import Footer from "@/components/ui/footer";
 import GlobalState from "@/utils/GlobalState";
+import VerificationPendingBanner from "@/components/ui/verification-pending-banner";
 import { AuthProvider } from '@/context/AuthContext';
 import FallbackTheme from "@/components/ui/fallback-theme";
 import StyledComponentsRegistry from '@/lib/registry';
@@ -123,6 +124,7 @@ export default function App({
                                     className={`min-h-screen flex flex-col ${isRTL ? "rtl" : "ltr"}`}
                                     dir={isRTL ? "rtl" : "ltr"}
                                   >
+                                    <VerificationPendingBanner />
                                     <TopBanner>
                                       <Header>
                                         <div className="flex-grow">

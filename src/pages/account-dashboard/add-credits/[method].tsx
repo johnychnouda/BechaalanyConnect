@@ -12,7 +12,7 @@ import { useLanguage } from "@/hooks/use-language";
 
 export default function AddCreditMethod() {
   const router = useRouter();
-  const { user, refreshUserData } = useAuth();
+  const { user, isApproved, refreshUserData } = useAuth();
   const { addPendingRequest } = useCreditOperations();
   const { generalData, dashboardSettings } = useGlobalContext();
   const { locale } = useLanguage();
@@ -72,6 +72,16 @@ export default function AddCreditMethod() {
       return;
     }
 
+    // Identity verification (KYC) is required before adding credits
+    if (!isApproved) {
+      if (user.verification_status === 'pending') {
+        toast.error(locale === 'en' ? 'Your account is pending approval. Please wait for admin verification.' : 'حسابك بانتظار الموافقة. يرجى انتظار تحقق الإدارة.');
+      } else {
+        router.push('/account-verification');
+      }
+      return;
+    }
+
     if (!selectedFile) {
       toast.error(locale === 'en' ? 'Please select a receipt image' : 'الرجاء اختيار صورة الإيصال');
       return;
@@ -85,12 +95,10 @@ export default function AddCreditMethod() {
     setIsSubmitting(true);
 
     try {
-      // Create FormData for file upload
+      // Create FormData for file upload — the user and status are set server-side
       const formData = new FormData();
-      formData.append('users_id', user.id.toString());
       formData.append('amount', sendValue.toString());
       formData.append('receipt_image', selectedFile);
-      formData.append('statuses_id', '3');
       formData.append('credits_types_id', creditType.id.toString());
 
       // Call the API service
