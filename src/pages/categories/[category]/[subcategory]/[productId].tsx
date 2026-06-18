@@ -16,6 +16,7 @@ import { useGlobalContext } from "@/context/GlobalContext";
 import { useCreditOperations } from "@/services/credits.service";
 import SeoHead from "@/components/ui/SeoHead";
 import PendingApprovalModal from "@/components/ui/pending-approval-modal";
+import { PRODUCT_TYPE_USER_ID, PRODUCT_TYPE_PHONE, PRODUCT_TYPE_COIN } from "@/constants/productTypes";
 
 interface ProductVariation {
   id: number;
@@ -29,6 +30,8 @@ interface ProductVariation {
   product_id: number;
   is_active: number;
   quantity: number | null;
+  unit_amount: number | null;
+  unit_label: string | null;
   price_variations: PriceVariation[];
 }
 
@@ -58,6 +61,8 @@ interface SelectedAmount {
   price: number;
   image: string;
   description: string;
+  unitAmount: number | null;
+  unitLabel: string | null;
 }
 
 const ProductPage: React.FC = () => {
@@ -89,6 +94,8 @@ const ProductPage: React.FC = () => {
       price: variation.price_variations.find((price) => price.user_types_id === user?.user_types?.id)?.price || variation.price,
       image: variation.full_path?.image,
       description: variation.description,
+      unitAmount: variation.unit_amount,
+      unitLabel: variation.unit_label,
     }),
     [user?.user_types?.id]
   );
@@ -195,7 +202,11 @@ const ProductPage: React.FC = () => {
     );
   }
 
+  // Coin Recharge products: the counter selects blocks (quantity); price-per-block
+  // (selectedAmount.price) × blocks gives the total, exactly like quantity pricing.
+  const isCoin = product?.product_type_id === PRODUCT_TYPE_COIN && !!selectedAmount.unitAmount;
   const total = selectedAmount.price * quantity;
+  const coinAmount = isCoin && selectedAmount.unitAmount ? selectedAmount.unitAmount * quantity : 0;
 
   const selectedProductVariation = productVariations.find((variation) => variation.id === selectedAmount?.id);
 
@@ -224,12 +235,12 @@ const ProductPage: React.FC = () => {
     }
 
     // Validate required fields based on product type
-    if (product?.product_type_id === 1 && !recipientUser.trim()) {
+    if ((product?.product_type_id === PRODUCT_TYPE_USER_ID || isCoin) && !recipientUser.trim()) {
       showError(locale === 'en' ? 'Please enter a User ID' : 'الرجاء إدخال رقم المستخدم');
       return;
     }
 
-    if (product?.product_type_id === 3 && !recipientPhoneNumber.trim()) {
+    if (product?.product_type_id === PRODUCT_TYPE_PHONE && !recipientPhoneNumber.trim()) {
       showError(locale === 'en' ? 'Please enter a Phone Number' : 'الرجاء إدخال رقم الهاتف');
       return;
     }
@@ -246,7 +257,10 @@ const ProductPage: React.FC = () => {
       showSuccess(locale === 'en' ? 'Order placed successfully!' : 'تم وضع الطلب بنجاح!');
       // Deduct amount from credits store for immediate UI feedback
       const productName = selectedProductVariation?.name || product?.name || 'Product';
-      deductFromBalance(total, `Purchase of ${productName} (Qty: ${quantity}) for $${total}`);
+      const orderDetail = isCoin
+        ? `${coinAmount.toLocaleString(locale)} ${selectedAmount.unitLabel || ''}`.trim()
+        : `Qty: ${quantity}`;
+      deductFromBalance(total, `Purchase of ${productName} (${orderDetail}) for $${total}`);
       // Refresh orders after successful placement
       refreshOrders();
       // Optional: Still refresh user data as backup
@@ -325,7 +339,8 @@ const ProductPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Amount Select */}
+              {/* Amount Select — hidden for Coin Recharge (single per-block rate) */}
+              {!isCoin && (
               <div>
                 <label htmlFor="amount-trigger" className="block text-gray-800 font-semibold mb-1">{generalData?.settings.amount}</label>
                 <div ref={dropdownRef} className="relative w-full">
@@ -369,9 +384,35 @@ const ProductPage: React.FC = () => {
                   )}
                 </div>
               </div>
+              )}
 
-              {/* Quantity Selector */}
-              {product?.product_type_id !== 1 && (
+              {/* Coin counter — Coin Recharge products step by one block (e.g. +10,000 coins) */}
+              {isCoin && selectedAmount.unitAmount && (
+                <div>
+                  <span className="block text-gray-800 font-semibold mb-1">{selectedAmount.unitLabel || generalData?.settings.amount}</span>
+                  <div role="group" aria-label={selectedAmount.unitLabel || generalData?.settings.amount} className="flex items-center border border-app-red rounded-full px-2 py-1 w-full bg-white justify-between min-w-[160px]">
+                    <button
+                      aria-label={locale === 'ar' ? 'إنقاص' : 'Decrease'}
+                      className="w-9 h-9 flex items-center justify-center rounded-full border-none text-2xl text-black font-normal cursor-pointer transition-colors duration-150 hover:bg-app-red/10 p-0 shrink-0"
+                      onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                      type="button"
+                    >-</button>
+                    <span aria-live="polite" className="text-lg font-semibold px-3 text-center text-black select-none">{coinAmount.toLocaleString(locale)}</span>
+                    <button
+                      aria-label={locale === 'ar' ? 'زيادة' : 'Increase'}
+                      className="w-9 h-9 flex items-center justify-center rounded-full border-none text-2xl text-black font-normal cursor-pointer transition-colors duration-150 hover:bg-app-red/10 p-0 shrink-0"
+                      onClick={() => setQuantity(q => q + 1)}
+                      type="button"
+                    >+</button>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {`${selectedAmount.unitAmount.toLocaleString(locale)} ${selectedAmount.unitLabel || ''} = $${selectedAmount.price.toFixed(2)}`}
+                  </p>
+                </div>
+              )}
+
+              {/* Quantity Selector — not shown for User ID or Coin Recharge products */}
+              {product?.product_type_id !== PRODUCT_TYPE_USER_ID && !isCoin && (
                 <div>
                   <span className="block text-gray-800 font-semibold mb-1">{generalData?.settings.quantity}</span>
                   <div role="group" aria-label={generalData?.settings.quantity} className="flex items-center border border-app-red rounded-full px-2 py-1 w-full bg-white justify-between min-w-[160px]">
@@ -393,8 +434,8 @@ const ProductPage: React.FC = () => {
               )}
 
               {/* Product Type */}
-              {/* If product type id is 1, add input to enter User ID */}
-              {product?.product_type_id === 1 && (
+              {/* User ID input — required for Direct Recharge and Coin Recharge products */}
+              {(product?.product_type_id === PRODUCT_TYPE_USER_ID || isCoin) && (
                 <div>
                   <label htmlFor="recipient_user" className="block text-gray-800 font-semibold mb-1">{generalData?.settings.user_id_label}</label>
                   <input
@@ -409,8 +450,8 @@ const ProductPage: React.FC = () => {
                 </div>
               )}
 
-              {/* If product type id is 3, add input to enter User phone number */}
-              {product?.product_type_id === 3 && (
+              {/* Phone number input — Telecommunication Charge products */}
+              {product?.product_type_id === PRODUCT_TYPE_PHONE && (
                 <div>
                   <label htmlFor="recipient_phone_number" className="block text-gray-800 font-semibold mb-1">{generalData?.settings.phone_number_label}</label>
                   <input
