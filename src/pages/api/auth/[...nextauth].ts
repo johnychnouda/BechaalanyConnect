@@ -4,32 +4,19 @@ import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 
-interface UserSalesType {
-    id: number;
-    title: string;
-    slug: string;
-}
-
 // Extend NextAuth types
 declare module "next-auth" {
     interface Session {
         laravelToken?: string;
         laravelUser?: any;
+        // Slim identity only. Volatile fields (credits_balance, totals, business_*, user_types,
+        // orders) live in AuthContext, fetched from /user/profile — never in the session cookie.
         user: {
-            id: string;
-            email: string;
-            name: string;
-            role: string;
-            country?: string;
-            phone_number?: string;
-            is_business_user?: boolean;
-            business_name?: string;
-            business_location?: string;
+            id?: string;
+            email?: string;
+            name?: string;
+            role?: string;
             user_types_id?: number;
-            credits_balance?: number;
-            total_purchases?: number;
-            received_amount?: number;
-            user_types?: UserSalesType;
             verification_status?: 'unsubmitted' | 'pending' | 'approved' | 'rejected';
         };
     }
@@ -83,34 +70,29 @@ export default NextAuth({
                         const data = await response.json();
                         
                         const { token, user } = data;
-                        
+
                         if (!token || !user) {
                             throw new Error('Invalid response structure');
                         }
-                        
-                        // Only store essential user data in JWT to prevent token size issues
-                        const essentialUserData = {
+
+                        // Store ONLY identity + routing data in the JWT cookie. Volatile/large
+                        // fields (credits_balance, total_purchases, received_amount, business_*,
+                        // user_types object, orders) are fetched live from /user/profile in
+                        // AuthContext — keeping them out of the cookie prevents it from growing
+                        // past Vercel's header limit (494 REQUEST_HEADER_TOO_LARGE).
+                        const identityData = {
                             id: user.id.toString(),
                             email: user.email,
                             name: user.name || user.username,
                             role: user.role,
-                            country: user.country,
-                            phone_number: user.phone_number,
-                            is_business_user: user.is_business_user,
-                            business_name: user.business_name,
-                            business_location: user.business_location,
                             user_types_id: user.user_types_id,
-                            credits_balance: user.credits_balance || 0,
-                            total_purchases: user.total_purchases || 0,
-                            received_amount: user.received_amount || 0,
-                            user_types: user.user_types,
                             verification_status: user.verification_status,
                         };
 
                         return {
-                            ...essentialUserData,
+                            ...identityData,
                             laravelToken: token,
-                            laravelUser: essentialUserData, // Store minimal user data
+                            laravelUser: identityData,
                         };
                     } else {
                         // Try to extract error message from Laravel
@@ -130,7 +112,7 @@ export default NextAuth({
         }),
     ],
     callbacks: {
-        async jwt({ token, user, account, trigger }) {
+        async jwt({ token, user, account, trigger, session }) {
             // Handle Google OAuth
             if (account?.provider === "google" && user) {
                 try {
@@ -149,22 +131,13 @@ export default NextAuth({
                     if (response.ok) {
                         const { token: laravelToken, user: laravelUser } = await response.json();
                         token.laravelToken = laravelToken;
-                        // Store only essential user data
+                        // Identity only — same slim shape as the credentials path.
                         token.laravelUser = {
                             id: laravelUser.id.toString(),
                             email: laravelUser.email,
                             name: laravelUser.name || laravelUser.username,
                             role: laravelUser.role,
-                            country: laravelUser.country,
-                            phone_number: laravelUser.phone_number,
-                            is_business_user: laravelUser.is_business_user,
-                            business_name: laravelUser.business_name,
-                            business_location: laravelUser.business_location,
                             user_types_id: laravelUser.user_types_id,
-                            credits_balance: laravelUser.credits_balance || 0,
-                            total_purchases: laravelUser.total_purchases || 0,
-                            received_amount: laravelUser.received_amount || 0,
-                            user_types: laravelUser.user_types,
                             verification_status: laravelUser.verification_status,
                         };
                     }
@@ -181,64 +154,36 @@ export default NextAuth({
 
   
 
-             // Handle session refresh trigger - only update essential data
-             if (trigger === "update" && token.laravelToken) {
-                try {
-                    // Get the locale from the token or fallback to 'en'
-                    const locale = token.laravelUser?.locale || 'en';
-                    
-                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/${locale}/user/profile`, {
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${token.laravelToken}`,
-                            'Content-Type': 'application/json',
-                        },
-                    });
-
-                    if (response.ok) {
-                        const freshUserData = await response.json();
-                        // Only update essential fields to prevent token bloat
-                        token.laravelUser = {
-                            ...token.laravelUser,
-                            credits_balance: freshUserData.credits_balance || token.laravelUser?.credits_balance,
-                            total_purchases: freshUserData.total_purchases || token.laravelUser?.total_purchases,
-                            received_amount: freshUserData.received_amount || token.laravelUser?.received_amount,
-                            verification_status: freshUserData.user?.verification_status || token.laravelUser?.verification_status,
-                        };
-                    }
-                } catch (error) {
-                    console.error('Error refreshing user data:', error);
-                }
+            // Handle session refresh trigger. Only verification_status is allowed back into the
+            // cookie — it gates the middleware (e.g. a mid-session KYC approval must unlock the
+            // dashboard). Financial data is NEVER written to the token; AuthContext reads it live
+            // from /user/profile so the cookie stays small.
+            if (trigger === "update" && session?.verification_status && token.laravelUser) {
+                token.laravelUser = {
+                    ...token.laravelUser,
+                    verification_status: session.verification_status,
+                };
             }
 
             return token;
         },
         async session({ session, token }) {
-            // Pass Laravel data to session
+            // Pass Laravel token + slim identity to the session. Financial/business/user_types
+            // data is intentionally NOT here — AuthContext merges it in live from /user/profile.
             session.laravelToken = token.laravelToken;
             session.laravelUser = token.laravelUser;
-            
-            // Ensure user data is properly structured
+
             if (token.laravelUser) {
                 session.user = {
-                    id: token.laravelUser.id.toString(),
+                    id: token.laravelUser.id?.toString(),
                     email: token.laravelUser.email,
-                    name: token.laravelUser.name || token.laravelUser.username,
+                    name: token.laravelUser.name,
                     role: token.laravelUser.role,
-                    country: token.laravelUser.country,
-                    phone_number: token.laravelUser.phone_number,
-                    is_business_user: token.laravelUser.is_business_user,
-                    business_name: token.laravelUser.business_name,
-                    business_location: token.laravelUser.business_location,
                     user_types_id: token.laravelUser.user_types_id,
-                    credits_balance: token.laravelUser.credits_balance || 0,
-                    total_purchases: token.laravelUser.total_purchases || 0,
-                    received_amount: token.laravelUser.received_amount || 0,
-                    user_types: token.laravelUser.user_types,
                     verification_status: token.laravelUser.verification_status,
                 };
             }
-            
+
             return session;
         }
     },

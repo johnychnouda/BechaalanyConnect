@@ -102,12 +102,12 @@ export default function App({
         refetchInterval={0}
         refetchOnWindowFocus={false}
       >
+        <QueryClientProvider client={queryClient}>
         <GlobalProvider>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem={true} storageKey="theme" disableTransitionOnChange={false}>
             <AuthProvider>
               <CreditNotificationProvider>
                 <GlobalState.Provider value={globalStateValue}>
-                <QueryClientProvider client={queryClient}>
                   <NextIntlClientProvider
                                   locale={router.locale}
                                   timeZone="Asia/Beirut"
@@ -153,12 +153,12 @@ export default function App({
                                   <SpeedInsights />
 
                                 </NextIntlClientProvider>
-                </QueryClientProvider>
               </GlobalState.Provider>
               </CreditNotificationProvider>
             </AuthProvider>
           </ThemeProvider>
         </GlobalProvider>
+        </QueryClientProvider>
       </SessionProvider>
     </StyledComponentsRegistry>
   );

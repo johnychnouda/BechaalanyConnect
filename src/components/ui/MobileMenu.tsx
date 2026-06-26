@@ -9,6 +9,7 @@ import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/router";
 import { SearchIcon } from "@/assets/icons/search.icon";
+import { useCreditsBalance } from "@/store/credits.store";
 
 interface MobileMenuProps {
     isMobileMenuOpen: boolean;
@@ -32,6 +33,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
 
     const { logout } = useAuth();
     const router = useRouter();
+    const creditsBalance = useCreditsBalance();
     const [mobileSearch, setMobileSearch] = useState("");
 
     // Handle search submit
@@ -75,7 +77,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                         {/* <Notification
                             count={count}
                         /> */}
-                        {user && <BlurredPrice price={user.credits_balance} />}
+                        {user && <BlurredPrice price={creditsBalance || user.credits_balance || 0} />}
                         <ButtonLink
                             onClick={() => {
                                 setIsMobileMenuOpen(false);

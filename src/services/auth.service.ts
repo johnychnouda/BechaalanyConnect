@@ -73,10 +73,10 @@ class AuthService {
       return {
         token: session.laravelToken as string,
         user: {
-          id: session.user.id,
-          email: session.user.email,
-          username: session.user.name,
-          role: session.user.role,
+          id: session.user.id ?? '',
+          email: session.user.email ?? '',
+          username: session.user.name ?? '',
+          role: session.user.role ?? '',
         }
       };
     } catch (error) {
@@ -161,10 +161,10 @@ class AuthService {
     if (!session?.user) return null;
     
     return {
-      id: session.user.id,
-      email: session.user.email,
-      username: session.user.name,
-      role: session.user.role,
+      id: session.user.id ?? '',
+      email: session.user.email ?? '',
+      username: session.user.name ?? '',
+      role: session.user.role ?? '',
     };
   }
 
