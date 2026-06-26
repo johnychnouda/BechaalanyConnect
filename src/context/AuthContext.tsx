@@ -2,11 +2,13 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { signOut, signIn } from "next-auth/react";
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { clearSessionCache } from '@/utils/api';
 import { useAppSession } from '@/hooks/use-session';
 import { useLanguage } from '@/hooks/use-language';
 import { useCreditsStore } from '@/store/credits.store';
 import { creditsService } from '@/services/credits.service';
+import { fetchCurrentUser } from '@/services/api.service';
 
 export interface Order {
   id: number;
@@ -91,147 +93,81 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { session, status, update, isAuthenticated: sessionAuthenticated, user: sessionUser, token: sessionToken } = useAppSession();
   const { locale } = useLanguage();
-  const { setBalance, initializeFromUser } = useCreditsStore();
+  const { setBalance } = useCreditsStore();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [cachedUserData, setCachedUserData] = useState<any>(null);
-  const [lastRefreshTime, setLastRefreshTime] = useState<number>(0);
 
-  // Use the centralized authentication state
-  const isAuthenticated = sessionAuthenticated;
-
-  // Create a stable authentication state that doesn't flicker during updates
+  // Stable authentication state that doesn't flicker during updates.
   const stableIsAuthenticated = useMemo(() => {
-    // If we have cached user data, we're definitely authenticated
-    if (cachedUserData) return true;
-    // If we have a session user, we're authenticated
     if (sessionUser) return true;
-    // If we have a session token but no user yet, we're likely authenticated
     if (session?.laravelToken && status === "authenticated") return true;
-    // Otherwise, use the session authentication status
     return sessionAuthenticated;
-  }, [cachedUserData, sessionUser, session?.laravelToken, status, sessionAuthenticated]);
+  }, [sessionUser, session?.laravelToken, status, sessionAuthenticated]);
 
-  // Clear cache when session changes to ensure data consistency
+  // Single live source for all volatile/large user data (financials, business info,
+  // user_types, orders) — kept OUT of the session cookie. React Query dedupes calls,
+  // caches across components, and refetches on an interval / window focus.
+  const {
+    data: profile,
+    isFetching: isRefreshing,
+    refetch: refetchProfile,
+  } = useQuery({
+    queryKey: ['user-profile', locale],
+    queryFn: () => fetchCurrentUser(locale),
+    enabled: !!session?.laravelToken,
+    staleTime: 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
+  });
+
+  // Mirror the fresh balance into the credits store (the single real-time source the
+  // header/indicator read) and propagate a changed verification_status back into the
+  // cookie so the middleware unlocks the dashboard after a mid-session KYC approval.
   useEffect(() => {
-    // Only clear cache if we're completely logged out and not in the middle of a refresh
-    if (!sessionUser && !session?.laravelToken && !isRefreshing) {
-      setCachedUserData(null);
-    }
-    // Don't clear cache during refresh operations
-  }, [sessionUser, session?.laravelToken, isRefreshing]);
+    if (!profile) return;
+    const freshBalance = profile.credits_balance ?? profile.user?.credits_balance ?? 0;
+    setBalance(freshBalance);
+    creditsService.syncBalanceFromSession(freshBalance);
 
-  // Refresh user data function - now with better rate limiting and cache invalidation
+    const freshStatus = profile.user?.verification_status;
+    if (freshStatus && freshStatus !== sessionUser?.verification_status) {
+      update({ verification_status: freshStatus });
+    }
+  }, [profile, sessionUser?.verification_status, setBalance, update]);
+
+  // Keep the same signature callers rely on (e.g. after placing an order / adding credits).
+  // A forced refresh invalidates the cache so every consumer of the shared query updates;
+  // otherwise a plain refetch is enough.
   const refreshUserData = useCallback(async (forceRefresh: boolean = false) => {
-    if (!session?.laravelToken) {
-      return;
+    if (!session?.laravelToken) return;
+    if (forceRefresh) {
+      await queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+    } else {
+      await refetchProfile();
     }
-    
-    // Prevent multiple simultaneous refresh calls
-    if (isRefreshing) {
-      return;
-    }
+  }, [session?.laravelToken, refetchProfile, queryClient]);
 
-    // Time-based rate limiting: only refresh if 30 seconds have passed since last refresh
-    // unless it's a forced refresh (e.g., after updating user info)
-    const now = Date.now();
-    const timeSinceLastRefresh = now - lastRefreshTime;
-    const MIN_REFRESH_INTERVAL = 30 * 1000; // 30 seconds
-
-    if (!forceRefresh && timeSinceLastRefresh < MIN_REFRESH_INTERVAL) {
-      return;
-    }
-
-    // Clear cached data for refresh
-    setCachedUserData(null);
-    
-    setIsRefreshing(true);
-    setLastRefreshTime(now); // Set refresh time at start to prevent multiple calls
-    
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/${locale}/user/profile`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${session.laravelToken}`,
-          'Content-Type': 'application/json',
-          // Add cache-busting header for force refresh
-          ...(forceRefresh && { 'Cache-Control': 'no-cache, no-store, must-revalidate' }),
-        },
-      });
-
-      if (response.ok) {
-        const freshUserData = await response.json();
-        
-        // Update credits store with fresh balance
-        setBalance(freshUserData.credits_balance || 0);
-        
-        // Update session with fresh financial data (primarily for header display)
-        await update({
-          credits_balance: freshUserData.credits_balance,
-          total_purchases: freshUserData.total_purchases,
-          received_amount: freshUserData.received_amount,
-          verification_status: freshUserData.user?.verification_status,
-        });
-        
-        // Clear cache after successful update
-        setCachedUserData(null);
-      } else {
-        if (response.status === 429) {
-        }
-        throw new Error(`Failed to refresh user data: ${response.status}`);
-      }
-    } catch (error) {
-      // Clear cache on error to fall back to session data
-      setCachedUserData(null);
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [session?.laravelToken, update, sessionUser, session?.laravelUser, isRefreshing, locale, lastRefreshTime]);
-
-  // Initialize credits store and auto-refresh when user is authenticated
-  useEffect(() => {
-    if (!stableIsAuthenticated || !session?.laravelToken) return;
-
-    // Initialize credits store with current user balance
-    if (sessionUser?.credits_balance !== undefined) {
-      initializeFromUser(sessionUser.credits_balance);
-    }
-
-    // Refresh immediately when becoming authenticated
-    refreshUserData(false);
-
-    // Set up periodic refresh (every 5 minutes)
-    const interval = setInterval(() => {
-      refreshUserData(false);
-    }, 5 * 60 * 1000); // 5 minutes
-
-    return () => clearInterval(interval);
-  }, [stableIsAuthenticated, session?.laravelToken, refreshUserData, sessionUser?.credits_balance, initializeFromUser]);
-
-  // Sync credits store when user balance changes
-  useEffect(() => {
-    if (sessionUser?.credits_balance !== undefined) {
-      creditsService.syncBalanceFromSession(sessionUser.credits_balance);
-    }
-  }, [sessionUser?.credits_balance]);
-
-  const user = cachedUserData || (sessionUser ? {
-    id: sessionUser.id,
-    name: sessionUser.name || '',
-    email: sessionUser.email || '',
-    role: sessionUser.role || 'user',
-    country: sessionUser.country || '',
-    phone_number: sessionUser.phone_number || '',
-    is_business_user: sessionUser.is_business_user || false,
-    business_name: sessionUser.business_name || '',
-    business_location: sessionUser.business_location || '',
-    user_types: session?.laravelUser?.user_types || [],
-    credits_balance: sessionUser.credits_balance || 0,
-    total_purchases: sessionUser.total_purchases || 0,
-    received_amount: sessionUser.received_amount || 0,
-    orders: session?.laravelUser?.orders || [],
-    verification_status: sessionUser.verification_status || 'unsubmitted',
-  } : null);
+  const user = useMemo(() => {
+    if (!sessionUser && !profile) return null;
+    const pu = profile?.user;
+    return {
+      id: sessionUser?.id ?? pu?.id?.toString() ?? '',
+      name: sessionUser?.name || pu?.name || pu?.username || '',
+      email: sessionUser?.email || pu?.email || '',
+      role: sessionUser?.role || pu?.role || 'user',
+      country: pu?.country || '',
+      phone_number: pu?.phone_number || '',
+      is_business_user: pu?.is_business_user || false,
+      business_name: pu?.business_name || '',
+      business_location: pu?.business_location || '',
+      user_types: pu?.user_types || [],
+      credits_balance: profile?.credits_balance ?? pu?.credits_balance ?? 0,
+      total_purchases: profile?.total_purchases ?? pu?.total_purchases ?? 0,
+      received_amount: profile?.received_amount ?? pu?.received_amount ?? 0,
+      orders: profile?.orders || [],
+      verification_status: (pu?.verification_status || sessionUser?.verification_status || 'unsubmitted'),
+    };
+  }, [sessionUser, profile]);
 
   const token = sessionToken;
   const isAdmin = user?.role === 'admin';
@@ -288,6 +224,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       await signOut({ callbackUrl: locale === "ar" ? "/ar" : "/" });
       clearSessionCache();
+      queryClient.removeQueries({ queryKey: ['user-profile'] });
     } catch (error) {
       setLoading(false);
       throw error;

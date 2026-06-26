@@ -7,9 +7,9 @@ import { motion } from 'framer-motion';
 import BackButton from "@/components/ui/back-button";
 import { fetchUserOrders, fetchUserPayments, fetchCurrentUser } from "@/services/api.service";
 import { useRouter } from "next/router";
+import { useQuery } from "@tanstack/react-query";
 import { useGlobalContext } from "@/context/GlobalContext";
 import { useLanguage } from "@/hooks/use-language";
-import { toast } from "react-toastify";
 
 
 const ITEMS_PER_PAGE = 5; // Number of items to show initially and per load more
@@ -19,10 +19,19 @@ export default function AccountDashboard() {
   const router = useRouter();
   const { locale } = useLanguage();
 
-  // Profile data state
-  const [profileData, setProfileData] = useState<any>(null);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-  const [profileError, setProfileError] = useState<string | null>(null);
+  // Profile data — shares the ['user-profile', locale] React Query cache with AuthContext,
+  // so the dashboard reuses the same /user/profile response instead of fetching it again.
+  const {
+    data: profilePayload,
+    isLoading: isLoadingProfile,
+    isError: isProfileError,
+  } = useQuery({
+    queryKey: ['user-profile', locale],
+    queryFn: () => fetchCurrentUser(locale),
+    staleTime: 60 * 1000,
+  });
+  const profileData = profilePayload?.user;
+  const profileError = isProfileError ? 'Failed to load profile data. Please refresh the page.' : null;
 
   const [activeFilter, setActiveFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
@@ -43,26 +52,6 @@ export default function AccountDashboard() {
 
 
 
-
-  // Fetch profile data directly from API on component mount
-  useEffect(() => {
-    const fetchProfileData = async () => {
-      setIsLoadingProfile(true);
-      setProfileError(null);
-
-      try {
-        const freshProfileData = await fetchCurrentUser(locale);
-        setProfileData(freshProfileData.user);
-      } catch (error) {
-        setProfileError('Failed to load profile data. Please refresh the page.');
-        toast.error('Failed to load profile data. Please refresh the page.');
-      } finally {
-        setIsLoadingProfile(false);
-      }
-    };
-
-    fetchProfileData();
-  }, [locale]);
 
   const fetchOrdersAndPayments = useCallback(async () => {
 
