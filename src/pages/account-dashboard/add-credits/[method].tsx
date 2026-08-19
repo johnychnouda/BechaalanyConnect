@@ -43,8 +43,8 @@ export default function AddCreditMethod() {
 
   const { method } = router.query;
   // const config = methodConfigs[method as string];
-  const [value, setValue] = useState(0);
-  const [sendValue, setSendValue] = useState(0);
+  const [sendValueInput, setSendValueInput] = useState('');
+  const sendValue = Number(sendValueInput) || 0;
   const [screenshot, setScreenshot] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -153,7 +153,7 @@ export default function AddCreditMethod() {
       // await refreshUserData(true);
 
       // Reset form
-      setSendValue(0);
+      setSendValueInput('');
       setScreenshot('');
       setSelectedFile(null);
       if (fileInputRef.current) {
@@ -191,8 +191,19 @@ export default function AddCreditMethod() {
               <input
                 name="amount"
                 type="text"
-                value={sendValue}
-                onChange={e => setSendValue(Number(e.target.value))}
+                inputMode="decimal"
+                value={sendValueInput}
+                onChange={e => {
+                  const raw = e.target.value;
+                  // Allow only digits and at most one decimal point while typing, so
+                  // the displayed value never diverges from what was typed. A plain
+                  // Number() coercion on every keystroke rounded "10." back to "10"
+                  // as it was typed, making it impossible to enter a decimal amount.
+                  if (raw === '' || /^\d*\.?\d*$/.test(raw)) {
+                    setSendValueInput(raw);
+                  }
+                }}
+                placeholder="0.00"
                 className="font-['Roboto'] font-normal text-[16px] leading-[19px] text-[#070707] bg-transparent border-none outline-none flex-1 min-w-0"
                 style={{ minWidth: '0' }}
               />
