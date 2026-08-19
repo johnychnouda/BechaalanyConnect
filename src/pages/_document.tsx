@@ -17,6 +17,8 @@ export default class MyDocument extends Document {
       const initialProps = await Document.getInitialProps(ctx)
       return {
         ...initialProps,
+        // Carried through so render() can put the real locale on <html>.
+        locale: ctx.locale || ctx.defaultLocale || 'en',
         styles: [initialProps.styles, sheet.getStyleElement()],
       }
     } finally {
@@ -25,8 +27,26 @@ export default class MyDocument extends Document {
   }
 
   render() {
+    /*
+     * lang and dir belong on <html>, not on a wrapper div.
+     *
+     * This was hardcoded `<Html lang="en">` and `dir` was applied only to the <main>
+     * element in _app.tsx. Everything rendered OUTSIDE that element therefore stayed
+     * left-to-right in Arabic — the toast container and every `fixed inset-0` modal,
+     * including the KYC and pending-approval dialogs. Screen readers also announced
+     * the entire Arabic site as English.
+     *
+     * Setting it here fixes all of them at once, and is what makes the `rtl:` Tailwind
+     * variant (tailwind.config.js) able to work at all, since it keys off
+     * [dir="rtl"] on an ancestor.
+     *
+     * `this.props.locale` is populated by Next from the active i18n locale.
+     */
+    const locale = (this.props as any).locale || 'en';
+    const isRtl = locale === 'ar';
+
     return (
-      <Html lang="en">
+      <Html lang={locale} dir={isRtl ? 'rtl' : 'ltr'}>
         <Head>
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

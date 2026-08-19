@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useCreditOperations } from "@/services/credits.service";
+import { toMessage } from "@/utils/error-message";
 import { useGlobalContext } from "@/context/GlobalContext";
 import { useLanguage } from "@/hooks/use-language";
 
@@ -124,7 +125,7 @@ export default function AddCreditMethod() {
 
     } catch (error: any) {
       console.error('Error submitting credit request:', error);
-      toast.error(error?.message || locale === 'en' ? 'Failed to submit request. Please try again.' : 'فشل تقديم طلب الائتمان. الرجاء المحاولة مرة أخرى.');
+      toast.error(toMessage(error, locale));
     } finally {
       setIsSubmitting(false);
     }

@@ -4,10 +4,9 @@ import BackButton from '@/components/ui/back-button';
 import Breadcrumb from '@/components/ui/breadcrumb';
 import PageLayout from '@/components/ui/page-layout';
 import Card from '@/components/ui/card';
-import Image from 'next/image';
+import ImageWithFallback from '@/components/ui/image-with-fallback';
 import { fetchProductDetails, saveOrder } from '@/services/api.service';
 import ComingSoon from '@/components/ui/coming-soon';
-import { LogoIcon } from '@/assets/icons/logo.icon';
 import { LogoWhiteIcon } from '@/assets/icons/logo-white.icon';
 import { useAuth } from '@/context/AuthContext';
 import { showError, showSuccess } from '@/utils/toast';
@@ -17,13 +16,15 @@ import { useCreditOperations } from "@/services/credits.service";
 import SeoHead from "@/components/ui/SeoHead";
 import PendingApprovalModal from "@/components/ui/pending-approval-modal";
 import { PRODUCT_TYPE_USER_ID, PRODUCT_TYPE_PHONE, PRODUCT_TYPE_COIN } from "@/constants/productTypes";
+import { toMessage, insufficientCreditsMessage } from "@/utils/error-message";
+import { useCreditsStore } from "@/store/credits.store";
 
 interface ProductVariation {
   id: number;
   name: string;
   description: string;
   full_path: {
-    image: string;
+    image: string | null;
   }
   price: number;
   wholesale_price: number | null;
@@ -48,7 +49,7 @@ interface Product {
   description: string;
   slug: string;
   full_path: {
-    image: string;
+    image: string | null;
   }
   related_products: Product[];
   product_type_id: number;
@@ -59,7 +60,7 @@ interface SelectedAmount {
   id: number;
   amount: string;
   price: number;
-  image: string;
+  image: string | null;
   description: string;
   unitAmount: number | null;
   unitLabel: string | null;
@@ -68,6 +69,7 @@ interface SelectedAmount {
 const ProductPage: React.FC = () => {
   const router = useRouter();
   const { deductFromBalance } = useCreditOperations();
+  const creditsBalance = useCreditsStore((state) => state.balance);
   const { user, isApproved, refreshUserData } = useAuth();
   const [showPendingModal, setShowPendingModal] = useState(false);
   const { refreshOrders, generalData } = useGlobalContext();
@@ -75,6 +77,9 @@ const ProductPage: React.FC = () => {
   const { category: categorySlug, subcategory: subcategorySlug, productId: productSlug, single } = router.query;
   const [isLoading, setIsLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
+  // Set when the API refuses an order for lack of credits, so the shortfall stays on
+  // screen with an "Add credits" link rather than vanishing with the toast.
+  const [creditShortfall, setCreditShortfall] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [productVariations, setProductVariations] = useState<ProductVariation[]>([]);
   const [currentCategory, setCurrentCategory] = useState<string>('');
@@ -122,7 +127,7 @@ const ProductPage: React.FC = () => {
           setRelatedProducts([]);
           setCurrentCategory('');
           setCurrentSubcategory('');
-          setError('Invalid data format received');
+          setError(locale === 'ar' ? 'تعذر تحميل بيانات المنتج.' : 'We could not load this product.');
         }
       })
       .catch((error) => {
@@ -131,7 +136,7 @@ const ProductPage: React.FC = () => {
         setRelatedProducts([]);
         setCurrentCategory('');
         setCurrentSubcategory('');
-        setError('Failed to load Products');
+        setError(toMessage(error, locale));
       })
       .finally(() => {
         setIsLoading(false);
@@ -184,8 +189,38 @@ const ProductPage: React.FC = () => {
     );
   }
 
-  // Show error state
-  if (error || !selectedAmount) {
+  /*
+   * A genuine fetch failure and "this product has no variations yet" are different
+   * things and must not look the same.
+   *
+   * Both used to render <ComingSoon />, so whenever the API was unreachable the
+   * customer was told the product was an upcoming release — with no error, no retry,
+   * and no hint that anything was wrong.
+   */
+  if (error) {
+    return (
+      <PageLayout className="flex flex-col min-h-screen px-0 md:px-0 py-0 bg-white">
+        <div className="w-full px-4 md:px-12 pt-6 pb-2">
+          <Breadcrumb items={breadcrumbItems} />
+        </div>
+        <div className="w-full px-4 md:px-12 mb-4">
+          <BackButton label={generalData?.settings.back_button_label} href={single ? `/categories/${categorySlug}` : `/categories/${categorySlug}/${subcategorySlug}`} />
+        </div>
+        <div className="flex flex-col items-center justify-center h-64 gap-4 text-center px-4">
+          <p className="text-app-red font-medium">{error}</p>
+          <button
+            onClick={() => router.reload()}
+            className="px-6 py-3 rounded-lg bg-app-red text-white font-medium hover:opacity-90 transition-opacity"
+          >
+            {locale === 'en' ? 'Try again' : 'إعادة المحاولة'}
+          </button>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  // No error, but nothing to sell — this is the real "Coming Soon" case.
+  if (!selectedAmount) {
     return (
       <PageLayout className="flex flex-col min-h-screen px-0 md:px-0 py-0 bg-white">
         <div className="w-full px-4 md:px-12 pt-6 pb-2">
@@ -206,6 +241,13 @@ const ProductPage: React.FC = () => {
   // (selectedAmount.price) × blocks gives the total, exactly like quantity pricing.
   const isCoin = product?.product_type_id === PRODUCT_TYPE_COIN && !!selectedAmount.unitAmount;
   const total = selectedAmount.price * quantity;
+
+  // Live balance from the credits store, so the check reflects any top-up approved
+  // while this page was open.
+  const currentBalance = creditsBalance;
+  // Only meaningful once the account is verified — unverified users are blocked
+  // earlier and see blurred prices anyway.
+  const cannotAfford = Boolean(user) && currentBalance < total;
   const coinAmount = isCoin && selectedAmount.unitAmount ? selectedAmount.unitAmount * quantity : 0;
 
   const selectedProductVariation = productVariations.find((variation) => variation.id === selectedAmount?.id);
@@ -220,7 +262,9 @@ const ProductPage: React.FC = () => {
     e.preventDefault();
 
     if (!user) {
-      router.push('/auth/signin');
+      // Carry the current page so signing in returns the customer to the product
+      // they were buying instead of dumping them on the homepage.
+      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(router.asPath)}`);
       return;
     }
 
@@ -263,17 +307,33 @@ const ProductPage: React.FC = () => {
       deductFromBalance(total, `Purchase of ${productName} (${orderDetail}) for $${total}`);
       // Refresh orders after successful placement
       refreshOrders();
-      // Optional: Still refresh user data as backup
-      // await refreshUserData(true);
       // Reset form fields after successful submission
       setRecipientPhoneNumber('');
       setRecipientUser('');
       setQuantity(1);
       setSubmitLoading(false);
+
+      // A toast was the ONLY confirmation: no order number, no summary, and no way to
+      // reach the order — and refreshOrders() does nothing unless My Orders happens to
+      // be mounted. Send the customer to their order list, where the new order is at
+      // the top and its code will appear once an admin approves it.
+      router.push('/account-dashboard/my-orders');
     } catch (error) {
-      showError(`${error ? error : locale === 'en' ? 'Failed to place order. Please try again.' : 'فشل وضع الطلب. الرجاء المحاولة مرة أخرى.'}`);
       console.error('Error saving order:', error);
       setSubmitLoading(false);
+
+      // Insufficient credits gets its own message with the exact shortfall and a way
+      // to act on it. Previously this whole branch rendered the raw rejection value,
+      // which printed "[object Object]" on any network error.
+      const shortfall = insufficientCreditsMessage(error, locale);
+
+      if (shortfall) {
+        setCreditShortfall(shortfall);
+        showError(shortfall);
+        return;
+      }
+
+      showError(toMessage(error, locale));
     }
   };
 
@@ -309,19 +369,13 @@ const ProductPage: React.FC = () => {
             <div className="w-full lg:sticky lg:top-24 self-start">
               <div className="relative w-full mx-auto aspect-square max-h-[600px] max-w-[600px]">
                 <div className="block overflow-hidden rounded-[25px] shadow-sm border border-transparent relative h-full w-full">
-                  {selectedAmount.image ? (
-                    <Image
-                      src={selectedAmount.image}
-                      alt={selectedAmount.amount}
-                      className="object-cover"
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 600px"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center w-full h-full bg-slate-200">
-                      <LogoIcon className="w-full h-full object-cover p-6" />
-                    </div>
-                  )}
+                  <ImageWithFallback
+                    src={selectedAmount.image}
+                    alt={selectedAmount.amount}
+                    className="object-cover"
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 600px"
+                  />
                 </div>
               </div>
             </div>
@@ -472,6 +526,50 @@ const ProductPage: React.FC = () => {
                 <span className={`text-2xl font-extrabold text-app-red ${user && !isApproved ? 'filter blur-[6px] select-none' : ''}`}>${total.toFixed(2)}</span>
               </div>
 
+              {/*
+                Insufficient-credits warning, shown BEFORE the user tries to buy.
+
+                creditsService.hasSufficientBalance() has existed since the credits
+                feature was written and was never called anywhere, so the only feedback
+                was a red toast after a rejected request — English-only, with no balance,
+                no shortfall and no route to topping up.
+              */}
+              {isApproved && cannotAfford && (
+                <div className="rounded-xl border border-app-red/40 bg-app-red/5 px-4 py-3 text-sm">
+                  <p className="text-app-red font-semibold mb-1">
+                    {locale === 'en'
+                      ? `Not enough credits — you need $${(total - currentBalance).toFixed(2)} more.`
+                      : `رصيدك غير كافٍ — تحتاج إلى ${(total - currentBalance).toFixed(2)}$ إضافية.`}
+                  </p>
+                  <p className="text-gray-600 mb-2">
+                    {locale === 'en'
+                      ? `Your balance: $${currentBalance.toFixed(2)}`
+                      : `رصيدك: ${currentBalance.toFixed(2)}$`}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => router.push('/account-dashboard/add-credits')}
+                    className="underline font-semibold text-app-red"
+                  >
+                    {locale === 'en' ? 'Add credits' : 'إضافة رصيد'}
+                  </button>
+                </div>
+              )}
+
+              {/* Server-side rejection, kept on screen after the toast fades. */}
+              {creditShortfall && !cannotAfford && (
+                <div className="rounded-xl border border-app-red/40 bg-app-red/5 px-4 py-3 text-sm">
+                  <p className="text-app-red font-semibold mb-2">{creditShortfall}</p>
+                  <button
+                    type="button"
+                    onClick={() => router.push('/account-dashboard/add-credits')}
+                    className="underline font-semibold text-app-red"
+                  >
+                    {locale === 'en' ? 'Add credits' : 'إضافة رصيد'}
+                  </button>
+                </div>
+              )}
+
               {/* Buy Button */}
               {
                 submitLoading ?
@@ -481,7 +579,7 @@ const ProductPage: React.FC = () => {
                   :
                   <button
                     type="submit"
-                    disabled={submitLoading}
+                    disabled={submitLoading || (isApproved && cannotAfford)}
                     className="bg-app-red text-white font-bold py-3 px-6 rounded-full w-full transition-colors duration-300 text-lg hover:bg-white hover:text-app-red border border-app-red disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {generalData?.settings.buy_now_button}

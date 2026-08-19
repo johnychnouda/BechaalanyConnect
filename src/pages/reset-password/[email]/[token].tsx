@@ -53,7 +53,9 @@ export default function ResetPasswordPage() {
       }
 
       setSuccess(locale === 'ar' ? 'تمت إعادة تعيين كلمة المرور بنجاح.' : 'Your password has been reset successfully.');
-      router.push(`/${lang}/auth/signin`);
+      // See email-verification: the manual locale prefix 404s under
+      // defaultLocale "en". Next adds it where it is actually needed.
+      router.push("/auth/signin");
     } catch (err) {
       setError(getErrorMessage(err, locale === 'ar' ? 'فشل إعادة تعيين كلمة المرور.' : 'Failed to reset password.'));
     } finally {

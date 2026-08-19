@@ -1,12 +1,32 @@
 import api from '../utils/api';
 import { getCategories } from './categories.service';
 
+/**
+ * NOTE ON ERROR HANDLING
+ *
+ * Every function in this file used to swallow its failures — the user-data fetchers
+ * returned `{orders: [], total: 0}` and the public ones returned `undefined`. Two
+ * consequences:
+ *
+ *   - An API outage was indistinguishable from an empty account: /account-dashboard
+ *     rendered "No orders found." and its entire retry UI was unreachable dead code,
+ *     because the catch block it depended on never ran.
+ *   - GlobalContext received `undefined` and every CMS-managed label on the site
+ *     silently rendered blank.
+ *
+ * They now reject. Callers are responsible for showing an error state, which is the
+ * only way a user can tell "you have no orders" apart from "we cannot reach the
+ * server right now".
+ */
+
+
 export const fetchGeneralData = async (locale: string) => {
     try {
         const { data } = await api.get(`/${locale}/general`);
         return data;
     } catch (error) {
-        console.warn('API call failed, using fallback general data:', error);
+        // Rethrown: a failed fetch must not look like empty data.
+        throw error;
     }
 };
 
@@ -15,7 +35,8 @@ export const fetchHomePageData = async (locale: string) => {
         const { data } = await api.get(`/${locale}/home`);
         return data;
     } catch (error) {
-        console.warn('API call failed, using fallback home page data:', error);
+        // Rethrown: a failed fetch must not look like empty data.
+        throw error;
     }
 };
 
@@ -24,8 +45,9 @@ export const fetchCategoriesData = async (locale: string) => {
         const { data } = await api.get(`/${locale}/categories`);
         return data.categories; // Return data.data if it exists, otherwise return data
     } catch (error) {
-        console.warn('API call failed, using fallback categories:', error);
-        // Return fallback categories if API fails
+        // The one deliberate fallback: a static category list keeps the storefront
+        // navigable when the API is unreachable. Everything else rethrows.
+        console.warn('Categories API unavailable, using the static fallback list:', error);
         return getCategories();
     }
 };
@@ -35,7 +57,8 @@ export const fetchSubCategoriesData = async (locale: string, categorySlug: strin
         const { data } = await api.get(`/${locale}/categories/${categorySlug}`);
         return data;
     } catch (error) {
-        console.warn('API call failed, using fallback sub categories:', error);
+        // Rethrown: a failed fetch must not look like empty data.
+        throw error;
     }
 };
 
@@ -44,7 +67,8 @@ export const fetchProductsData = async (locale: string, categorySlug: string, su
         const { data } = await api.get(`/${locale}/categories/${categorySlug}/${subcategorySlug}`);
         return data;
     } catch (error) {
-        console.warn('API call failed, using fallback products:', error);
+        // Rethrown: a failed fetch must not look like empty data.
+        throw error;
     }
 };
 
@@ -53,7 +77,8 @@ export const fetchAboutUsData = async (locale: string) => {
         const { data } = await api.get(`/${locale}/about`);
         return data;
     } catch (error) {
-        console.warn('API call failed, using fallback about us data:', error);
+        // Rethrown: a failed fetch must not look like empty data.
+        throw error;
     }
 };
 
@@ -62,7 +87,8 @@ export const fetchContactUsData = async (locale: string) => {
         const { data } = await api.get(`/${locale}/contact`);
         return data;
     } catch (error) {
-        console.warn('API call failed, using fallback contact us data:', error);
+        // Rethrown: a failed fetch must not look like empty data.
+        throw error;
     }
 };
 
@@ -71,7 +97,8 @@ export const fetchProductDetails = async (locale: string, category: string, subc
         const { data } = await api.get(`/${locale}/categories/${category}/${subcategory}/${slug}`);
         return data;
     } catch (error) {
-        console.warn('API call failed, using fallback product details:', error);
+        // Rethrown: a failed fetch must not look like empty data.
+        throw error;
     }
 };
 
@@ -126,10 +153,9 @@ export const fetchUserOrders = async (locale: string = 'en', page = 1, limit = 1
         const { data } = await api.get(`/${locale}/user/orders?page=${page}&limit=${limit}`);
         return data;
     } catch (error) {
-        // If the API endpoint doesn't exist yet, return empty orders
-        // This allows the frontend to work while the backend is being developed
-        console.warn('User orders API endpoint not available yet:', error);
-        return { orders: [], total: 0 };
+        // Was: return { orders: [], total: 0 } — which made an outage render as
+        // "No orders found." and left my-orders.tsx's error branch unreachable.
+        throw error;
     }
 };
 
@@ -139,8 +165,8 @@ export const fetchUserPayments = async (locale: string = 'en', page = 1, limit =
     const { data } = await api.get(`/${locale}/user/credits?page=${page}&limit=${limit}`);
     return data;
   } catch (error) {
-    console.warn('User payments API endpoint not available yet:', error);
-    return { credits: [], total: 0 };
+    // Was: return { credits: [], total: 0 } — see fetchUserOrders.
+    throw error;
   }
 };
 

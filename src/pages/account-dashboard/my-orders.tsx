@@ -2,15 +2,16 @@ import DashboardLayout from "@/components/ui/dashboard-layout";
 import React, { useState, useMemo, useEffect } from "react";
 import BackButton from "@/components/ui/back-button";
 import { Order, useAuth } from "@/context/AuthContext";
-import { ProcessedOrder } from "./orderRow";
-import OrderRow from "./orderRow";
+import { ProcessedOrder } from "@/components/dashboard/orderRow";
+import OrderRow from "@/components/dashboard/orderRow";
 import { fetchUserOrders } from "@/services/api.service";
 import { useGlobalContext } from "@/context/GlobalContext";
 import { generateBulkOrderReceipts } from "@/utils/pdf-generator";
 import { useRouter } from "next/router";
 import { useLanguage } from "@/hooks/use-language";
+import { toMessage } from "@/utils/error-message";
 
-const ITEMS_PER_PAGE = 5; // Number of items to show initially and per load more
+const ITEMS_PER_PAGE = 10; // Rows requested per page from the API
 
 export default function MyOrders() {
   const { user } = useAuth();
@@ -20,48 +21,63 @@ export default function MyOrders() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [autoRefreshing, setAutoRefreshing] = useState(false);
-  const [displayedItemsCount, setDisplayedItemsCount] = useState(ITEMS_PER_PAGE);
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const { dashboardSettings, generalData } = useGlobalContext();
   const { locale } = useLanguage();
 
-  // Fetch orders from API
-  const fetchOrders = async (isAutoRefresh = false) => {
+  /**
+   * Fetch one page of orders.
+   *
+   * This used to call fetchUserOrders(locale) with no page argument — so it always
+   * received page 1 (10 rows) — and "Load More" then re-sliced that same array. A
+   * customer with more than 10 orders could never reach the 11th, and the button
+   * ended with a permanent "No more orders to load".
+   */
+  const fetchOrders = async (requestedPage = 1, isAutoRefresh = false) => {
     try {
       if (isAutoRefresh) {
         setAutoRefreshing(true);
-      } else {
+      } else if (requestedPage === 1) {
         setLoading(true);
-      }
-      setError(null);
-      const response = await fetchUserOrders(router.locale);
-
-      // If API returns empty orders and we have session orders, use session orders
-      if ((!response.orders || response.orders.length === 0) && user?.orders && Array.isArray(user.orders) && user.orders.length > 0) {
-        setOrders(user.orders);
-        if (!isAutoRefresh) {
-          setError('Using cached orders. Some orders may not be up to date.');
-        }
       } else {
-        setOrders(response.orders || []);
+        setIsLoadingMore(true);
       }
+
+      setError(null);
+
+      const response = await fetchUserOrders(router.locale, requestedPage, ITEMS_PER_PAGE);
+      const incoming: Order[] = response.orders || [];
+
+      // Append when paging, replace when (re)loading the first page.
+      setOrders((previous) =>
+        requestedPage === 1 ? incoming : [...previous, ...incoming]
+      );
+      setPage(response.current_page || requestedPage);
+      setLastPage(response.last_page || 1);
     } catch (err) {
+      // Genuinely surfaced now. api.service used to return an empty list on failure,
+      // so this branch never ran and an outage rendered as "No orders found." —
+      // indistinguishable from having no orders at all.
       console.error('Error fetching orders:', err);
-      setError('Failed to load orders. Using cached data.');
-      // Fallback to session orders if API fails
-      if (user?.orders && Array.isArray(user.orders)) {
-        setOrders(user.orders);
-      }
+      setError(toMessage(err, router.locale));
     } finally {
       setLoading(false);
       setAutoRefreshing(false);
+      setIsLoadingMore(false);
     }
   };
 
-  // Fetch orders on component mount
+  // Refetch when the locale changes: product and variation names are translated
+  // server-side, so switching to Arabic previously left the old language on screen
+  // until a hard refresh (the dependency array was empty while the body read
+  // router.locale).
   useEffect(() => {
-    fetchOrders();
-  }, []);
+    setPage(1);
+    fetchOrders(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.locale]);
 
   // Register refresh function with global context
   useEffect(() => {
@@ -71,7 +87,7 @@ export default function MyOrders() {
   // Auto-refresh orders every 30 seconds when user is on the page
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchOrders(true);
+      fetchOrders(1, true);
     }, 180000); //3min
 
     return () => clearInterval(interval);
@@ -190,24 +206,19 @@ export default function MyOrders() {
 
   const filteredOrders = activeFilter === "all" ? processedOrders : processedOrders.filter((o: ProcessedOrder) => o.status === activeFilter);
 
-  const displayedOrders = useMemo(() => {
-    return filteredOrders.slice(0, displayedItemsCount);
-  }, [filteredOrders, displayedItemsCount]);
+  // Everything fetched so far is shown; paging is driven by the API, not by slicing.
+  const displayedOrders = filteredOrders;
 
-  const hasMoreItems = displayedItemsCount < filteredOrders.length;
+  // There is genuinely more on the server, rather than "more of what we already hold".
+  const hasMoreItems = page < lastPage;
 
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter);
-    setDisplayedItemsCount(ITEMS_PER_PAGE); // Reset to initial count when filter changes
   };
 
   const handleLoadMore = () => {
-    setIsLoadingMore(true);
-    // Simulate loading delay for better UX
-    setTimeout(() => {
-      setDisplayedItemsCount(prev => prev + ITEMS_PER_PAGE);
-      setIsLoadingMore(false);
-    }, 500);
+    if (isLoadingMore || !hasMoreItems) return;
+    fetchOrders(page + 1);
   };
 
   // const handleBulkExport = async () => {
@@ -279,10 +290,7 @@ export default function MyOrders() {
           
           {/* Refresh Button */}
           <button
-            onClick={() => {
-              fetchOrders();
-              setDisplayedItemsCount(ITEMS_PER_PAGE); // Reset to initial count on refresh
-            }}
+            onClick={() => fetchOrders(1)}
             disabled={loading}
             className="flex items-center gap-2 px-4 py-2 bg-[#E73828] text-white rounded-lg hover:bg-[#d32f2f] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
@@ -320,11 +328,30 @@ export default function MyOrders() {
           <div className="flex justify-center items-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E73828]"></div>
           </div>
+        ) : error ? (
+          /* A real error state. Previously an outage fell through to "No orders
+             found." because api.service returned an empty list instead of throwing,
+             so the customer was told they had no orders when in fact we could not
+             reach the server. */
+          <div className="text-center py-8">
+            <p className="text-[#E73828] mb-3">{error}</p>
+            <button
+              onClick={() => fetchOrders(1)}
+              className="px-5 py-2 rounded-[25px] bg-[#E73828] text-white text-sm font-medium hover:bg-[#d63224] transition-colors"
+            >
+              {locale === 'en' ? 'Try again' : 'إعادة المحاولة'}
+            </button>
+          </div>
         ) : filteredOrders.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            {
-              locale === 'en' ? 'No orders found.' : 'لا يوجد طلبات مضافة'
-            }
+            <p className="mb-3">{locale === 'en' ? 'No orders found.' : 'لا يوجد طلبات مضافة'}</p>
+            {/* A dead end otherwise: the empty state offered no way forward. */}
+            <button
+              onClick={() => router.push('/categories')}
+              className="px-5 py-2 rounded-[25px] bg-[#E73828] text-white text-sm font-medium hover:bg-[#d63224] transition-colors"
+            >
+              {locale === 'en' ? 'Browse products' : 'تصفح المنتجات'}
+            </button>
           </div>
         ) : (
           <>
@@ -349,7 +376,7 @@ export default function MyOrders() {
                     <>
                       <span>{locale === 'en' ? 'Load More' : 'تحميل المزيد'}</span>
                       <span className="text-sm opacity-75">
-                        ({filteredOrders.length - displayedItemsCount} {locale === 'en' ? 'more' : 'أكثر'})
+                        ({locale === 'en' ? `page ${page + 1} of ${lastPage}` : `صفحة ${page + 1} من ${lastPage}`})
                       </span>
                     </>
                   )}
@@ -357,8 +384,9 @@ export default function MyOrders() {
               </div>
             )}
 
-            {/* Empty state */}
-            {!hasMoreItems && filteredOrders.length > 0 && (
+            {/* Only shown once there is genuinely more than one page — it used to
+                appear under every list, including a list of two orders. */}
+            {!hasMoreItems && lastPage > 1 && (
               <div className="w-full flex justify-center items-center py-4">
                 <span className="font-['Roboto'] font-normal text-sm text-[#8E8E8E] dark:text-[#a0a0a0]">
                   {locale === 'en' ? 'No more orders to load' : 'لا يوجد طلبات مضافة أخرى'}

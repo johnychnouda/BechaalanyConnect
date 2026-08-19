@@ -115,35 +115,48 @@ export default NextAuth({
         async jwt({ token, user, account, trigger, session }) {
             // Handle Google OAuth
             if (account?.provider === "google" && user) {
-                try {
-                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google-sync`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            email: user.email,
-                            username: user.name,
-                            google_id: user.id,
-                        }),
-                    });
-
-                    if (response.ok) {
-                        const { token: laravelToken, user: laravelUser } = await response.json();
-                        token.laravelToken = laravelToken;
-                        // Identity only — same slim shape as the credentials path.
-                        token.laravelUser = {
-                            id: laravelUser.id.toString(),
-                            email: laravelUser.email,
-                            name: laravelUser.name || laravelUser.username,
-                            role: laravelUser.role,
-                            user_types_id: laravelUser.user_types_id,
-                            verification_status: laravelUser.verification_status,
-                        };
-                    }
-                } catch (error) {
-                    console.error('Error syncing user with Laravel:', error);
+                // Send the signed Google ID token, NOT the profile fields.
+                //
+                // This used to post { email, username, google_id } as plain values,
+                // and the backend minted a Sanctum token for whichever account
+                // matched. Since /auth/google-sync is a public endpoint, anyone could
+                // post a victim's email address and be handed a working token for
+                // that account. The backend now verifies this token's signature,
+                // issuer, audience and expiry against Google's published keys and
+                // reads the identity out of the verified claims.
+                if (!account.id_token) {
+                    throw new Error('GoogleSignInFailed');
                 }
+
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google-sync`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ id_token: account.id_token }),
+                });
+
+                if (!response.ok) {
+                    // Previously this failure was only console.error'd and the flow
+                    // continued, producing a session with no laravelToken: the user
+                    // appeared signed in while every API call went out unauthenticated,
+                    // so the site looked broken with no explanation. Throwing sends
+                    // them to pages.error instead.
+                    throw new Error('GoogleSignInFailed');
+                }
+
+                const { token: laravelToken, user: laravelUser } = await response.json();
+                token.laravelToken = laravelToken;
+                // Identity only — same slim shape as the credentials path.
+                token.laravelUser = {
+                    id: laravelUser.id.toString(),
+                    email: laravelUser.email,
+                    name: laravelUser.name || laravelUser.username,
+                    role: laravelUser.role,
+                    user_types_id: laravelUser.user_types_id,
+                    verification_status: laravelUser.verification_status,
+                };
             }
 
             // Handle credentials login

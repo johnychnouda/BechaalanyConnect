@@ -346,31 +346,47 @@ export default function AccountSettings() {
                     className="w-full mt-2"
                   />
                 </div>
-                {/* User Type */}
+                {/*
+                  User Type, Store Name and Store Location are READ-ONLY.
+
+                  They were editable inputs, but handleInfoSubmit only ever sends
+                  { username, country, phone_number } — SessionController::updateProfile
+                  deliberately excludes the rest, because promoting a user to a business
+                  type grants special pricing and only an admin may do that. So a
+                  customer could change all three, get "Account data updated
+                  successfully!", and find their edits silently discarded.
+
+                  They are shown (the values are useful) but no longer pretend to be
+                  editable. They must NOT be added to the update endpoint — that would
+                  be a privilege-escalation route.
+                */}
                 <div className="flex flex-col items-start gap-1 w-full mb-4">
                   <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.user_type_placeholder}</label>
-                  <CustomDropdown
-                    options={userTypes.map(userType => ({
-                      value: userType.id.toString(),
-                      label: userType.title
-                    }))}
-                    value={accountInfo.userType.toString()}
-                    onChange={(value) => handleDropdownChange('userType', value)}
-                    className="w-full mt-2"
-                  />
+                  <div className="flex flex-row items-center p-[12px_24px] mt-2 gap-1 w-full border border-[#E0E0E0] dark:border-[#333] rounded-[50.5px] bg-[#F7F7F7] dark:bg-[#1c1c1c]">
+                    <span className="w-full font-['Roboto'] font-normal text-[16px] text-[#6B6B6B] dark:text-[#a0a0a0]">
+                      {userTypes.find((t) => t.id.toString() === accountInfo.userType.toString())?.title
+                        || (locale === 'ar' ? 'حساب عادي' : 'Standard account')}
+                    </span>
+                  </div>
                 </div>
                 <div className="mb-4">
                   <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.store_name_placeholder}</label>
-                  <div className="flex flex-row items-center p-[12px_24px] mt-2 gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
-                    <input name="storeName" value={accountInfo.storeName} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" />
+                  <div className="flex flex-row items-center p-[12px_24px] mt-2 gap-1 w-full border border-[#E0E0E0] dark:border-[#333] rounded-[50.5px] bg-[#F7F7F7] dark:bg-[#1c1c1c]">
+                    <span className="w-full font-['Roboto'] font-normal text-[16px] text-[#6B6B6B] dark:text-[#a0a0a0]">{accountInfo.storeName || '—'}</span>
                   </div>
                 </div>
                 <div className="mb-8">
                   <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.store_location_placeholder}</label>
-                  <div className="flex flex-row items-center p-[12px_24px] mt-2 gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
-                    <input name="storeLocation" value={accountInfo.storeLocation} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" />
+                  <div className="flex flex-row items-center p-[12px_24px] mt-2 gap-1 w-full border border-[#E0E0E0] dark:border-[#333] rounded-[50.5px] bg-[#F7F7F7] dark:bg-[#1c1c1c]">
+                    <span className="w-full font-['Roboto'] font-normal text-[16px] text-[#6B6B6B] dark:text-[#a0a0a0]">{accountInfo.storeLocation || '—'}</span>
                   </div>
                 </div>
+
+                <p className="text-sm text-[#6B6B6B] dark:text-[#a0a0a0] -mt-4 mb-6">
+                  {locale === 'ar'
+                    ? 'لتغيير نوع الحساب أو بيانات المتجر، يرجى التواصل مع الدعم.'
+                    : 'To change your account type or store details, please contact support.'}
+                </p>
 
                 <div className="flex flex-row flex-nowrap w-full gap-4 overflow-x-auto mb-4">
                   <button

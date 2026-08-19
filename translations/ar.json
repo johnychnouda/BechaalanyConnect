@@ -6,7 +6,10 @@
     "viewMore": "عرض الكل",
     "appName": "بيشالاني كونكت",
     "back": "رجوع",
-    "comingSoon": "قريباً"
+    "comingSoon": "قريباً",
+    "switchTheme": "تبديل المظهر",
+    "lightTheme": "الوضع الفاتح",
+    "darkTheme": "الوضع الداكن"
   },
   "header": {
     "categories": "التصنيفات",
@@ -30,5 +33,12 @@
   },
   "categories": {
     "homepage": "الرئيسية"
+  },
+  "products": {
+    "title": "المنتجات",
+    "searchPlaceholder": "ابحث عن المنتجات...",
+    "allCategories": "كل الفئات",
+    "loading": "جاري تحميل المنتجات...",
+    "noProductsFound": "لا توجد منتجات"
   }
 }

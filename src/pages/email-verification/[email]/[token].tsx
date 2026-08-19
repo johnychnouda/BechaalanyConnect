@@ -34,7 +34,10 @@ export default function EmailVerificationPage() {
     try {
       await authService.verifyEmail(data.code, decodedEmail, token || "");
       setSuccess(locale === "ar" ? "تم التحقق من البريد الإلكتروني بنجاح! يرجى تسجيل الدخول." : "Email verified successfully! Please sign in.");
-      router.push(`/${locale || "en"}/auth/signin`);
+      // Next.js i18n adds the locale prefix itself. Hardcoding it produced
+      // "/en/auth/signin", which 404s because `en` is the defaultLocale and so never
+      // appears in the URL — the user landed on a 404 right after verifying.
+      router.push("/auth/signin");
     } catch (err) {
       setError(getErrorMessage(err, locale === "ar" ? "رمز التحقق غير صالح أو منتهي الصلاحية." : "Invalid or expired verification code."));
     } finally {

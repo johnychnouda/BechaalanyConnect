@@ -3,7 +3,7 @@ export type Category = {
   slug?: string;
   title: string;
   full_path: {
-    image: string;
+    image: string | null;
   };
   description?: string;
 };

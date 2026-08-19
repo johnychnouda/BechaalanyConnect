@@ -9,7 +9,8 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "i18n-check": "node scripts/i18n-check.mjs"
   },
   "dependencies": {
     "@heroicons/react": "2.2.0",

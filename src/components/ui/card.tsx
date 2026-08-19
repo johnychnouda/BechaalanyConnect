@@ -1,13 +1,13 @@
 import { Url } from "next/dist/shared/lib/router/router";
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import clsx from "clsx";
+import ImageWithFallback from "./image-with-fallback";
 
 type CardProps = {
   id: string;
   title: string;
-  image: string;
+  image?: string | null;
   type: 'category' | 'product';
   href: Url;
   className?: string;
@@ -36,7 +36,7 @@ export default function Card({
         )}
       >
         <div className={clsx("relative w-full aspect-[4/3]", className)}>
-          <Image
+          <ImageWithFallback
             src={image}
             alt={title}
             fill
