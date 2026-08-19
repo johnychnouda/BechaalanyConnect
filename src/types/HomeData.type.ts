@@ -23,7 +23,7 @@ export type CategoryType = {
     slug: string;
     title: string;
     full_path: {
-        image: string;
+        image: string | null;
     };
 };
 
@@ -32,7 +32,7 @@ export type ProductType = {
     slug: string;
     name: string;
     full_path: {
-        image: string;
+        image: string | null;
     };
     subcategory: {
         slug: string;

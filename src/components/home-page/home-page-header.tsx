@@ -1,5 +1,12 @@
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
+// Swiper v9+ is modular: `autoplay` on the component is inert unless the Autoplay
+// module is registered. Without these, the carousel never advanced and had no arrows
+// or dots — so on desktop only the first banner was ever seen.
+import { Autoplay, Navigation, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 import WhatsAppChannelButton from "../ui/whatsapp-channel-button";
 import Image from "next/image";
 import { BannerSwiperType, HomepageSettingsType } from "@/types/HomeData.type";
@@ -14,13 +21,20 @@ export default function HomePageHeader({ bannerSwiper, homepageSettings }:
   return (
     <div className="flex flex-col w-full gap-3">
       <Swiper
+        modules={[Autoplay, Navigation, Pagination]}
         spaceBetween={0}
         slidesPerView={1}
         loop={true}
         autoplay={{
-          delay: 1500,
+          // 1.5s was too fast to read a banner; 5s is a readable dwell time.
+          delay: 5000,
           disableOnInteraction: false,
+          pauseOnMouseEnter: true,
         }}
+        navigation
+        pagination={{ clickable: true }}
+        // Respect a reduced-motion preference rather than animating regardless.
+        allowTouchMove
         className="w-full"
       >
         {bannerSwiper.map((banner, index) => (
@@ -49,7 +63,10 @@ export default function HomePageHeader({ bannerSwiper, homepageSettings }:
                   alt={banner.title}
                   fill
                   className="object-cover object-center"
-                  priority={true}
+                  // Only the first slide is above the fold. priority on every slide
+                  // preloaded every banner image and competed with LCP.
+                  priority={index === 0}
+                  sizes="100vw"
                 />
                 {/* add a overlay to the image */}
                 <div className="absolute inset-0 bg-gradient-to-b from-slate-200 to-black opacity-50"></div>

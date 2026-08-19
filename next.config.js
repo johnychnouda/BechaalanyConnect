@@ -11,8 +11,22 @@ const nextConfig = {
   },
 
   images: {
-    unoptimized: true,
-    domains: ["images.unsplash.com", "localhost", "127.0.0.1", "admin.bechaalanyconnect.com"],
+    // `unoptimized: true` was set here, which turned every <Image> into a plain
+    // <img>: no WebP/AVIF, no responsive srcset, no resizing — full-resolution
+    // uploads were served to phones, including full-bleed hero banners.
+    //
+    // The allowlist below was written and kept accurate for exactly this moment.
+    // If a supplier ever serves images from a new host, add it here or next/image
+    // will refuse it with a 400 rather than silently loading it.
+    remotePatterns: [
+      { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "admin.bechaalanyconnect.com" },
+      { protocol: "http", hostname: "localhost" },
+      { protocol: "http", hostname: "127.0.0.1" },
+      // Supplier-hosted category artwork (Yassen serves absolute image URLs).
+      { protocol: "https", hostname: "yassen-card.com" },
+      { protocol: "https", hostname: "**.yassen-card.com" },
+    ],
   },
 
   env: {

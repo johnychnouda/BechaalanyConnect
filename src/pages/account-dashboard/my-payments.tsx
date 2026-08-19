@@ -3,10 +3,11 @@ import React, { useState, useEffect, useMemo } from "react";
 import BackButton from "@/components/ui/back-button";
 import { fetchUserPayments } from "@/services/api.service";
 import { useAuth } from "@/context/AuthContext";
-import PaymentRow from "./paymentRow";
+import PaymentRow from "@/components/dashboard/paymentRow";
 import { useRouter } from "next/router";
 import { useGlobalContext } from "@/context/GlobalContext";
 import { useLanguage } from "@/hooks/use-language";
+import { toMessage, toNumber } from "@/utils/error-message";
 
 const ITEMS_PER_PAGE = 5; // Number of items to show initially and per load more
 
@@ -28,40 +29,64 @@ export default function MyPayments() {
   const [error, setError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>("all");
-  const [displayedItemsCount, setDisplayedItemsCount] = useState(ITEMS_PER_PAGE);
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
+  /**
+   * Fetch one page of top-ups.
+   *
+   * Same defect as My Orders: this requested page 1 only (10 rows) and "Load More"
+   * re-sliced that array, so older top-ups were unreachable.
+   */
+  const fetchPayments = async (requestedPage = 1) => {
+    if (requestedPage === 1) setLoading(true);
+    else setIsLoadingMore(true);
+    setError(null);
+
+    try {
+      const response = await fetchUserPayments(router.locale, requestedPage, ITEMS_PER_PAGE);
+
+      const mappedPayments = (response.credits || []).map((item: any) => {
+        let status: 'accepted' | 'rejected' | 'pending' = 'pending';
+        if (item.statuses_id === 1) status = 'accepted';
+        else if (item.statuses_id === 2) status = 'rejected';
+        else if (item.statuses_id === 3) status = 'pending';
+        return {
+          id: item.id,
+          status,
+          // credits_types can be null if the type was removed; this used to crash
+          // the whole page with "cannot read property title of null".
+          title: `${item.credits_types?.title ?? ''}`,
+          // amount arrives as a decimal string now that the column is DECIMAL.
+          value: `$${toNumber(item.amount).toFixed(2)}`,
+          date: item.created_at,
+          screenshot: item.full_path?.receipt_image || null,
+          rejected_reason: item.rejected_reason || null,
+        };
+      });
+
+      setPayments((previous) =>
+        requestedPage === 1 ? mappedPayments : [...previous, ...mappedPayments]
+      );
+      setPage(response.current_page || requestedPage);
+      setLastPage(response.last_page || 1);
+    } catch (err) {
+      // Reachable now: fetchUserPayments used to return an empty list on failure, so
+      // an outage rendered "No payments found."
+      setError(toMessage(err, router.locale));
+    } finally {
+      setLoading(false);
+      setIsLoadingMore(false);
+    }
+  };
+
+  // Depends on the locale: credit-type titles are translated server-side.
   useEffect(() => {
-    const fetchPayments = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetchUserPayments(router.locale);
-        // Map API response to PaymentRow props
-        const mappedPayments = (response.credits || []).map((item: any) => {
-          let status: 'accepted' | 'rejected' | 'pending' = 'pending';
-          if (item.statuses_id === 1) status = 'accepted';
-          else if (item.statuses_id === 2) status = 'rejected';
-          else if (item.statuses_id === 3) status = 'pending';
-          return {
-            id: item.id,
-            status,
-            title: `${item.credits_types.title}`,
-            value: item.amount + '$',
-            date: item.created_at,
-            screenshot: item.full_path?.receipt_image || null,
-            rejected_reason: item.rejected_reason || null,
-          };
-        });
-        setPayments(mappedPayments);
-      } catch (err) {
-        setError('Failed to load payments.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPayments();
-  }, []);
+    setPage(1);
+    fetchPayments(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.locale]);
 
   const filterButtons = [
     {
@@ -126,24 +151,18 @@ export default function MyPayments() {
     ? payments
     : payments.filter(p => p.status === activeFilter);
 
-  const displayedPayments = useMemo(() => {
-    return filteredPayments.slice(0, displayedItemsCount);
-  }, [filteredPayments, displayedItemsCount]);
+  // Everything fetched so far is shown; paging comes from the API.
+  const displayedPayments = filteredPayments;
 
-  const hasMoreItems = displayedItemsCount < filteredPayments.length;
+  const hasMoreItems = page < lastPage;
 
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter);
-    setDisplayedItemsCount(ITEMS_PER_PAGE); // Reset to initial count when filter changes
   };
 
   const handleLoadMore = () => {
-    setIsLoadingMore(true);
-    // Simulate loading delay for better UX
-    setTimeout(() => {
-      setDisplayedItemsCount(prev => prev + ITEMS_PER_PAGE);
-      setIsLoadingMore(false);
-    }, 500);
+    if (isLoadingMore || !hasMoreItems) return;
+    fetchPayments(page + 1);
   };
 
   return (
@@ -221,7 +240,7 @@ export default function MyPayments() {
                     <>
                       <span>{locale === 'en' ? 'Load More' : 'تحميل المزيد'}</span>
                       <span className="text-sm opacity-75">
-                        ({filteredPayments.length - displayedItemsCount} {locale === 'en' ? 'more' : 'أكثر'})
+                        ({locale === 'en' ? `page ${page + 1} of ${lastPage}` : `صفحة ${page + 1} من ${lastPage}`})
                       </span>
                     </>
                   )}
@@ -230,7 +249,8 @@ export default function MyPayments() {
             )}
 
             {/* Empty state */}
-            {!hasMoreItems && filteredPayments.length > 0 && (
+            {/* Only when there genuinely is more than one page. */}
+            {!hasMoreItems && lastPage > 1 && (
               <div className="w-full flex justify-center items-center py-4">
                 <span className="font-['Roboto'] font-normal text-sm text-[#8E8E8E] dark:text-[#a0a0a0]">
                   {locale === 'en' ? 'No more payments to load' : 'لا يوجد دفعات مضافة أخرى'}

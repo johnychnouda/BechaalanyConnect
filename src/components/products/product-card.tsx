@@ -1,10 +1,10 @@
 import React from 'react';
-import Image from 'next/image';
+import ImageWithFallback from '@/components/ui/image-with-fallback';
 
 interface Product {
   id: string;
   name: string;
-  image: string;
+  image?: string | null;
   price: number;
   description: string;
 }
@@ -22,7 +22,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick }) => {
     >
       <div className="block rounded-lg overflow-hidden shadow-sm hover:shadow-md hover:scale-105 transition-all duration-300 ease-in-out group relative w-full">
         <div className="relative w-full aspect-[4/3]">
-          <Image
+          <ImageWithFallback
             src={product.image}
             alt={product.name}
             fill

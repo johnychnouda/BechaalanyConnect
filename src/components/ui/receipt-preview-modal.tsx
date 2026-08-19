@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ProcessedOrder } from '@/pages/account-dashboard/orderRow';
+import { ProcessedOrder } from '@/components/dashboard/orderRow';
 import { formatDate } from '@/utils/date';
 
 interface ReceiptPreviewModalProps {

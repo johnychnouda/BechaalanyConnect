@@ -15,7 +15,7 @@ interface Product {
   name: string;
   slug: string;
   full_path: {
-    image: string;
+    image: string | null;
   }
   price: number;
   description: string;

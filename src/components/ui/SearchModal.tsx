@@ -7,7 +7,7 @@ interface Product {
     slug: string;
     name: string;
     full_path: {
-        image: string;
+        image: string | null;
     }
 
     subcategory: {
@@ -33,9 +33,14 @@ function SearchModal({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (isOpe
 
     // Debounce search
     useEffect(() => {
-        if (!searchTerm) {
+        // The API requires at least 2 characters (a 1-character term matched most of
+        // the catalogue). Guard here so a short term shows nothing rather than
+        // producing a validation error the user cannot act on.
+        if (!searchTerm || searchTerm.trim().length < 2) {
             setResults([]);
             setShowAll(false);
+            setError('');
+            setLoading(false);
             return;
         }
         setLoading(true);

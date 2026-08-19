@@ -120,10 +120,11 @@ export default function App({
                                 >
                                   <FallbackTheme />
                                   {loading && <PageLoader />}
-                                  <main
-                                    className={`min-h-screen flex flex-col ${isRTL ? "rtl" : "ltr"}`}
-                                    dir={isRTL ? "rtl" : "ltr"}
-                                  >
+                                  {/* dir now lives on <html> (see _document.tsx), so it
+                                      also covers the toast container and every fixed
+                                      modal — all of which render outside this element
+                                      and used to stay left-to-right in Arabic. */}
+                                  <main className="min-h-screen flex flex-col">
                                     <VerificationPendingBanner />
                                     <TopBanner>
                                       <Header>
@@ -138,14 +139,17 @@ export default function App({
                                     {/* Footer */}
                                     <Footer />
                                   </main>
-                                  {/* Global Toast Container */}
+                                  {/* Global Toast Container.
+                                      `rtl` was hardcoded to false, so Arabic toasts
+                                      were laid out left-to-right even though they were
+                                      positioned top-left. */}
                                   <ToastContainer
                                     position={isRTL ? 'top-left' : 'top-right'}
                                     autoClose={3000}
                                     hideProgressBar={false}
                                     newestOnTop={false}
                                     closeOnClick
-                                    rtl={false}
+                                    rtl={isRTL}
                                     pauseOnFocusLoss
                                     pauseOnHover
                                     theme={"colored"}

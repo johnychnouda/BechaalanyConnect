@@ -24,15 +24,28 @@ module.exports = {
     },
   },
   plugins: [
-    function({ addUtilities }) {
+    /*
+     * A real `rtl:` variant.
+     *
+     * `.rtl\:rotate-y-180` used to be registered as a PLAIN CLASS, not a variant — so
+     * `className="rtl:rotate-y-180"` flipped the element in BOTH directions, English
+     * included. And because no true variant existed, `rtl:` could not be used with any
+     * other utility, which is why the codebase reaches for `locale === 'ar' ? … : …`
+     * in markup instead.
+     *
+     * These key off [dir] on an ancestor, which only became correct once _document.tsx
+     * started putting dir on <html> — before that, dir lived on <main> and anything
+     * portalled outside it (toasts, fixed-position modals) was unreachable.
+     */
+    function ({ addUtilities, addVariant }) {
+      addVariant('rtl', '[dir="rtl"] &');
+      addVariant('ltr', '[dir="ltr"] &');
+
       addUtilities({
         '.rotate-y-180': {
-          'transform': 'rotateY(180deg)',
+          transform: 'rotateY(180deg)',
         },
-        '.rtl\\:rotate-y-180': {
-          'transform': 'rotateY(180deg)',
-        },
-      })
-    }
+      });
+    },
   ],
 }; 

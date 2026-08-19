@@ -15,7 +15,7 @@ interface SubCategory {
   slug: string;
   title: string;
   full_path: {
-    image: string;
+    image: string | null;
   }
 }
 

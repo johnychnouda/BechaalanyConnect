@@ -60,9 +60,20 @@ export default function SigninPage() {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   };
 
-  const validatePassword = (value: string) => {
-    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/.test(value);
-  };
+  /**
+   * Sign-in checks only that a password was entered.
+   *
+   * This used to enforce full password STRENGTH here — lowercase, uppercase, digit,
+   * symbol, 8+ characters — on the *login* form. That is the wrong place for it:
+   * any account whose password predates the current policy (or was created through
+   * Google, or set before the rule tightened) could not even submit the form, and
+   * the user was shown a validation error implying they had typed it wrongly.
+   *
+   * Worse, the rule here required a lowercase letter while the signup rule did not,
+   * so the two disagreed and a password accepted at registration could be rejected
+   * at login. Strength belongs on signup and reset only — see src/utils/password.ts.
+   */
+  const validatePassword = (value: string) => value.trim().length > 0;
 
   const onSubmit = async (data: any) => {
     setError("");

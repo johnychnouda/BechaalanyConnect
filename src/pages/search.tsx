@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import Image from 'next/image';
 import Link from 'next/link';
+import ImageWithFallback from '@/components/ui/image-with-fallback';
 
 interface Product {
     id: number;
     slug: string;
     name: string;
     full_path: {
-        image: string;
+        image: string | null;
     }
 
     subcategory: {
@@ -30,8 +30,13 @@ const SearchPage = () => {
     const locale = router.locale;
 
     useEffect(() => {
-        if (!searchTerm || typeof searchTerm !== 'string') {
+        // The API requires at least 2 characters (a 1-character term matched most of
+        // the catalogue). Guard here so a short term shows nothing rather than
+        // producing a validation error the user cannot act on.
+        if (!searchTerm || typeof searchTerm !== 'string' || searchTerm.trim().length < 2) {
             setResults([]);
+            setError('');
+            setLoading(false);
             return;
         }
         setLoading(true);
@@ -72,7 +77,7 @@ const SearchPage = () => {
                                     <Link href={href}>
                                 <div className="flex items-center gap-2">
                                     <div className="relative w-[50px] h-[50px] md:w-[70px] md:h-[70px] lg:w-[100px] lg:h-[100px] aspect-square rounded overflow-hidden">
-                                        <Image src={product.full_path.image} alt={product.name} fill className="object-cover" />
+                                        <ImageWithFallback src={product.full_path?.image} alt={product.name} fill className="object-cover" placeholderClassName="p-2" />
                                     </div>
                                     <div className="flex flex-col">
                                         <p className="text-sm font-medium">{product.name}</p>

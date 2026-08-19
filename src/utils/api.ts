@@ -96,31 +96,66 @@ api.interceptors.request.use(
     }
 );
 
+/**
+ * The shape every rejected request now takes.
+ *
+ * Previously this interceptor rejected with three different things depending on which
+ * branch it hit — a bare string for HTTP errors, and `{type, message}` objects for
+ * network and setup errors. Callers wrote `toast.error(err)`, which rendered
+ * "[object Object]" whenever the connection dropped, and the backend's machine-readable
+ * `code` was thrown away entirely so no caller could branch on it.
+ */
+export interface ApiError {
+    /** Human-readable, safe to display. */
+    message: string;
+    /** Machine-readable: 'insufficient_credits', 'kyc_required', 'network', … */
+    code: string;
+    /** HTTP status, absent for network/setup failures. */
+    status?: number;
+    /** Laravel 422 field errors. */
+    errors?: Record<string, string[]>;
+    /** Correlation id from the API for 500s — quote it in a support request. */
+    ref?: string;
+    /** Anything else the endpoint returned (e.g. balance/required/missing). */
+    data?: Record<string, unknown>;
+}
+
+const isApiError = (value: unknown): value is ApiError =>
+    typeof value === 'object' && value !== null && 'code' in value && 'message' in value;
+
+export { isApiError };
+
 // Add response interceptor
 api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response) {
-            const { data } = error.response;
-            const backendMessage = data.message;
+            const { data, status } = error.response;
 
-            return Promise.reject(backendMessage || 'An unexpected error occurreddd.');
+            const apiError: ApiError = {
+                message: data?.message || 'Something went wrong. Please try again.',
+                code: data?.code || 'http_error',
+                status,
+                errors: data?.errors,
+                ref: data?.ref,
+                data,
+            };
 
-        } else if (error.request) {
-            // The request was made but no response was received
-            console.error('No Response:', error.request);
-            return Promise.reject({
-                type: 'network',
-                message: 'No response from server. Please check your internet connection.'
-            });
-        } else {
-            // Something happened in setting up the request that triggered an Error
-            console.error('Request Error:', error.message);
-            return Promise.reject({
-                type: 'request',
-                message: 'Error setting up the request.'
-            });
+            return Promise.reject(apiError);
         }
+
+        if (error.request) {
+            // Request left the browser, nothing came back.
+            return Promise.reject({
+                message: 'No response from the server. Please check your internet connection.',
+                code: 'network',
+            } as ApiError);
+        }
+
+        return Promise.reject({
+            message: 'The request could not be sent. Please try again.',
+            code: 'request_setup',
+        } as ApiError);
     }
 );
 
