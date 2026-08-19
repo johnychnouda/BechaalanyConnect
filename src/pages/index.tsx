@@ -6,6 +6,7 @@ import PageLayout from "@/components/ui/page-layout";
 import { HomepageProvider, useHomepageContext } from "@/context/HomepageContext";
 import PageLoader from "@/components/ui/PageLoader";
 import SeoHead from "@/components/ui/SeoHead";
+import { useRouter } from "next/router";
 
 export default function Home() {
 
@@ -17,13 +18,30 @@ export default function Home() {
 }
 
 function HomeContent() {
-  const { homepageData } = useHomepageContext();
+  const { homepageData, homepageError } = useHomepageContext();
+  const { locale } = useRouter();
   const bannerSwiper = homepageData?.bannerSwiper || [];
   const homepageSettings = homepageData?.homepageSettings;
   const categories = homepageData?.categories || [];
   const featuredProducts = homepageSettings?.featured_products || [];
   const latestProducts = homepageData?.latest_products || [];
 
+
+  if (homepageError) {
+    return (
+      <PageLayout className="flex flex-col min-h-screen items-center justify-center gap-4 px-4 text-center">
+        <p className="text-app-red font-medium">
+          {locale === 'ar' ? 'تعذر تحميل الصفحة الرئيسية.' : 'We could not load the homepage.'}
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-6 py-3 rounded-lg bg-app-red text-white font-medium hover:opacity-90 transition-opacity"
+        >
+          {locale === 'ar' ? 'إعادة المحاولة' : 'Try again'}
+        </button>
+      </PageLayout>
+    );
+  }
 
   if (!homepageData) {
     return <PageLoader />;

@@ -80,6 +80,11 @@ interface AuthContextType {
   token: string | null;
   isAdmin: boolean;
   isApproved: boolean;
+  /** Whether the live credits balance from /user/profile is trustworthy yet.
+   *  'unknown' until the query has resolved at least once; 'error' if it's
+   *  currently failing. Never gate an affordability check on the balance
+   *  itself while this isn't 'known' — the store's balance starts at 0. */
+  balanceStatus: 'unknown' | 'known' | 'error';
   login: (email: string, password: string, lang?: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
@@ -110,6 +115,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const {
     data: profile,
     isFetching: isRefreshing,
+    isSuccess: profileLoadedOnce,
+    isError: profileErrored,
     refetch: refetchProfile,
   } = useQuery({
     queryKey: ['user-profile', locale],
@@ -125,7 +132,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // cookie so the middleware unlocks the dashboard after a mid-session KYC approval.
   useEffect(() => {
     if (!profile) return;
-    const freshBalance = profile.credits_balance ?? profile.user?.credits_balance ?? 0;
+    // credits_balance is a MySQL DECIMAL column with no ->decimal()/->float() cast on
+    // the backend model, so Eloquent (via PDO) serialises it as a JSON string
+    // ("39.24"), not a number, even though every type in this file claims `number`.
+    // Fed straight into the credits store, that string reached BlurredPrice's
+    // price.toFixed(2) and threw for every signed-in user with a balance, which
+    // crash-looped the header component that wraps every page. Coerced once here,
+    // at the single point the balance enters app state.
+    const freshBalance = Number(profile.credits_balance ?? profile.user?.credits_balance ?? 0) || 0;
     setBalance(freshBalance);
     creditsService.syncBalanceFromSession(freshBalance);
 
@@ -161,9 +175,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       business_name: pu?.business_name || '',
       business_location: pu?.business_location || '',
       user_types: pu?.user_types || [],
-      credits_balance: profile?.credits_balance ?? pu?.credits_balance ?? 0,
-      total_purchases: profile?.total_purchases ?? pu?.total_purchases ?? 0,
-      received_amount: profile?.received_amount ?? pu?.received_amount ?? 0,
+      // Same DECIMAL-as-string coercion as the balance effect above — these three
+      // are typed `number` in UserType but the raw API values are strings.
+      credits_balance: Number(profile?.credits_balance ?? pu?.credits_balance ?? 0) || 0,
+      total_purchases: Number(profile?.total_purchases ?? pu?.total_purchases ?? 0) || 0,
+      received_amount: Number(profile?.received_amount ?? pu?.received_amount ?? 0) || 0,
       orders: profile?.orders || [],
       verification_status: (pu?.verification_status || sessionUser?.verification_status || 'unsubmitted'),
     };
@@ -172,6 +188,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const token = sessionToken;
   const isAdmin = user?.role === 'admin';
   const isApproved = user?.verification_status === 'approved';
+  const balanceStatus: 'unknown' | 'known' | 'error' =
+    profileLoadedOnce ? 'known' : profileErrored ? 'error' : 'unknown';
 
   const login = async (email: string, password: string, lang?: string) => {
     setLoading(true);
@@ -238,7 +256,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       token,
       isAdmin,
       isApproved,
-      login, 
+      balanceStatus,
+      login,
       loginWithGoogle, 
       logout, 
       loading,

@@ -70,7 +70,7 @@ const ProductPage: React.FC = () => {
   const router = useRouter();
   const { deductFromBalance } = useCreditOperations();
   const creditsBalance = useCreditsStore((state) => state.balance);
-  const { user, isApproved, refreshUserData } = useAuth();
+  const { user, isApproved, refreshUserData, balanceStatus } = useAuth();
   const [showPendingModal, setShowPendingModal] = useState(false);
   const { refreshOrders, generalData } = useGlobalContext();
   const { locale } = useRouter();
@@ -96,7 +96,16 @@ const ProductPage: React.FC = () => {
     (variation: ProductVariation, index: number): SelectedAmount => ({
       id: variation.id || index,
       amount: variation.name,
-      price: variation.price_variations.find((price) => price.user_types_id === user?.user_types?.id)?.price || variation.price,
+      // products_variations.price (and product_price_variations.price) are MySQL
+      // DECIMAL columns with no ->decimal()/->float() cast on the backend models, so
+      // the API serialises them as JSON strings ("5.99"), not numbers, even though
+      // SelectedAmount.price is typed `number`. Uncoerced, this reached
+      // selectedAmount.price.toFixed() below and crashed the page for any variation
+      // whose displayed unit price (Coin Recharge products) rendered that line.
+      price: Number(
+        variation.price_variations.find((price) => price.user_types_id === user?.user_types?.id)?.price
+          ?? variation.price
+      ) || 0,
       image: variation.full_path?.image,
       description: variation.description,
       unitAmount: variation.unit_amount,
@@ -247,7 +256,14 @@ const ProductPage: React.FC = () => {
   const currentBalance = creditsBalance;
   // Only meaningful once the account is verified — unverified users are blocked
   // earlier and see blurred prices anyway.
-  const cannotAfford = Boolean(user) && currentBalance < total;
+  //
+  // Gated on balanceStatus === 'known': the store's balance starts at 0 before
+  // /user/profile has ever resolved, so treating an unresolved fetch the same as
+  // a real balance produced a false "insufficient credits" lockout on every cold
+  // page load — and a permanent one if the fetch failed outright (React Query's
+  // retry: 1 gives up, and nothing ever set the balance after that).
+  const cannotAfford = Boolean(user) && balanceStatus === 'known' && currentBalance < total;
+  const balanceCheckFailed = Boolean(user) && balanceStatus === 'error';
   const coinAmount = isCoin && selectedAmount.unitAmount ? selectedAmount.unitAmount * quantity : 0;
 
   const selectedProductVariation = productVariations.find((variation) => variation.id === selectedAmount?.id);
@@ -556,6 +572,19 @@ const ProductPage: React.FC = () => {
                 </div>
               )}
 
+              {/* Balance couldn't be checked (profile fetch failed) — do not block
+                  the purchase on it; the server re-checks the real balance under a
+                  row lock when the order is submitted regardless. */}
+              {isApproved && balanceCheckFailed && (
+                <div className="rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm">
+                  <p className="text-gray-600">
+                    {locale === 'en'
+                      ? "We couldn't check your balance. You can still try to buy — we'll verify your balance when you submit."
+                      : 'تعذر التحقق من رصيدك. يمكنك المحاولة على أي حال — سنتحقق من رصيدك عند الإرسال.'}
+                  </p>
+                </div>
+              )}
+
               {/* Server-side rejection, kept on screen after the toast fades. */}
               {creditShortfall && !cannotAfford && (
                 <div className="rounded-xl border border-app-red/40 bg-app-red/5 px-4 py-3 text-sm">
@@ -640,7 +669,7 @@ const ProductPage: React.FC = () => {
           <button
             type="submit"
             form="purchase-form"
-            disabled={submitLoading}
+            disabled={submitLoading || (isApproved && cannotAfford)}
             className="bg-app-red text-white font-bold py-2.5 px-8 rounded-full transition-colors duration-300 text-base hover:bg-white hover:text-app-red border border-app-red disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer whitespace-nowrap"
           >
             {generalData?.settings.buy_now_button}

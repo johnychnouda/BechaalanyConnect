@@ -25,20 +25,57 @@ export default function AddCreditMethod() {
 
   const [creditType, setCreditType] = useState<CreditsType>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isLoadingType, setIsLoadingType] = useState(true);
 
   useEffect(() => {
-    getSingleCreditType().then(setCreditType);
+    if (!router.locale || !router.query.method) return;
+    setIsLoadingType(true);
+    setLoadError(null);
+    getSingleCreditType()
+      .then(setCreditType)
+      .catch((err) => {
+        console.error('Error fetching credit type:', err);
+        setLoadError(toMessage(err, locale));
+      })
+      .finally(() => setIsLoadingType(false));
   }, [router.locale, router.query.method]);
 
   const { method } = router.query;
   // const config = methodConfigs[method as string];
-  const [value, setValue] = useState(0);
-  const [sendValue, setSendValue] = useState(0);
+  const [sendValueInput, setSendValueInput] = useState('');
+  const sendValue = Number(sendValueInput) || 0;
   const [screenshot, setScreenshot] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  if (!creditType) return null;
+  if (isLoadingType) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center items-center py-24">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E73828]"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (loadError || !creditType) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center py-24 gap-4 text-center px-4">
+          <p className="text-app-red font-medium">
+            {loadError || (locale === 'en' ? 'This payment method could not be found.' : 'تعذر العثور على طريقة الدفع هذه.')}
+          </p>
+          <button
+            onClick={() => router.reload()}
+            className="px-6 py-3 rounded-lg bg-app-red text-white font-medium hover:opacity-90 transition-opacity"
+          >
+            {locale === 'en' ? 'Try again' : 'إعادة المحاولة'}
+          </button>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   // Copy handler for number
   const handleCopy = () => {
@@ -116,7 +153,7 @@ export default function AddCreditMethod() {
       // await refreshUserData(true);
 
       // Reset form
-      setSendValue(0);
+      setSendValueInput('');
       setScreenshot('');
       setSelectedFile(null);
       if (fileInputRef.current) {
@@ -154,8 +191,19 @@ export default function AddCreditMethod() {
               <input
                 name="amount"
                 type="text"
-                value={sendValue}
-                onChange={e => setSendValue(Number(e.target.value))}
+                inputMode="decimal"
+                value={sendValueInput}
+                onChange={e => {
+                  const raw = e.target.value;
+                  // Allow only digits and at most one decimal point while typing, so
+                  // the displayed value never diverges from what was typed. A plain
+                  // Number() coercion on every keystroke rounded "10." back to "10"
+                  // as it was typed, making it impossible to enter a decimal amount.
+                  if (raw === '' || /^\d*\.?\d*$/.test(raw)) {
+                    setSendValueInput(raw);
+                  }
+                }}
+                placeholder="0.00"
                 className="font-['Roboto'] font-normal text-[16px] leading-[19px] text-[#070707] bg-transparent border-none outline-none flex-1 min-w-0"
                 style={{ minWidth: '0' }}
               />
