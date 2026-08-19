@@ -25,9 +25,20 @@ export default function AddCreditMethod() {
 
   const [creditType, setCreditType] = useState<CreditsType>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isLoadingType, setIsLoadingType] = useState(true);
 
   useEffect(() => {
-    getSingleCreditType().then(setCreditType);
+    if (!router.locale || !router.query.method) return;
+    setIsLoadingType(true);
+    setLoadError(null);
+    getSingleCreditType()
+      .then(setCreditType)
+      .catch((err) => {
+        console.error('Error fetching credit type:', err);
+        setLoadError(toMessage(err, locale));
+      })
+      .finally(() => setIsLoadingType(false));
   }, [router.locale, router.query.method]);
 
   const { method } = router.query;
@@ -38,7 +49,33 @@ export default function AddCreditMethod() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  if (!creditType) return null;
+  if (isLoadingType) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center items-center py-24">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E73828]"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (loadError || !creditType) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center py-24 gap-4 text-center px-4">
+          <p className="text-app-red font-medium">
+            {loadError || (locale === 'en' ? 'This payment method could not be found.' : 'تعذر العثور على طريقة الدفع هذه.')}
+          </p>
+          <button
+            onClick={() => router.reload()}
+            className="px-6 py-3 rounded-lg bg-app-red text-white font-medium hover:opacity-90 transition-opacity"
+          >
+            {locale === 'en' ? 'Try again' : 'إعادة المحاولة'}
+          </button>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   // Copy handler for number
   const handleCopy = () => {
