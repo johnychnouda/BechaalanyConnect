@@ -33,6 +33,10 @@ interface ProductVariation {
   quantity: number | null;
   unit_amount: number | null;
   unit_label: string | null;
+  // What the supplier will actually sell in one order. Some suppliers have no
+  // quantity parameter at all (usharez quota allocates exactly one bundle), so
+  // {min:1,max:1} means "the stepper is a lie" — see maxQty below.
+  external_qty_values: { min?: number; max?: number } | null;
   price_variations: PriceVariation[];
 }
 
@@ -64,6 +68,9 @@ interface SelectedAmount {
   description: string;
   unitAmount: number | null;
   unitLabel: string | null;
+  // Highest quantity the supplier accepts in one order, or null when unbounded.
+  // 1 pins the purchase to a single unit and hides the quantity stepper.
+  maxQty: number | null;
 }
 
 const ProductPage: React.FC = () => {
@@ -110,6 +117,7 @@ const ProductPage: React.FC = () => {
       description: variation.description,
       unitAmount: variation.unit_amount,
       unitLabel: variation.unit_label,
+      maxQty: variation.external_qty_values?.max ?? null,
     }),
     [user?.user_types?.id]
   );
@@ -166,6 +174,18 @@ const ProductPage: React.FC = () => {
   }, [productVariations, toAmount]);
 
   const [quantity, setQuantity] = useState(1);
+
+  // Some variations are sold one at a time — the supplier's purchase endpoint has
+  // no quantity parameter (usharez allocates exactly one quota bundle), so an order
+  // for 2 is accepted and charged here, rejected upstream, then auto-refunded. Reset
+  // to 1 whenever such a variation is selected; the stepper is hidden for it below.
+  // Kept above the early returns so the hook order never changes.
+  useEffect(() => {
+    if (selectedAmount?.maxQty === 1) {
+      setQuantity(1);
+    }
+  }, [selectedAmount?.id, selectedAmount?.maxQty]);
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -249,6 +269,9 @@ const ProductPage: React.FC = () => {
   // Coin Recharge products: the counter selects blocks (quantity); price-per-block
   // (selectedAmount.price) × blocks gives the total, exactly like quantity pricing.
   const isCoin = product?.product_type_id === PRODUCT_TYPE_COIN && !!selectedAmount.unitAmount;
+  // Supplier sells this one unit at a time — no stepper, and the order is pinned
+  // to 1 regardless of any stale quantity state.
+  const qtyLocked = selectedAmount.maxQty === 1;
   const total = selectedAmount.price * quantity;
 
   // Live balance from the credits store, so the check reflects any top-up approved
@@ -309,7 +332,7 @@ const ProductPage: React.FC = () => {
     try {
       await saveOrder(router.locale || 'en', {
         product_variation_id: selectedProductVariation?.id || 0,
-        quantity: quantity,
+        quantity: qtyLocked ? 1 : quantity,
         recipient_phone_number: recipientPhoneNumber,
         recipient_user: recipientUser,
       });
@@ -481,8 +504,9 @@ const ProductPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Quantity Selector — not shown for User ID or Coin Recharge products */}
-              {product?.product_type_id !== PRODUCT_TYPE_USER_ID && !isCoin && (
+              {/* Quantity Selector — not shown for User ID or Coin Recharge products,
+                  nor for variations the supplier only sells one of */}
+              {product?.product_type_id !== PRODUCT_TYPE_USER_ID && !isCoin && !qtyLocked && (
                 <div>
                   <span className="block text-gray-800 font-semibold mb-1">{generalData?.settings.quantity}</span>
                   <div role="group" aria-label={generalData?.settings.quantity} className="flex items-center border border-app-red rounded-full px-2 py-1 w-full bg-white justify-between min-w-[160px]">
