@@ -10,6 +10,7 @@ import { generateBulkOrderReceipts } from "@/utils/pdf-generator";
 import { useRouter } from "next/router";
 import { useLanguage } from "@/hooks/use-language";
 import { toMessage } from "@/utils/error-message";
+import { toProcessedOrder } from "@/utils/order";
 
 const ITEMS_PER_PAGE = 10; // Rows requested per page from the API
 
@@ -99,48 +100,7 @@ export default function MyOrders() {
       return [];
     }
 
-    return orders.map((order: Order) => {
-      // Map statuses_id to status string
-      let status: 'accepted' | 'rejected' | 'pending' = 'pending';
-      if (order.statuses_id === 1) status = 'accepted';
-      else if (order.statuses_id === 2) status = 'rejected';
-      else if (order.statuses_id === 3) status = 'pending';
-
-      // Create title based on product variation (you might need to fetch product details)
-      const title = `${order.product_variation.product.name} | ${order.product_variation.name}`;
-
-      // Format price
-      const value = `$${parseFloat(order.total_price).toFixed(2)}`;
-
-      // Create recipient info
-      let recipient_info = '';
-      if (order.recipient_user) {
-        recipient_info = `User ID: ${order.recipient_user}`;
-      } else if (order.recipient_phone_number) {
-        recipient_info = `Phone: ${order.recipient_phone_number}`;
-      }
-
-      // console.log(order);
-
-      return {
-        id: order.id,
-        status,
-        title,
-        value,
-        date: order.created_at,
-        quantity: order.quantity,
-        recipient_info: recipient_info,
-        Customer: {
-          username: order.users.username,
-          email: order.users.email,
-          phone_number: order.users.phone_number,
-          country: order.users.country,
-          business_location: order.users.business_location,
-          business_name: order.users.business_name
-        },
-        code: order?.code
-      };
-    });
+    return orders.map(toProcessedOrder);
   }, [orders]);
 
 

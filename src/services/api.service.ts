@@ -159,6 +159,15 @@ export const fetchUserOrders = async (locale: string = 'en', page = 1, limit = 1
     }
 };
 
+export const fetchUserOrder = async (locale: string = 'en', id: number | string) => {
+    try {
+        const { data } = await api.get(`/${locale}/user/orders/${id}`);
+        return data;
+    } catch (error) {
+        throw error;
+    }
+};
+
 export const fetchUserPayments = async (locale: string = 'en', page = 1, limit = 10) => {
   try {
     // Always use locale-aware endpoint for consistency with other user endpoints

@@ -44,12 +44,14 @@ const statusMeta = {
 
 function orderRow({ order }: { order: ProcessedOrder }) {
   const meta = statusMeta[order.status];
-  const { locale } = useRouter();
+  const router = useRouter();
+  const { locale } = router;
   const [isExporting, setIsExporting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
 
-  const handlePreview = () => {
+  const handlePreview = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setShowPreview(true);
   };
 
@@ -68,9 +70,24 @@ function orderRow({ order }: { order: ProcessedOrder }) {
     }
   };
 
+  const goToDetail = () => {
+    router.push(`/account-dashboard/my-orders/${order.id}`);
+  };
+
   return (
     <>
-      <div className="flex flex-row flex-wrap justify-between items-center p-[12px_16px] gap-[10px] w-full bg-[rgba(7,7,7,0.05)]  rounded-[20px] mb-2">
+      <div
+        className="flex flex-row flex-wrap justify-between items-center p-[12px_16px] gap-[10px] w-full bg-[rgba(7,7,7,0.05)] rounded-[20px] mb-2 cursor-pointer hover:bg-[rgba(7,7,7,0.08)] dark:hover:bg-white/5 transition-colors"
+        onClick={goToDetail}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            goToDetail();
+          }
+        }}
+      >
         {/* Left Section - Icon, Title, Date */}
         <div className="flex flex-row items-start md:items-center p-0 gap-4 ">
           {/* Icon Circle */}
@@ -96,11 +113,13 @@ function orderRow({ order }: { order: ProcessedOrder }) {
             </div>
             {
               order?.status === 'accepted' && order?.code && (
-                <OrderCodes
-                  htmlContent={order.code}
-                  className="text-xs font-normal mt-3"
-                  locale={locale || 'en'}
-                />
+                <div onClick={(e) => e.stopPropagation()}>
+                  <OrderCodes
+                    htmlContent={order.code}
+                    className="text-xs font-normal mt-3"
+                    locale={locale || 'en'}
+                  />
+                </div>
               )
             }
             <div>
