@@ -344,7 +344,7 @@ const ProductPage: React.FC = () => {
 
     setSubmitLoading(true);
     try {
-      await saveOrder(router.locale || 'en', {
+      const placedOrder = await saveOrder(router.locale || 'en', {
         product_variation_id: selectedProductVariation?.id || 0,
         quantity: qtyLocked ? 1 : quantity,
         recipient_phone_number: recipientPhoneNumber,
@@ -366,11 +366,16 @@ const ProductPage: React.FC = () => {
       setQuantity(1);
       setSubmitLoading(false);
 
-      // A toast was the ONLY confirmation: no order number, no summary, and no way to
-      // reach the order — and refreshOrders() does nothing unless My Orders happens to
-      // be mounted. Send the customer to their order list, where the new order is at
-      // the top and its code will appear once an admin approves it.
-      router.push('/account-dashboard/my-orders');
+      // A toast used to be the ONLY confirmation: no order number, no summary, and no
+      // way to reach the order — and refreshOrders() does nothing unless My Orders
+      // happens to be mounted. saveOrder returns the created row (OrderController
+      // responds with the full Order), so route straight to its status page rather
+      // than the full list; that page polls this one order while it is pending.
+      if (placedOrder?.id) {
+        router.push(`/account-dashboard/my-orders/${placedOrder.id}`);
+      } else {
+        router.push('/account-dashboard/my-orders');
+      }
     } catch (error) {
       console.error('Error saving order:', error);
       setSubmitLoading(false);
