@@ -98,6 +98,16 @@ const ProductPage: React.FC = () => {
   const [recipientUser, setRecipientUser] = useState('');
 
 
+  // The signed-in user's price tier, or null. Matched against product_price_variations
+  // below: an admin can set a different price per user type, and the API ships the whole
+  // table on every variation for the client to pick from.
+  //
+  // This reads the flat `user_types_id`, NOT `user_types.id`. The nested relation is only
+  // present when /user/profile eager-loads it; when that load was dropped for performance
+  // the match silently stopped hitting and every tier user saw the default price while
+  // still being charged the tier price by OrderController.
+  const userTypeId = user?.user_types_id ?? null;
+
   // Convert a product variation to the amounts format (localized fields)
   const toAmount = useCallback(
     (variation: ProductVariation, index: number): SelectedAmount => ({
@@ -110,7 +120,11 @@ const ProductPage: React.FC = () => {
       // selectedAmount.price.toFixed() below and crashed the page for any variation
       // whose displayed unit price (Coin Recharge products) rendered that line.
       price: Number(
-        variation.price_variations.find((price) => price.user_types_id === user?.user_types?.id)?.price
+        (userTypeId === null
+          ? undefined
+          : variation.price_variations?.find(
+              (price) => Number(price.user_types_id) === Number(userTypeId)
+            )?.price)
           ?? variation.price
       ) || 0,
       image: variation.full_path?.image,
@@ -119,7 +133,7 @@ const ProductPage: React.FC = () => {
       unitLabel: variation.unit_label,
       maxQty: variation.external_qty_values?.max ?? null,
     }),
-    [user?.user_types?.id]
+    [userTypeId]
   );
 
   const amounts: SelectedAmount[] = productVariations.map(toAmount);

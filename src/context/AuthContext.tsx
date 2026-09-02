@@ -64,7 +64,11 @@ interface UserType {
   total_purchases: number;
   received_amount: number;
   orders?: Order[];
-  user_types: UserSalesType;
+  user_types: UserSalesType | null;
+  /** The price tier itself. Read this rather than user_types?.id: it is a plain column
+   *  on the profile payload and is also carried in the session, so it survives even if
+   *  the user_types relation stops being eager-loaded again. */
+  user_types_id: number | null;
   verification_status: 'unsubmitted' | 'pending' | 'approved' | 'rejected';
 }
 
@@ -174,7 +178,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       is_business_user: pu?.is_business_user || false,
       business_name: pu?.business_name || '',
       business_location: pu?.business_location || '',
-      user_types: pu?.user_types || [],
+      // Profile first, session second. /user/profile refetches every 5 minutes, so an
+      // admin moving someone onto a price tier takes effect without a re-login; the
+      // session copy is set at sign-in and only covers the gap before the first fetch.
+      user_types: pu?.user_types ?? null,
+      user_types_id: pu?.user_types_id ?? sessionUser?.user_types_id ?? null,
       // Same DECIMAL-as-string coercion as the balance effect above — these three
       // are typed `number` in UserType but the raw API values are strings.
       credits_balance: Number(profile?.credits_balance ?? pu?.credits_balance ?? 0) || 0,
