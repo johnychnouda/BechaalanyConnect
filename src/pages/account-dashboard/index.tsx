@@ -409,7 +409,7 @@ export default function AccountDashboard() {
                           height="24"
                           viewBox="0 0 24 24"
                           fill="none"
-                          className={`absolute left-[6px] top-[6px] ${item.direction === 'down' ? 'transform rotate-180' : ''}`}
+                          className={`absolute start-[6px] top-[6px] ${item.direction === 'down' ? 'transform rotate-180' : ''}`}
                         >
                           <path
                             d="M12 5V19M12 5L5 12M12 5L19 12"
@@ -442,10 +442,10 @@ export default function AccountDashboard() {
                     </div>
                     {/* Right Section - Status and Prices */}
                     <div className="flex flex-row justify-end items-center gap-2 flex-shrink-0">
-                      {/* <span className="font-normal text-sm leading-[16px] text-[#8E8E8E] dark:text-[#a0a0a0] text-right">
+                      {/* <span className="font-normal text-sm leading-[16px] text-[#8E8E8E] dark:text-[#a0a0a0] text-end">
                           {item.status}
                         </span> */}
-                      <span className={`font-normal text-base leading-[19px] ${item.direction === 'up' ? 'text-app-red' : 'text-[#5FD568]'} text-right`}>
+                      <span className={`font-normal text-base leading-[19px] ${item.direction === 'up' ? 'text-app-red' : 'text-[#5FD568]'} text-end`}>
                         {item.value}
                       </span>
                     </div>

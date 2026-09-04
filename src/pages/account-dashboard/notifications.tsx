@@ -1,12 +1,110 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import styled from 'styled-components';
-import { useNotificationStore } from '@/store/notification.store';
+import { useQuery } from '@tanstack/react-query';
+import { useNotificationStore, type NotificationStatus } from '@/store/notification.store';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/hooks/use-language';
 import DashboardLayout from '@/components/ui/dashboard-layout';
 import { Button } from '@/components/ui/primitives/Button';
 import api from '@/utils/api';
+import { formatDateTime, formatDateHeading } from '@/utils/date';
+
+/**
+ * The single source of truth for how a notification's `type` (from
+ * NotificationController::present() on the backend) renders: which of the
+ * two visual states it gets, and the bilingual title/description.
+ *
+ * Covers every type the backend's create*Notification factories actually
+ * emit — credit_approved/rejected/pending, order_approved/rejected,
+ * order_cancelled (a supplier auto-refund, same negative outcome as a
+ * rejection), kyc_approved/kyc_rejected — plus 'kyc' and 'general' as an
+ * honest fallback. ('kyc' is what rows written before createKycNotification
+ * started setting the `type` column present as; it cannot tell approval from
+ * rejection, so it stays neutral rather than guessing.)
+ *
+ * `notification.message` is the backend's own translated sentence, resolved
+ * from data.message_key (or reconstructed from type / status on older rows)
+ * under the request locale — it wins. The literals below only run when the
+ * API sent no message at all.
+ */
+function deriveNotificationDisplay(
+  notification: { type?: string; amount?: number | string; message?: string },
+  isArabic: boolean
+): { status: 'success' | 'rejected'; title: string; description: string } {
+  const amount = notification.amount;
+
+  switch (notification.type) {
+    case 'credit_approved':
+      return {
+        status: 'success',
+        title: isArabic ? 'تمت الموافقة على طلب الرصيد' : 'Credit Request Approved',
+        description: notification.message ||
+          (isArabic ? `تمت الموافقة على طلب الرصيد الخاص بك وتمت إضافة $${amount} إلى رصيدك.` : `Your credit request has been approved and $${amount} has been added to your balance.`),
+      };
+    case 'credit_rejected':
+      return {
+        status: 'rejected',
+        title: isArabic ? 'تم رفض طلب الرصيد' : 'Credit Request Rejected',
+        description: notification.message ||
+          (isArabic ? `تم رفض طلب الرصيد الخاص بك بقيمة $${amount}.` : `Your credit request for $${amount} has been rejected.`),
+      };
+    case 'credit_pending':
+      return {
+        status: 'success',
+        title: isArabic ? 'طلب الرصيد قيد المراجعة' : 'Credit Request Pending',
+        description: notification.message ||
+          (isArabic ? `طلب الرصيد الخاص بك بقيمة $${amount} قيد المراجعة.` : `Your credit request for $${amount} is pending review.`),
+      };
+    case 'order_approved':
+      return {
+        status: 'success',
+        title: isArabic ? 'تمت الموافقة على الطلب' : 'Order Approved',
+        description: notification.message ||
+          (isArabic ? 'تمت الموافقة على طلبك. افتح "طلباتي" لعرض الرمز أو تفاصيل التسليم.' : 'Your order has been approved. Open My Orders to see your code or delivery details.'),
+      };
+    case 'order_rejected':
+      return {
+        status: 'rejected',
+        title: isArabic ? 'تم رفض الطلب' : 'Order Rejected',
+        description: notification.message ||
+          (isArabic ? 'تم رفض طلبك وتمت إعادة المبلغ إلى رصيدك.' : 'Your order was rejected and the credits have been returned to your balance.'),
+      };
+    case 'order_cancelled':
+      return {
+        status: 'rejected',
+        title: isArabic ? 'تم إلغاء الطلب' : 'Order Cancelled',
+        description: notification.message ||
+          (isArabic ? 'تم إلغاء طلبك من قبل المورد وتمت إعادة رصيدك.' : 'Your order was cancelled by the supplier and your credits have been refunded.'),
+      };
+    case 'kyc_approved':
+      return {
+        status: 'success',
+        title: isArabic ? 'تم توثيق الحساب' : 'Account Verified',
+        description: notification.message ||
+          (isArabic ? 'تم توثيق حسابك. يمكنك الآن استخدام جميع ميزات المنصة.' : 'Your account has been verified. You can now use all platform features.'),
+      };
+    case 'kyc_rejected':
+      return {
+        status: 'rejected',
+        title: isArabic ? 'تم رفض التوثيق' : 'Verification Rejected',
+        description: notification.message ||
+          (isArabic ? 'تم رفض مستندات التوثيق الخاصة بك. يرجى إعادة إرسالها.' : 'Your verification documents were rejected. Please resubmit your documents.'),
+      };
+    case 'kyc':
+      return {
+        status: 'success',
+        title: isArabic ? 'تحديث حالة التحقق' : 'Verification Update',
+        description: notification.message || (isArabic ? 'هناك تحديث على حالة توثيق حسابك.' : 'There is an update on your account verification.'),
+      };
+    default:
+      return {
+        status: 'success',
+        title: isArabic ? 'إشعار' : 'Notification',
+        description: notification.message || (isArabic ? 'لديك إشعار جديد.' : 'You have a new notification.'),
+      };
+  }
+}
 
 // Error Boundary Component for notifications. Class components can't call
 // hooks, so `locale` is passed in as a prop by the functional wrapper below
@@ -66,70 +164,76 @@ const NotificationsPageContent: React.FC = () => {
   const { theme } = useAppTheme();
   const { isAuthenticated, token } = useAuth();
   const { locale } = useLanguage();
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasLoaded, setHasLoaded] = useState(false);
+  const isArabic = locale === 'ar';
 
-  // Fetch notifications from backend on mount
+  /*
+   * Keyed on `locale`, so switching language refetches in the new language and
+   * re-derives every title.
+   *
+   * This was a useEffect + raw fetch guarded by a `hasLoaded` state latch. `locale`
+   * was already in its dependency array, but the latch returned early on every run
+   * after the first — and because switching language is a client-side navigation the
+   * Zustand store is never torn down, so the list kept the PREVIOUS locale's titles
+   * and descriptions until a hard refresh.
+   *
+   * networkMode/retry are deliberate (see CLAUDE.md): the QueryClient default is
+   * `retry: 1` with networkMode 'online', which can leave a query permanently
+   * unsettled — isLoading false, isError false, data undefined — and this page has to
+   * be able to tell "loaded, empty" from "still loading".
+   */
+  const {
+    data: fetchedNotifications,
+    isLoading,
+  } = useQuery({
+    queryKey: ['notifications', locale],
+    enabled: Boolean(isAuthenticated && token),
+    networkMode: 'always',
+    retry: false,
+    queryFn: async () => {
+      // api (src/utils/api.ts) attaches the bearer token and Accept-Language; the
+      // mutation handlers on this page already use it, the GET was the odd one out.
+      const { data: payload } = await api.get(`/${locale}/user/notifications`);
+
+      // `getAllNotifications` returns a paginated envelope
+      // ({ notifications, unread_count, total, ... }), not a bare array —
+      // this used to call `.map()` directly on that object, which throws,
+      // so the whole fetch silently failed and the page never showed
+      // anything but "No notifications yet".
+      const backendNotifications = Array.isArray(payload) ? payload : payload.notifications ?? [];
+
+      // Map backend notifications to frontend format.
+      //
+      // This used to check ONLY 'credit_approved' / 'credit_rejected' and fall
+      // everything else — including 'order_rejected' and 'order_cancelled', which
+      // the backend has always sent — to the 'success' branch. A customer whose
+      // order was rejected and refunded saw a green checkmark, the same signal as
+      // an approval. `deriveNotificationDisplay` below is keyed off the full set of
+      // types the backend actually emits (NotificationController.php's
+      // create*Notification factories), so a rejection can never present as one.
+      return backendNotifications.map((notification: any) => {
+        const { status, title, description } = deriveNotificationDisplay(notification, isArabic);
+        return {
+          id: notification.id,
+          status,
+          title,
+          description,
+          date: notification.created_at,
+          readStatus: (notification.read_at ? 'read' : 'unread') as NotificationStatus,
+          type: (notification.type?.includes('credit') ? 'credit' : 'system') as 'credit' | 'system',
+          amount: notification.amount,
+          request_id: notification.request_id,
+        };
+      });
+    },
+  });
+
+  // The store stays the single source of truth for the list (markAsRead, delete and
+  // the header badge all read from it); the query owns fetching.
   useEffect(() => {
-    const fetchNotifications = async () => {
-      if (!isAuthenticated || !token || hasLoaded) {
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/${locale}/user/notifications`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (response.ok) {
-          const payload = await response.json();
-          const isArabic = locale === 'ar';
-
-          // `getAllNotifications` returns a paginated envelope
-          // ({ notifications, unread_count, total, ... }), not a bare array —
-          // this used to call `.map()` directly on that object, which throws,
-          // so the whole fetch silently failed (caught below) and the page
-          // never showed anything but "No notifications yet".
-          const backendNotifications = Array.isArray(payload) ? payload : payload.notifications ?? [];
-
-          // Map backend notifications to frontend format
-          const mappedNotifications = backendNotifications.map((notification: any) => ({
-            id: notification.id,
-            status: notification.type === 'credit_approved' ? 'success' :
-                   notification.type === 'credit_rejected' ? 'rejected' : 'success',
-            title: notification.type === 'credit_approved' ? (isArabic ? 'تمت الموافقة على طلب الرصيد' : 'Credit Request Approved') :
-                   notification.type === 'credit_rejected' ? (isArabic ? 'تم رفض طلب الرصيد' : 'Credit Request Rejected') :
-                   (isArabic ? 'إشعار' : 'Notification'),
-            description: notification.message ||
-                        (notification.type === 'credit_approved' ? (isArabic ? `تمت الموافقة على طلب الرصيد الخاص بك وتمت إضافة $${notification.amount} إلى رصيدك.` : `Your credit request has been approved and $${notification.amount} has been added to your balance.`) :
-                         notification.type === 'credit_rejected' ? (isArabic ? `تم رفض طلب الرصيد الخاص بك بقيمة $${notification.amount}.` : `Your credit request for $${notification.amount} has been rejected.`) :
-                         (isArabic ? 'لديك إشعار جديد.' : 'You have a new notification.')),
-            date: notification.created_at,
-            readStatus: notification.read_at ? 'read' : 'unread',
-            type: notification.type?.includes('credit') ? 'credit' : 'system',
-            amount: notification.amount,
-            request_id: notification.request_id,
-          }));
-
-          setNotifications(mappedNotifications);
-          setHasLoaded(true);
-        } else {
-          console.error('Failed to fetch notifications:', response.status, response.statusText);
-        }
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchNotifications();
-  }, [isAuthenticated, token, locale, hasLoaded, setNotifications]);
+    if (fetchedNotifications) {
+      setNotifications(fetchedNotifications);
+    }
+  }, [fetchedNotifications, setNotifications]);
 
   // Handle deleting a single notification
   const handleDeleteNotification = async (notificationId: number) => {
@@ -221,51 +325,29 @@ const NotificationsPageContent: React.FC = () => {
     });
   };
 
-  const formatDate = (dateString: string) => {
-    try {
-      if (!dateString) return 'Invalid Date';
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return 'Invalid Date';
-      return date.toLocaleString('en-US', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      });
-    } catch (error) {
-      console.error('Error formatting date:', error, 'for dateString:', dateString);
-      return 'Invalid Date';
-    }
-  };
+  // Both formatters used to be private copies here that hardcoded 'en-US' and
+  // returned the literal English strings 'Invalid Date' / 'Unknown Date' / 'Today' /
+  // 'Yesterday' in BOTH locales — the shared helpers in utils/date.ts take the app
+  // locale and are used by the rest of the dashboard.
+  const formatDate = (dateString: string) => formatDateTime(dateString, locale);
 
   const formatDateHeader = (dateString: string) => {
-    try {
-      if (!dateString) return 'Unknown Date';
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return 'Unknown Date';
-      
-      const today = new Date();
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
+    if (!dateString) return formatDateHeading(dateString, locale);
 
-      if (date.toDateString() === today.toDateString()) {
-        return 'Today';
-      } else if (date.toDateString() === yesterday.toDateString()) {
-        return 'Yesterday';
-      } else {
-        return date.toLocaleDateString('en-US', {
-          weekday: 'long',
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric'
-        });
-      }
-    } catch (error) {
-      console.error('Error formatting date header:', error, 'for dateString:', dateString);
-      return 'Unknown Date';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return formatDateHeading(dateString, locale);
+
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return isArabic ? 'اليوم' : 'Today';
     }
+    if (date.toDateString() === yesterday.toDateString()) {
+      return isArabic ? 'أمس' : 'Yesterday';
+    }
+    return formatDateHeading(dateString, locale);
   };
 
   const filteredNotifications = useMemo(() => {
@@ -302,7 +384,6 @@ const NotificationsPageContent: React.FC = () => {
   }, [filteredNotifications]);
 
   const hasNotifications = notifications.length > 0;
-  const isArabic = locale === 'ar';
 
   return (
     <PageWrapper className={theme === 'dark' ? 'dark' : 'light'}>
@@ -509,7 +590,9 @@ const Header = styled.h1`
   line-height: 42px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  text-align: left;
+  /* "start"/"end", not left/right: this file is styled-components, so the rtl:
+     Tailwind variant cannot reach it and these never flipped in Arabic. */
+  text-align: start;
   margin: 0;
 
   @media (max-width: 768px) {
@@ -759,7 +842,7 @@ const StatusEllipse = styled.div<{ status: string }>`
   position: absolute;
   width: 36px;
   height: 36px;
-  left: 0px;
+  inset-inline-start: 0px;
   top: 0px;
   border-radius: 50%;
   background: ${({ status }) => status === 'success' ? '#5FD568' : '#E73828'};
@@ -774,13 +857,13 @@ const StatusSvgCheck = styled.svg`
   position: absolute;
   width: 24px;
   height: 24px;
-  left: 6px;
+  inset-inline-start: 6px;
   top: 6px;
 
   @media (max-width: 768px) {
     width: 18px;
     height: 18px;
-    left: 5px;
+    inset-inline-start: 5px;
     top: 5px;
   }
 `;
@@ -799,13 +882,13 @@ const StatusSvgClose = styled.svg`
   position: absolute;
   width: 24px;
   height: 24px;
-  left: 6px;
+  inset-inline-start: 6px;
   top: 6px;
 
   @media (max-width: 768px) {
     width: 18px;
     height: 18px;
-    left: 5px;
+    inset-inline-start: 5px;
     top: 5px;
   }
 `;
@@ -879,7 +962,7 @@ const NotifDate = styled.div`
   font-size: clamp(12px, 1.5vw, 16px);
   line-height: 1.2;
   color: var(--color-app-black);
-  text-align: right;
+  text-align: end;
   white-space: nowrap;
 
   .dark & {

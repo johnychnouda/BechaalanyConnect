@@ -124,7 +124,7 @@ export default function Header({ children }: PropsWithChildren) {
 
 
         {/* Right: User Actions or Auth Buttons */}
-        <div className="hidden lg:flex items-center  gap-1 sm:gap-2 lg:gap-4 ml-auto flex-nowrap min-w-0 max-w-full overflow-x-auto whitespace-nowrap">
+        <div className="hidden lg:flex items-center  gap-1 sm:gap-2 lg:gap-4 ms-auto flex-nowrap min-w-0 max-w-full overflow-x-auto whitespace-nowrap">
           {isAuthenticated ? (
             <>
               <Notification count={count} />

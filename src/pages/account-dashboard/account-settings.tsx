@@ -49,7 +49,7 @@ const CustomDropdown: React.FC<{
         className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-app-black dark:border-gray-600 rounded-[50.5px] cursor-pointer hover:border-app-red transition-colors duration-200 bg-white dark:bg-gray-800"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className="flex-1 text-left rtl:text-right font-normal text-[16px] text-app-black dark:text-white">
+        <span className="flex-1 text-start font-normal text-[16px] text-app-black dark:text-white">
           {selectedOption?.label || placeholder}
         </span>
         <span className="pointer-events-none text-app-red">
@@ -72,7 +72,7 @@ const CustomDropdown: React.FC<{
               type="button"
               role="option"
               aria-selected={option.value === value}
-              className={`w-full text-left rtl:text-right px-6 py-3 cursor-pointer transition-colors duration-200 ${option.value === value
+              className={`w-full text-start px-6 py-3 cursor-pointer transition-colors duration-200 ${option.value === value
                 ? "bg-app-red text-white"
                 : "hover:bg-app-red hover:text-white dark:hover:bg-app-red dark:hover:text-white"
                 } dark:text-white`}
@@ -284,7 +284,7 @@ export default function AccountSettings() {
         <div className="w-fit">
           <BackButton label={generalData?.settings?.back_button_label} href="/account-dashboard" />
         </div>
-        <div className="text-app-red font-semibold uppercase mb-8 mt-0 tracking-tight whitespace-nowrap text-[22px] xs:text-[26px] sm:text-[30px] md:text-[36px] lg:text-[40px] xl:text-[42px] leading-tight text-center sm:text-left">
+        <div className="text-app-red font-semibold uppercase mb-8 mt-0 tracking-tight whitespace-nowrap text-[22px] xs:text-[26px] sm:text-[30px] md:text-[36px] lg:text-[40px] xl:text-[42px] leading-tight text-center sm:text-start">
           {dashboardSettings?.dashboard_page_settings?.account_settings_page_title}
         </div>
         <div className="flex flex-col md:flex-row gap-12">
@@ -330,13 +330,13 @@ export default function AccountSettings() {
                 <div className="flex flex-col items-start gap-1 w-full mb-4">
                   <label className="font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.phone_number_placeholder}</label>
                   <div className="flex flex-row rtl:flex-row-reverse rtl:justify-end items-center p-[12px_24px] mt-2 gap-2 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
-                    <div className="font-normal text-[16px] text-[#070707] dark:text-white select-none rtl:text-right">{locale == 'en' ? `+${phonePrefix}` : `${phonePrefix}+` || ''}</div>
+                    <div className="font-normal text-[16px] text-[#070707] dark:text-white select-none text-start">{locale == 'en' ? `+${phonePrefix}` : `${phonePrefix}+` || ''}</div>
                     <div className="max-w-[calc(100%-70px)]">
                       <input
                         name="phone"
                         value={accountInfo.phone}
                         onChange={handleInfoChange}
-                        className="w-fit font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none rtl:text-right"
+                        className="w-fit font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none text-start"
                         placeholder={generalData?.logging_page_settings?.phone_number_placeholder}
                         style={{ direction: 'ltr' }}
                       />

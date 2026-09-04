@@ -57,7 +57,7 @@ export default function HomePageHeader({ bannerSwiper, homepageSettings }:
                   )}
                 </div>
               </div>
-              <div className="absolute right-0 top-0 bottom-0 w-full h-full">
+              <div className="absolute end-0 top-0 bottom-0 w-full h-full">
                 <Image
                   src={banner.full_path.image}
                   alt={banner.title}

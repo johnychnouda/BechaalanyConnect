@@ -83,7 +83,7 @@ function ContactForm({
                 <input
                     type="tel"
                     placeholder={contactUsData?.contact_page_setting.phone_label || ''}
-                    className={`w-full rtl:text-right px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E93323] bg-white dark:bg-[#181818] text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-400
+                    className={`w-full text-start px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E93323] bg-white dark:bg-[#181818] text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-400
        ${errors.phone
                             ? 'border-red-500 dark:border-red-400'
                             : 'border-gray-300 dark:border-gray-600'

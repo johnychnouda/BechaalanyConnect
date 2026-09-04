@@ -31,7 +31,7 @@ function PaymentRow({ payment, expanded, onToggle, locale }: {
             <button
                 type="button"
                 aria-expanded={expanded}
-                className="w-full flex items-center px-6 py-4 cursor-pointer text-left rtl:text-right"
+                className="w-full flex items-center px-6 py-4 cursor-pointer text-start"
                 onClick={onToggle}
             >
                 <span className="mr-4 rtl:ml-4 rtl:mr-0">{meta.icon}</span>
@@ -43,7 +43,7 @@ function PaymentRow({ payment, expanded, onToggle, locale }: {
             </button>
             {expanded && (
                 <div className="px-6 pb-4 pt-0 animate-fade-in">
-                    <div className="flex flex-col gap-2 mb-2 text-right">
+                    <div className="flex flex-col gap-2 mb-2 text-end">
                         <div className="flex flex-row justify-between items-center">
                             <span className="text-[16px] text-app-black dark:text-white font-normal">{locale === 'en' ? 'Total' : 'المبلغ'}</span>
                             <span className="text-[16px] text-neutral-400 font-normal">{payment.value}</span>
