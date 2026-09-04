@@ -48,9 +48,12 @@ export default class MyDocument extends Document {
     return (
       <Html lang={locale} dir={isRtl ? 'rtl' : 'ltr'}>
         <Head>
-          <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+          {/*
+            Fonts are no longer loaded here — next/font (src/lib/fonts.ts) self-hosts
+            Inter + Noto Sans Arabic and injects them via CSS variables on <main> in
+            _app.tsx, so there is no render-blocking Google Fonts request and no
+            separate preconnect to manage.
+          */}
           <meta name="vercel-toolbar" content="false" />
         </Head>
         <body>

@@ -23,7 +23,7 @@ export default function BackButton({ href, className, label }: Props) {
     <button
       onClick={handleClick}
       className={clsx(
-        "flex items-center gap-1 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-[50.5px] bg-white text-[#070707] border border-[#E73828] hover:bg-[#E73828] hover:text-white active:bg-[#E73828] active:text-white focus:bg-[#E73828] focus:text-white focus-visible:bg-[#E73828] focus-visible:text-white transition-colors duration-200 cursor-pointer",
+        "flex items-center gap-1 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-[50.5px] bg-white text-[#070707] border border-app-red hover:bg-app-red hover:text-white active:bg-app-red active:text-white focus:bg-app-red focus:text-white focus-visible:bg-app-red focus-visible:text-white transition-colors duration-200 cursor-pointer",
         className
       )}
       type="button"

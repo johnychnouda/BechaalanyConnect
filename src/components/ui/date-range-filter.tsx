@@ -53,7 +53,7 @@ export default function DateRangeFilter({
   return (
     <div className="flex flex-col gap-4 w-full lg:flex-row lg:items-end lg:gap-[25px] lg:h-[66px]">
       <div className="flex flex-col items-start p-0 gap-1 w-full lg:w-[377px] lg:h-[66px] mt-5">
-        <span className="w-full lg:w-[377px] h-[19px] font-['Roboto'] font-semibold text-base leading-[19px] text-[#070707] dark:text-white">
+        <span className="w-full lg:w-[377px] h-[19px] font-semibold text-base leading-[19px] text-[#070707] dark:text-white">
           {fromLabel}
         </span>
         <DatePicker
@@ -64,11 +64,11 @@ export default function DateRangeFilter({
           endDate={toDate}
           placeholderText="dd/mm/yyyy"
           dateFormat="yyyy-MM-dd"
-          className="box-border flex flex-row items-center p-3 px-6 gap-[10px] w-full lg:w-[377px] h-[43px] border border-[#070707] dark:border-[#E73828] rounded-[50.5px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white bg-white dark:bg-[#2a2a2a] focus:outline-none focus:ring-2 focus:ring-[#E73828]"
+          className="box-border flex flex-row items-center p-3 px-6 gap-[10px] w-full lg:w-[377px] h-[43px] border border-[#070707] dark:border-app-red rounded-[50.5px] font-normal text-base leading-[19px] text-[#070707] dark:text-white bg-white dark:bg-[#2a2a2a] focus:outline-none focus:ring-2 focus:ring-app-red"
         />
       </div>
       <div className="flex flex-col items-start p-0 gap-1 w-full lg:w-[377px] lg:h-[66px]">
-        <span className="w-full lg:w-[377px] h-[19px] font-['Roboto'] font-semibold text-base leading-[19px] text-[#070707] dark:text-white">
+        <span className="w-full lg:w-[377px] h-[19px] font-semibold text-base leading-[19px] text-[#070707] dark:text-white">
           {toLabel}
         </span>
         <DatePicker
@@ -80,13 +80,13 @@ export default function DateRangeFilter({
           minDate={fromDate || undefined}
           placeholderText="dd/mm/yyyy"
           dateFormat="yyyy-MM-dd"
-          className="box-border flex flex-row items-center p-3 px-6 gap-[10px] w-full lg:w-[377px] h-[43px] border border-[#070707] dark:border-[#E73828] rounded-[50.5px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white bg-white dark:bg-[#2a2a2a] focus:outline-none focus:ring-2 focus:ring-[#E73828]"
+          className="box-border flex flex-row items-center p-3 px-6 gap-[10px] w-full lg:w-[377px] h-[43px] border border-[#070707] dark:border-app-red rounded-[50.5px] font-normal text-base leading-[19px] text-[#070707] dark:text-white bg-white dark:bg-[#2a2a2a] focus:outline-none focus:ring-2 focus:ring-app-red"
         />
       </div>
       <div className="flex flex-row gap-2 w-full lg:w-auto my-5 lg:my-0">
         <button
           onClick={handleSearch}
-          className="flex flex-row justify-center items-center p-2 px-6 gap-[10px] w-auto h-[43px] bg-[#E73828] rounded-[50.5px] font-['Roboto'] font-bold text-xs leading-[14px] uppercase text-white border border-[#E73828] transition-colors duration-200 hover:bg-white hover:text-[#E73828] hover:border-[#E73828] focus:outline-none focus:ring-2 focus:ring-[#E73828]"
+          className="flex flex-row justify-center items-center p-2 px-6 gap-[10px] w-auto h-[43px] bg-app-red rounded-[50.5px] font-bold text-xs leading-[14px] uppercase text-white border border-app-red transition-colors duration-200 hover:bg-white hover:text-app-red hover:border-app-red focus:outline-none focus:ring-2 focus:ring-app-red"
         >
           {searchButton}
         </button>
@@ -101,7 +101,7 @@ export default function DateRangeFilter({
                // Reset the ref when clearing
                prevDatesRef.current = { fromDate: null, toDate: null };
              }}
-             className="flex flex-row justify-center items-center p-2 px-6 gap-[10px] w-auto h-[43px] bg-gray-500 rounded-[50.5px] font-['Roboto'] font-bold text-xs leading-[14px] uppercase text-white border border-gray-500 transition-colors duration-200 hover:bg-white hover:text-gray-500 hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500"
+             className="flex flex-row justify-center items-center p-2 px-6 gap-[10px] w-auto h-[43px] bg-gray-500 rounded-[50.5px] font-bold text-xs leading-[14px] uppercase text-white border border-gray-500 transition-colors duration-200 hover:bg-white hover:text-gray-500 hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500"
            >
              {locale === 'en' ? 'Clear' : 'مسح'}
            </button>

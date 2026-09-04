@@ -27,37 +27,59 @@ function PaymentRow({ payment, expanded, onToggle, locale }: {
 
     const meta = statusMeta[payment.status as 'accepted' | 'rejected' | 'pending'];
     return (
-        <div className="bg-[#F3F3F3] rounded-[20px] mb-4 w-full shadow-none">
-            <div className="flex items-center px-6 py-4 cursor-pointer" onClick={onToggle}>
+        <div className="bg-[#F3F3F3] dark:bg-gray-800 rounded-[20px] mb-4 w-full shadow-none">
+            <button
+                type="button"
+                aria-expanded={expanded}
+                className="w-full flex items-center px-6 py-4 cursor-pointer text-left rtl:text-right"
+                onClick={onToggle}
+            >
                 <span className="mr-4 rtl:ml-4 rtl:mr-0">{meta.icon}</span>
-                <span className="font-['Roboto'] font-normal text-[16px] text-[#070707]">{payment.title}</span>
-                <span className="ml-auto rtl:ml-0 rtl:mr-auto text-xs text-[#8E8E8E]">{formatDate(payment.date)}</span>
-                <span className="ml-4 rtl:mr-4 rtl:ml-0">
-                    <svg className={`transition-transform ${expanded ? 'rotate-180' : ''}`} width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5" stroke="#E73828" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                <span className="font-normal text-[16px] text-app-black dark:text-white">{payment.title}</span>
+                <span className="ml-auto rtl:ml-0 rtl:mr-auto text-xs text-neutral-400">{formatDate(payment.date)}</span>
+                <span className="ml-4 rtl:mr-4 rtl:ml-0 text-app-red">
+                    <svg className={`transition-transform ${expanded ? 'rotate-180' : ''}`} width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </span>
-            </div>
+            </button>
             {expanded && (
                 <div className="px-6 pb-4 pt-0 animate-fade-in">
                     <div className="flex flex-col gap-2 mb-2 text-right">
                         <div className="flex flex-row justify-between items-center">
-                            <span className="text-[16px] text-[#070707] font-normal">{locale === 'en' ? 'Total' : 'المبلغ'}</span>
-                            <span className="text-[16px] text-[#8E8E8E] font-normal">{payment.value}</span>
+                            <span className="text-[16px] text-app-black dark:text-white font-normal">{locale === 'en' ? 'Total' : 'المبلغ'}</span>
+                            <span className="text-[16px] text-neutral-400 font-normal">{payment.value}</span>
                         </div>
                         <div className="flex flex-row justify-between items-center">
-                            <span className="text-[16px] text-[#070707] font-normal">{locale === 'en' ? 'Date' : 'التاريخ'}</span>
-                            <span className="text-[16px] text-[#8E8E8E] font-normal">{formatDate(payment.date)}</span>
+                            <span className="text-[16px] text-app-black dark:text-white font-normal">{locale === 'en' ? 'Date' : 'التاريخ'}</span>
+                            <span className="text-[16px] text-neutral-400 font-normal">{formatDate(payment.date)}</span>
                         </div>
                         {payment.rejected_reason && (
                             <div className="flex flex-row justify-between items-center">
-                                <span className="text-[16px] text-[#070707] font-normal">{locale === 'en' ? 'Rejection Reason' : 'سبب الرفض'}</span>
-                                <span className="text-[16px] text-[#8E8E8E] font-normal">{payment.rejected_reason}</span>
+                                <span className="text-[16px] text-app-black dark:text-white font-normal">{locale === 'en' ? 'Rejection Reason' : 'سبب الرفض'}</span>
+                                <span className="text-[16px] text-neutral-400 font-normal">{payment.rejected_reason}</span>
                             </div>
                         )}
                     </div>
                     {payment.screenshot && (
                         <div className="mt-4 flex flex-col items-start">
-                            <span className="block text-[16px] text-[#070707] mb-1">{locale === 'en' ? 'Screenshot' : 'الشاشة'}</span>
-                            <img src={payment.screenshot} alt="Payment Screenshot" className="rounded-lg border border-[#E0E0E0] w-[267px] h-[475px] object-contain" />
+                            <span className="block text-[16px] text-app-black dark:text-white mb-1">{locale === 'en' ? 'Screenshot' : 'الشاشة'}</span>
+                            {/*
+                              This is a signed, time-limited URL
+                              (CreditsController::receipt — expires 30 min
+                              after issue), served straight from the API host,
+                              which is why it stays a plain <img> rather than
+                              next/image (whose optimizer caches the fetched
+                              result independently of that expiry). The actual
+                              bug was the fixed `w-[267px] h-[475px]`, which
+                              overflowed a 320px-wide phone screen regardless
+                              of the real image's aspect ratio — max-width
+                              100% with height auto scales it to the
+                              container instead.
+                            */}
+                            <img
+                                src={payment.screenshot}
+                                alt="Payment Screenshot"
+                                className="rounded-lg border border-neutral-200 max-w-[267px] w-full h-auto object-contain"
+                            />
                         </div>
                     )}
                 </div>

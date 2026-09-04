@@ -99,13 +99,13 @@ function orderRow({ order }: { order: ProcessedOrder }) {
 
           <div className="flex flex-col justify-center items-start p-0 gap-1">
             <div className="flex flex-col md:flex-row flex-wrap items-start md:items-center p-0 gap-1 text-wrap">
-              <span className=" font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white">
+              <span className=" font-normal text-base leading-[19px] text-[#070707] dark:text-white">
                 {order.title.split(' | ')[0]}
               </span>
               {order.title.includes(' | ') && (
                 <>
-                  <span className="hidden md:block w-[1px] h-3 bg-[#E73828]"></span>
-                  <span className="font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white">
+                  <span className="hidden md:block w-[1px] h-3 bg-app-red"></span>
+                  <span className="font-normal text-base leading-[19px] text-[#070707] dark:text-white">
                     {order.title.split(' | ')[1]}
                   </span>
                 </>
@@ -123,7 +123,7 @@ function orderRow({ order }: { order: ProcessedOrder }) {
               )
             }
             <div>
-              <span className="h-[14px] font-['Roboto'] font-normal text-xs leading-[14px] text-[#8E8E8E]">
+              <span className="h-[14px] font-normal text-xs leading-[14px] text-[#8E8E8E]">
                 {formatDate(order.date)}
               </span>
             </div>
@@ -132,13 +132,13 @@ function orderRow({ order }: { order: ProcessedOrder }) {
 
               <div className="flex flex-row justify-end items-center gap-3">
                 {/* Price */}
-                <div className="h-[19px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white text-right">
+                <div className="h-[19px] font-normal text-base leading-[19px] text-[#070707] dark:text-white text-right">
                   {order.value}
                 </div>
                 {/* Export PDF Button */}
                 <button
                   onClick={handlePreview}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-[#E73828] hover:bg-[#d32f2f] text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-app-red hover:bg-[#d32f2f] text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
                   title="Click to preview receipt before downloading PDF"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -159,13 +159,13 @@ function orderRow({ order }: { order: ProcessedOrder }) {
         {/* Right Section - Price and Export Button */}
         <div className="hidden flex-row justify-end items-center gap-3 sm:flex">
           {/* Price */}
-          <div className="h-[19px] font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white text-right">
+          <div className="h-[19px] font-normal text-base leading-[19px] text-[#070707] dark:text-white text-right">
             {order.value}
           </div>
           {/* Export PDF Button */}
           <button
             onClick={handlePreview}
-            className="flex items-center gap-2 px-3 py-1.5 bg-[#E73828] hover:bg-[#d32f2f] text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+            className="flex items-center gap-2 px-3 py-1.5 bg-app-red hover:bg-[#d32f2f] text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
             title="Click to preview receipt before downloading PDF"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

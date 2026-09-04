@@ -23,8 +23,8 @@ export default function DashboardFilterButton({
       case 'purchased':
       case 'transfer':
         return {
-          active: 'bg-[#E73828] text-white border-[#E73828]',
-          hover: 'hover:bg-[#E73828] hover:text-white hover:border-[#E73828]',
+          active: 'bg-app-red text-white border-app-red',
+          hover: 'hover:bg-app-red hover:text-white hover:border-app-red',
           default: 'border border-[#070707]'
         };
       case 'received':

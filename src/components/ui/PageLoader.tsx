@@ -1,9 +1,32 @@
+import { useEffect, useState } from 'react';
 import { LogoIcon } from '../../assets/icons/logo.icon';
+import { LogoWhiteIcon } from '../../assets/icons/logo-white.icon';
 
 export default function PageLoader() {
+  // `next-themes` doesn't resolve the real theme until mounted; default to
+  // the light logo so there's no flash on first paint (matches header.tsx's
+  // own light/dark logo swap, which gates the same way).
+  const [isDark, setIsDark] = useState(false);
+  useEffect(() => {
+    setIsDark(document.documentElement.classList.contains('dark'));
+  }, []);
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
-      <LogoIcon className="w-32 h-10" />
+    <div className="fixed inset-0 flex items-center justify-center bg-white dark:bg-background-dark z-50">
+      {/*
+        LogoIcon's wordmark is solid `fill="#070707"` on ~20 of its paths —
+        hardcoded black with no theme awareness. Only two paths carry the
+        `.logo-path-1`/`.logo-path-2` classes below (a separate animated
+        "drawing" accent layered over the static wordmark); overriding just
+        their stroke color, which is what this used to do, left the solid
+        black letters themselves untouched — invisible against the dark
+        background this component already switches to. LogoWhiteIcon is the
+        pre-built white-fill variant (same viewBox/props), already used this
+        way for the real CMS logo in header.tsx; using it here for the
+        wordmark loses the draw-in animation in dark mode only, but a static
+        visible logo beats an animated invisible one.
+      */}
+      {isDark ? <LogoWhiteIcon className="w-32 h-10" /> : <LogoIcon className="w-32 h-10" />}
       <style jsx global>{`
         .logo-path-1, .logo-path-2 {
           stroke: currentColor;
@@ -38,4 +61,4 @@ export default function PageLoader() {
       `}</style>
     </div>
   );
-} 
+}

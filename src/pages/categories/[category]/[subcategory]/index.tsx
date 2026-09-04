@@ -9,6 +9,8 @@ import { fetchProductsData } from '@/services/api.service';
 import { useGlobalContext } from '@/context/GlobalContext';
 import CardSkeleton from '@/components/ui/card-skeleton';
 import SeoHead from '@/components/ui/SeoHead';
+import { useLanguage } from '@/hooks/use-language';
+import { ErrorState } from '@/components/ui/primitives/ErrorState';
 
 interface Product {
   id: string;
@@ -31,6 +33,7 @@ const SubCategoryPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { generalData } = useGlobalContext();
+  const { locale } = useLanguage();
 
 
   useEffect(() => {
@@ -50,7 +53,7 @@ const SubCategoryPage: React.FC = () => {
           setProducts([]);
           setCurrentCategory('');
           setCurrentSubcategory('');
-          setError('Invalid data format received');
+          setError(locale === 'ar' ? 'تم استلام بيانات بتنسيق غير صالح' : 'Invalid data format received');
         }
       })
       .catch((error) => {
@@ -58,12 +61,12 @@ const SubCategoryPage: React.FC = () => {
         setProducts([]);
         setCurrentCategory('');
         setCurrentSubcategory('');
-        setError('Failed to load Products');
+        setError(locale === 'ar' ? 'تعذر تحميل المنتجات' : 'Failed to load Products');
       })
       .finally(() => {
         setIsLoading(false);
       });
-  }, [router.locale, categorySlug, subcategorySlug]);
+  }, [router.locale, categorySlug, subcategorySlug, locale]);
 
   const shouldRedirectToSingleProduct = useMemo(() => {
     return !isLoading && products && products.length === 1;
@@ -72,7 +75,11 @@ const SubCategoryPage: React.FC = () => {
   useEffect(() => {
     if (shouldRedirectToSingleProduct) {
       const onlyProduct = products[0];
-      router.replace(`/categories/${categorySlug}/${subcategorySlug}/${onlyProduct.slug}`);
+      // `?single=1` mirrors getServerSideProps' redirect below — omitting it
+      // here (as this used to) meant a client-side navigation into a
+      // single-product subcategory landed on the product page with a
+      // different breadcrumb than the same page reached via a fresh SSR load.
+      router.replace(`/categories/${categorySlug}/${subcategorySlug}/${onlyProduct.slug}?single=1`);
     }
   }, [shouldRedirectToSingleProduct, products, router, categorySlug, subcategorySlug]);
 
@@ -110,7 +117,7 @@ const SubCategoryPage: React.FC = () => {
       </div>
 
       {
-        !isLoading && <h1 className="text-[clamp(20px,5vw,32px)] font-bold text-gray-900 mt-4 sm:mt-8 mb-4 px-2 sm:px-0">{currentSubcategory}</h1>
+        !isLoading && !error && <h1 className="text-[clamp(20px,5vw,32px)] font-bold text-gray-900 dark:text-white mt-4 sm:mt-8 mb-4 px-2 sm:px-0">{currentSubcategory}</h1>
       }
       {isLoading ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-8">
@@ -118,6 +125,15 @@ const SubCategoryPage: React.FC = () => {
             <CardSkeleton key={i} />
           ))}
         </div>
+      ) : error ? (
+        /* Was set but never rendered — a failed fetch fell through to the
+           `products.length > 0` check below and rendered <ComingSoon>,
+           exactly like the parent category page's same bug. */
+        <ErrorState
+          message={error}
+          onRetry={() => router.reload()}
+          retryLabel={locale === 'ar' ? 'إعادة المحاولة' : 'Try again'}
+        />
       ) : shouldRedirectToSingleProduct ? null : (
         products.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 mt-4 sm:mt-8">

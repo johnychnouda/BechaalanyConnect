@@ -71,7 +71,7 @@ export default function ResetPasswordPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#E73828] mb-1 tracking-tight">{pageTitle}</h2>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-app-red mb-1 tracking-tight">{pageTitle}</h2>
             <p className="text-black text-sm sm:text-base mb-4 sm:mb-6">{pageSubtitle}</p>
           </div>
 
@@ -92,7 +92,7 @@ export default function ResetPasswordPage() {
                 })}
                 placeholder={generalData?.logging_page_settings?.password_placeholder || (locale === 'ar' ? 'كلمة المرور الجديدة' : 'New password')}
                 autoComplete="new-password"
-                className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+                className="w-full border border-app-red rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-app-red text-black bg-transparent placeholder:text-black"
               />
               {errors.password && (
                 <div className="w-full mb-2 text-center text-red-600 text-xs sm:text-sm font-semibold">{errors.password.message}</div>
@@ -106,7 +106,7 @@ export default function ResetPasswordPage() {
                 })}
                 placeholder={generalData?.logging_page_settings?.confirm_password_placeholder || (locale === 'ar' ? 'تأكيد كلمة المرور' : 'Confirm password')}
                 autoComplete="new-password"
-                className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
+                className="w-full border border-app-red rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-app-red text-black bg-transparent placeholder:text-black"
               />
               {errors.confirmPassword && (
                 <div className="w-full mb-2 text-center text-red-600 text-xs sm:text-sm font-semibold">{errors.confirmPassword.message}</div>
@@ -115,7 +115,7 @@ export default function ResetPasswordPage() {
               <button
                 type="submit"
                 disabled={loading || !email || !token}
-                className="w-full bg-[#E73828] text-white font-bold py-3 rounded-full mt-2 hover:bg-white hover:text-[#E73828] border border-[#E73828] transition-colors duration-200 text-lg disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full bg-app-red text-white font-bold py-3 rounded-full mt-2 hover:bg-white hover:text-app-red border border-app-red transition-colors duration-200 text-lg disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {loading ? (locale === 'ar' ? 'جاري إعادة التعيين...' : 'Resetting...') : (generalData?.logging_page_settings?.reset_password_button || (locale === 'ar' ? 'إعادة تعيين كلمة المرور' : 'Reset password'))}
               </button>
@@ -125,7 +125,7 @@ export default function ResetPasswordPage() {
               <div className="text-center text-black text-sm sm:text-base">
                 {locale === 'ar' ? 'العودة إلى' : 'Back to'}
               </div>
-              <Link href="/auth/signin" className="text-[#E73828] font-bold hover:underline">
+              <Link href="/auth/signin" className="text-app-red font-bold hover:underline">
                 {generalData?.logging_page_settings?.login_button || (locale === 'ar' ? 'تسجيل الدخول' : 'Sign in')}
               </Link>
             </div>

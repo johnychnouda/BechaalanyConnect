@@ -10,6 +10,7 @@ import { useRouter } from "next/router";
 import { useQuery } from "@tanstack/react-query";
 import { useGlobalContext } from "@/context/GlobalContext";
 import { useLanguage } from "@/hooks/use-language";
+import { EmptyState } from "@/components/ui/primitives/EmptyState";
 
 
 const ITEMS_PER_PAGE = 5; // Number of items to show initially and per load more
@@ -255,7 +256,7 @@ export default function AccountDashboard() {
             {/* Loading overlay for profile section */}
 
             <div className="flex flex-row items-center gap-2 flex-wrap">
-              <span className="uppercase font-roboto font-semibold text-2xl md:text-[36px] leading-tight text-[#E73828] tracking-tight">
+              <span className="uppercase font-roboto font-semibold text-2xl md:text-[36px] leading-tight text-app-red tracking-tight">
                 {profileData?.username}
               </span>
             </div>
@@ -264,7 +265,7 @@ export default function AccountDashboard() {
               (profileData?.user_types?.slug) && (
                 <div className="flex flex-row items-center gap-2">
                   {/* VIP badge */}
-                  <span className="flex flex-row justify-center items-center border border-[#E73828] rounded-[20px] px-2 py-1 gap-1">
+                  <span className="flex flex-row justify-center items-center border border-app-red rounded-[20px] px-2 py-1 gap-1">
                     <span className="font-nunito font-medium text-[12px] leading-[16px] text-black dark:text-white">
                       {profileData?.user_types?.slug || ''}
                     </span>
@@ -285,10 +286,10 @@ export default function AccountDashboard() {
             {/* Your Balance */}
             <div className="flex flex-col justify-center items-start p-4 md:p-[21px_16px] gap-[10px] w-full h-[104px] bg-[rgba(7,7,7,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[10px] overflow-hidden">
               <div className="flex flex-col items-start p-0 gap-2 w-full">
-                <span className="font-['Roboto'] font-semibold text-base leading-[19px] text-[#070707] dark:text-white">
+                <span className="font-semibold text-base leading-[19px] text-[#070707] dark:text-white">
                   {dashboardSettings?.dashboard_page_settings.balance_label}
                 </span>
-                <span className="font-['Roboto'] font-semibold text-xl md:text-2xl leading-[28px] text-[#5FD568]">
+                <span className="font-semibold text-xl md:text-2xl leading-[28px] text-[#5FD568]">
                   {isLoadingProfile ? (
                     <span className="animate-pulse">{locale === 'en' ? 'Loading...' : 'جاري التحميل...'}</span>
                   ) : (
@@ -301,10 +302,10 @@ export default function AccountDashboard() {
             {/* Total Purchases */}
             <div className="flex flex-col justify-center items-start p-4 md:p-[21px_16px] gap-[10px] w-full h-[104px] bg-[rgba(7,7,7,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[10px] overflow-hidden">
               <div className="flex flex-col items-start p-0 gap-2 w-full">
-                <span className="font-['Roboto'] font-semibold text-base leading-[19px] text-[#070707] dark:text-white">
+                <span className="font-semibold text-base leading-[19px] text-[#070707] dark:text-white">
                   {dashboardSettings?.dashboard_page_settings.total_purchases_label}
                 </span>
-                <span className="font-['Roboto'] font-semibold text-xl md:text-2xl leading-[28px] text-[#E73828]">
+                <span className="font-semibold text-xl md:text-2xl leading-[28px] text-app-red">
                   {isLoadingProfile ? (
                     <span className="animate-pulse">{locale === 'en' ? 'Loading...' : 'جاري التحميل...'}</span>
                   ) : (
@@ -317,10 +318,10 @@ export default function AccountDashboard() {
             {/* Received */}
             <div className="flex flex-col justify-center items-start p-4 md:p-[21px_16px] gap-[10px] w-full h-[104px] bg-[rgba(7,7,7,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[10px] overflow-hidden">
               <div className="flex flex-col items-start p-0 gap-2 w-full">
-                <span className="font-['Roboto'] font-semibold text-base leading-[19px] text-[#070707] dark:text-white">
+                <span className="font-semibold text-base leading-[19px] text-[#070707] dark:text-white">
                   {dashboardSettings?.dashboard_page_settings.received_amount_label}
                 </span>
-                <span className="font-['Roboto'] font-semibold text-xl md:text-2xl leading-[28px] text-[#5FD568]">
+                <span className="font-semibold text-xl md:text-2xl leading-[28px] text-[#5FD568]">
                   {isLoadingProfile ? (
                     <span className="animate-pulse">{locale === 'en' ? 'Loading...' : 'جاري التحميل...'}</span>
                   ) : (
@@ -354,11 +355,11 @@ export default function AccountDashboard() {
           <div className="flex flex-col items-start p-0 gap-2 max-w-full w-full">
             {isLoading ? (
               <div className="w-full flex justify-center items-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E73828]"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-app-red"></div>
               </div>
             ) : hasError ? (
               <div className="w-full flex flex-col justify-center items-center py-8 gap-4">
-                <span className="font-['Roboto'] font-normal text-base text-[#E73828] dark:text-[#ff6b6b] text-center">
+                <span className="font-normal text-base text-app-red dark:text-[#ff6b6b] text-center">
                   {
                     locale === 'en' ? 'Failed to load transactions. Please try again.' : 'فشلت عملية التحميل. يرجى المحاولة مرة أخرى.'
                   }
@@ -369,7 +370,7 @@ export default function AccountDashboard() {
                     fetchOrdersAndPayments(); // Retry without force refresh
                   }}
                   disabled={isFetching}
-                  className="px-6 py-3 bg-[#E73828] hover:bg-[#d63224] disabled:bg-[#E73828]/50 text-white font-['Roboto'] font-medium text-base rounded-[25px] transition-all duration-200 disabled:cursor-not-allowed"
+                  className="px-6 py-3 bg-app-red hover:bg-app-red-hover disabled:bg-app-red/50 text-white font-medium text-base rounded-[25px] transition-all duration-200 disabled:cursor-not-allowed"
                 >
                   {isFetching ? locale === 'en' ? 'Loading...' : 'جاري التحميل...' : locale === 'en' ? 'Retry' : 'إعادة المحاولة'}
                 </button>
@@ -382,13 +383,13 @@ export default function AccountDashboard() {
             ) : (
               <>
                 {filteredItems.length === 0 && (
-                  <div className="w-full flex justify-center items-center py-8">
-                    <span className="font-['Roboto'] font-normal text-base text-[#8E8E8E] dark:text-[#a0a0a0]">
-                      {
-                        locale === 'en' ? 'No transactions found' : 'لا يوجد تحويلات'
-                      }
-                    </span>
-                  </div>
+                  <EmptyState
+                    title={locale === 'en' ? 'No transactions found' : 'لا يوجد تحويلات'}
+                    action={{
+                      label: locale === 'en' ? 'Browse products' : 'تصفح المنتجات',
+                      href: '/categories',
+                    }}
+                  />
                 )}
                 {displayedItems.map((item, i) => (
                   <motion.div
@@ -402,7 +403,7 @@ export default function AccountDashboard() {
                     <div className="flex flex-row items-center p-0 gap-4 min-w-0 flex-1">
                       {/* Icon Circle */}
                       <div className="relative w-9 h-9 flex-shrink-0">
-                        <div className={`absolute w-9 h-9 rounded-full ${item.direction === 'up' ? 'bg-[#E73828]' : 'bg-[#5FD568]'}`}></div>
+                        <div className={`absolute w-9 h-9 rounded-full ${item.direction === 'up' ? 'bg-app-red' : 'bg-[#5FD568]'}`}></div>
                         <svg
                           width="24"
                           height="24"
@@ -422,29 +423,29 @@ export default function AccountDashboard() {
                       {/* Title and Date */}
                       <div className="flex flex-col justify-center items-start p-0 gap-1 min-w-0">
                         <div className="flex flex-row items-center p-0 gap-1 w-full">
-                          <span className="font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white truncate">
+                          <span className="font-normal text-base leading-[19px] text-[#070707] dark:text-white truncate">
                             {item.title.split(' | ')[0]}
                           </span>
                           {item.title.includes(' | ') && (
                             <>
-                              <span className="w-[1px] h-3 bg-[#E73828] flex-shrink-0"></span>
-                              <span className="font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] dark:text-white truncate">
+                              <span className="w-[1px] h-3 bg-app-red flex-shrink-0"></span>
+                              <span className="font-normal text-base leading-[19px] text-[#070707] dark:text-white truncate">
                                 {item.title.split(' | ')[1]}
                               </span>
                             </>
                           )}
                         </div>
-                        <span className="font-['Roboto'] font-normal text-xs leading-[14px] text-[#8E8E8E] dark:text-[#a0a0a0]">
+                        <span className="font-normal text-xs leading-[14px] text-[#8E8E8E] dark:text-[#a0a0a0]">
                           {formatDate(item.date)}
                         </span>
                       </div>
                     </div>
                     {/* Right Section - Status and Prices */}
                     <div className="flex flex-row justify-end items-center gap-2 flex-shrink-0">
-                      {/* <span className="font-['Roboto'] font-normal text-sm leading-[16px] text-[#8E8E8E] dark:text-[#a0a0a0] text-right">
+                      {/* <span className="font-normal text-sm leading-[16px] text-[#8E8E8E] dark:text-[#a0a0a0] text-right">
                           {item.status}
                         </span> */}
-                      <span className={`font-['Roboto'] font-normal text-base leading-[19px] ${item.direction === 'up' ? 'text-[#E73828]' : 'text-[#5FD568]'} text-right`}>
+                      <span className={`font-normal text-base leading-[19px] ${item.direction === 'up' ? 'text-app-red' : 'text-[#5FD568]'} text-right`}>
                         {item.value}
                       </span>
                     </div>
@@ -457,7 +458,7 @@ export default function AccountDashboard() {
                     <button
                       onClick={handleLoadMore}
                       disabled={isLoadingMore}
-                      className="flex items-center justify-center gap-2 px-6 py-3 bg-[#E73828] hover:bg-[#d63224] disabled:bg-[#E73828]/50 text-white font-['Roboto'] font-medium text-base rounded-[25px] transition-all duration-200 disabled:cursor-not-allowed"
+                      className="flex items-center justify-center gap-2 px-6 py-3 bg-app-red hover:bg-app-red-hover disabled:bg-app-red/50 text-white font-medium text-base rounded-[25px] transition-all duration-200 disabled:cursor-not-allowed"
                     >
                       {isLoadingMore ? (
                         <>

@@ -67,7 +67,7 @@ export default function EmailVerificationPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#E73828] mb-1 tracking-tight">{pageTitle}</h2>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-app-red mb-1 tracking-tight">{pageTitle}</h2>
             <p className="text-black text-sm sm:text-base mb-4 sm:mb-6">{pageSubtitle}</p>
             {decodedEmail && (
               <p className="text-black text-xs sm:text-sm font-semibold break-all">{decodedEmail}</p>
@@ -90,7 +90,7 @@ export default function EmailVerificationPage() {
                   required: locale === "ar" ? "رمز التحقق مطلوب" : "Verification code is required",
                 })}
                 placeholder={locale === "ar" ? "رمز التحقق" : "Verification Code"}
-                className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black text-center"
+                className="w-full border border-app-red rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-app-red text-black bg-transparent placeholder:text-black text-center"
               />
               {errors.code && (
                 <div className="w-full mb-2 text-center text-red-600 text-xs sm:text-sm font-semibold">{errors.code.message}</div>
@@ -99,7 +99,7 @@ export default function EmailVerificationPage() {
               <button
                 type="submit"
                 disabled={loading || !email || !token}
-                className="w-full bg-[#E73828] text-white font-bold py-3 rounded-full mt-2 hover:bg-white hover:text-[#E73828] border border-[#E73828] transition-colors duration-200 text-lg disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full bg-app-red text-white font-bold py-3 rounded-full mt-2 hover:bg-white hover:text-app-red border border-app-red transition-colors duration-200 text-lg disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {loading ? (locale === "ar" ? "جاري التحقق..." : "Verifying...") : (locale === "ar" ? "تحقق" : "Verify")}
               </button>
@@ -107,7 +107,7 @@ export default function EmailVerificationPage() {
 
             <div className="w-full text-center mt-4 text-black text-sm sm:text-base">
               {locale === "ar" ? "لم تستلم بريد إلكتروني؟ " : "Didn't receive an email? "}
-              <button type="button" className="text-[#E73828] font-bold hover:underline" onClick={handleResend}>
+              <button type="button" className="text-app-red font-bold hover:underline" onClick={handleResend}>
                 {locale === "ar" ? "إعادة الإرسال" : "Resend code"}
               </button>
             </div>
@@ -116,7 +116,7 @@ export default function EmailVerificationPage() {
               <div className="text-center text-black text-sm sm:text-base">
                 {locale === "ar" ? "العودة إلى" : "Back to"}
               </div>
-              <Link href="/auth/signin" className="text-[#E73828] font-bold hover:underline">
+              <Link href="/auth/signin" className="text-app-red font-bold hover:underline">
                 {generalData?.logging_page_settings?.login_button || (locale === "ar" ? "تسجيل الدخول" : "Sign in")}
               </Link>
             </div>

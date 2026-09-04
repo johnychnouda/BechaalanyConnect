@@ -2,6 +2,7 @@ import { Url } from "next/dist/shared/lib/router/router";
 import React from "react";
 import Link from "next/link";
 import clsx from "clsx";
+import { useRouter } from "next/router";
 import ImageWithFallback from "./image-with-fallback";
 
 type CardProps = {
@@ -26,6 +27,7 @@ export default function Card({
   titleClassName,
   price
 }: CardProps) {
+  const { locale } = useRouter();
   return (
     <div className="flex flex-col items-center">
       <Link
@@ -49,7 +51,9 @@ export default function Card({
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-90 transition-opacity duration-300 ease-in-out">
             <div className="absolute inset-0 bg-black bg-opacity-20"></div>
             <span className="relative text-app-red text-lg font-bold underline z-10">
-              {type === 'product' ? 'Buy Now' : 'View All'}
+              {locale === 'ar'
+                ? (type === 'product' ? 'اشترِ الآن' : 'عرض الكل')
+                : (type === 'product' ? 'Buy Now' : 'View All')}
             </span>
           </div>
         </div>

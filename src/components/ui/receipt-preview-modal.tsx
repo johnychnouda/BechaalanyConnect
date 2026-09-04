@@ -64,7 +64,7 @@ export default function ReceiptPreviewModal({
         <div className="p-6">
           {/* Company Header */}
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-[#E73828] mb-2">
+            <h1 className="text-2xl font-bold text-app-red mb-2">
               Bechaalany Connect
             </h1>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
@@ -109,7 +109,7 @@ export default function ReceiptPreviewModal({
               <div className="border-t border-gray-200 dark:border-gray-600 pt-2">
                 <div className="flex justify-between items-center">
                   <span className="font-semibold text-gray-900 dark:text-white">{ locale === 'ar' ? 'المجموع' : 'Total' }:</span>
-                  <span className="font-bold text-lg text-[#E73828]">{order.value}</span>
+                  <span className="font-bold text-lg text-app-red">{order.value}</span>
                 </div>
               </div>
             </div>
@@ -188,7 +188,7 @@ export default function ReceiptPreviewModal({
           <button
             onClick={onDownload}
             disabled={isDownloading}
-            className="flex-1 px-4 py-2 bg-[#E73828] text-white rounded-lg hover:bg-[#d32f2f] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-2 bg-app-red text-white rounded-lg hover:bg-[#d32f2f] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
           >
             {isDownloading ? (
               <>

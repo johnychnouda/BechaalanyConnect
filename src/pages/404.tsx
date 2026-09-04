@@ -1,10 +1,12 @@
 import PageLayout from "@/components/ui/page-layout";
 import { useRouter } from "next/router";
 import React, { useEffect } from "react";
+import { Button } from "@/components/ui/primitives/Button";
 
 export default function NotFound() {
   const router = useRouter();
   const isDevToolsRequest = router.asPath.includes("/.well-known/appspecific/");
+  const isArabic = router.locale === "ar";
 
   useEffect(() => {
     // Silently handle Chrome DevTools requests
@@ -23,17 +25,18 @@ export default function NotFound() {
       <div className="text-center">
         <h1 className="text-6xl font-bold text-gray-900 dark:text-white mb-4">404</h1>
         <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
-          Page Not Found
+          {isArabic ? "الصفحة غير موجودة" : "Page Not Found"}
         </h2>
         <p className="text-gray-600 dark:text-gray-400 mb-8">
-          The page you&apos;re looking for doesn&apos;t exist or has been moved.
+          {isArabic
+            ? "الصفحة التي تبحث عنها غير موجودة أو تم نقلها."
+            : "The page you're looking for doesn't exist or has been moved."}
         </p>
-        <button
-          onClick={() => router.push("/")}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Return Home
-        </button>
+        {/* Was bg-blue-600 — the only blue button in the app; the brand red is
+            #E73828 everywhere else. */}
+        <Button onClick={() => router.push("/")} size="lg">
+          {isArabic ? "العودة للرئيسية" : "Return Home"}
+        </Button>
       </div>
     </PageLayout>
   );

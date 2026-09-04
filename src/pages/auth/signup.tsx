@@ -10,6 +10,9 @@ import { useGlobalContext } from "@/context/GlobalContext";
 import { getErrorMessage } from "@/utils/getErrorMessage";
 import Link from "next/link";
 import PageLayout from "@/components/ui/page-layout";
+import { Button } from "@/components/ui/primitives/Button";
+import { FormField } from "@/components/ui/primitives/FormField";
+import { Input } from "@/components/ui/primitives/Input";
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
@@ -18,7 +21,7 @@ function EyeIcon({ open }: { open: boolean }) {
       className="w-5 h-5 transition-transform duration-200 hover:scale-110"
       viewBox="0 0 24 24"
       fill="none"
-      stroke="#E73828"
+      stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -32,7 +35,7 @@ function EyeIcon({ open }: { open: boolean }) {
       className="w-5 h-5 transition-transform duration-200 hover:scale-110"
       viewBox="0 0 24 24"
       fill="none"
-      stroke="#E73828"
+      stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -40,6 +43,25 @@ function EyeIcon({ open }: { open: boolean }) {
       <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
       <line x1="1" y1="1" x2="23" y2="23" />
     </svg>
+  );
+}
+
+/** Show/hide toggle for a password field — a real, focusable, keyboard-operable
+ *  button. This used to be a `<div onClick>` for both password fields on this
+ *  page (signin.tsx's equivalent did it correctly as a <button>, so this
+ *  brings the two in line). */
+function PasswordToggle({ shown, onClick }: { shown: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      tabIndex={-1}
+      className="absolute right-4 rtl:left-4 rtl:right-auto top-1/2 -translate-y-1/2 p-1 rounded-full text-app-red hover:bg-app-red/10 transition-colors duration-200"
+      onClick={onClick}
+      aria-label={shown ? "Hide password" : "Show password"}
+      aria-pressed={shown}
+    >
+      <EyeIcon open={shown} />
+    </button>
   );
 }
 
@@ -167,25 +189,25 @@ export default function SignupPage() {
   return (
     <>
       <PageLayout>
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-background-dark py-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-md w-full space-y-8">
             <div className="text-center">
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#E73828] mb-1 tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-app-red mb-1 tracking-tight">
                 {generalData?.logging_page_settings.sign_up_title}
               </h2>
-              <p className="text-black text-sm sm:text-base mb-4 sm:mb-6">
+              <p className="text-app-black dark:text-white text-sm sm:text-base mb-4 sm:mb-6">
                 {generalData?.logging_page_settings.sign_up_subtitle}
               </p>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md p-8">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
               {error && (
-                <div className="w-full mb-4 text-center text-red-600 text-xs sm:text-sm font-semibold">
+                <div className="w-full mb-4 text-center text-red-600 text-xs sm:text-sm font-semibold" role="alert">
                   {error}
                 </div>
               )}
               {success && (
-                <div className="w-full mb-4 text-center text-green-600 text-xs sm:text-sm font-semibold">
+                <div className="w-full mb-4 text-center text-green-600 text-xs sm:text-sm font-semibold" role="status">
                   {success}
                 </div>
               )}
@@ -195,15 +217,14 @@ export default function SignupPage() {
                 onSubmit={handleSubmit(onSubmit)}
                 autoComplete="off"
               >
-                <input
-                  type="text"
-                  placeholder={generalData?.logging_page_settings.username_placeholder}
-                  {...register("username", { required: locale === "ar" ? "يجب أن يكون لديك اسم مستخدم" : "Username is required" })}
-                  className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black rtl:text-right"
-                />
-                {errors.username && (
-                  <span className="text-xs text-red-600">{errors.username.message as string}</span>
-                )}
+                <FormField error={errors.username?.message as string}>
+                  <Input
+                    type="text"
+                    placeholder={generalData?.logging_page_settings.username_placeholder}
+                    {...register("username", { required: locale === "ar" ? "يجب أن يكون لديك اسم مستخدم" : "Username is required" })}
+                    className="rtl:text-right"
+                  />
+                </FormField>
 
                 <CustomDropdown
                   options={countries.map(c => c.title)}
@@ -220,109 +241,88 @@ export default function SignupPage() {
                   name="country"
                 />
                 {errors.country && (
-                  <span className="text-xs text-red-600">{errors.country.message as string}</span>
+                  <span className="text-xs text-red-600" role="alert">{errors.country.message as string}</span>
                 )}
 
-                <div className="flex rtl:flex-row-reverse items-center border border-[#E73828] rounded-full px-4 py-2 bg-transparent">
-                  <div className="flex rtl:flex-row-reverse items-center mr-2 rtl:ml-2 rtl:mr-0">
-                    <span className="text-[#E73828] text-base">
-                      +
-                    </span>
-                    <span className="text-[#E73828] rtl:text-left">
-                      {phonePrefix}
-                    </span>
+                <FormField error={errors.phone?.message as string}>
+                  <div className="flex rtl:flex-row-reverse items-center border border-app-red rounded-full px-4 py-2 bg-transparent focus-within:ring-2 focus-within:ring-app-red">
+                    <div className="flex rtl:flex-row-reverse items-center mr-2 rtl:ml-2 rtl:mr-0">
+                      <span className="text-app-red text-base">
+                        +
+                      </span>
+                      <span className="text-app-red rtl:text-left">
+                        {phonePrefix}
+                      </span>
+                    </div>
+                    <input
+                      type="tel"
+                      placeholder={generalData?.logging_page_settings.phone_number_placeholder || "Phone Number"}
+                      {...register("phone", {
+                        required: locale === "ar" ? "يجب أن يكون لديك رقم هاتف" : "Phone number is required",
+                        validate: (val: string) => validatePhone(val) || `${locale === "ar" ? "يرجى إدخال رقم هاتف صالح" : "Please enter a valid phone number"} ${country ? `for ${countries.find(c => c.slug === country)?.title}` : ''}`,
+                      })}
+                      className="w-full outline-none text-base text-app-black dark:text-white bg-transparent placeholder:text-neutral-400 rtl:text-right"
+                    />
                   </div>
-                  <input
-                    type="tel"
-                    placeholder={generalData?.logging_page_settings.phone_number_placeholder || "Phone Number"}
-                    {...register("phone", {
-                      required: locale === "ar" ? "يجب أن يكون لديك رقم هاتف" : "Phone number is required",
-                      validate: (val: string) => validatePhone(val) || `${locale === "ar" ? "يرجى إدخال رقم هاتف صالح" : "Please enter a valid phone number"} ${country ? `for ${countries.find(c => c.slug === country)?.title}` : ''}`,
+                </FormField>
+
+                <FormField error={errors.email?.message as string}>
+                  <Input
+                    type="email"
+                    placeholder={generalData?.logging_page_settings.email_placeholder || "Email"}
+                    {...register("email", {
+                      required: locale === "ar" ? "يجب أن يكون لديك بريد إلكتروني" : "Email is required",
+                      pattern: {
+                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                        message: locale === "ar" ? "يرجى إدخال عنوان بريد إلكتروني صالح (مثال: user@example.com)." : "Please enter a valid email address (e.g. user@example.com).",
+                      },
                     })}
-                    className="w-full focus:outline-none text-base text-black bg-transparent placeholder:text-black rtl:text-right"
+                    className="rtl:text-right"
                   />
-                </div>
-                {errors.phone && (
-                  <span className="text-xs text-red-600">{errors.phone.message as string}</span>
-                )}
+                </FormField>
 
-                <input
-                  type="email"
-                  placeholder={generalData?.logging_page_settings.email_placeholder || "Email"}
-                  {...register("email", {
-                    required: locale === "ar" ? "يجب أن يكون لديك بريد إلكتروني" : "Email is required",
-                    pattern: {
-                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                      message: locale === "ar" ? "يرجى إدخال عنوان بريد إلكتروني صالح (مثال: user@example.com)." : "Please enter a valid email address (e.g. user@example.com).",
-                    },
-                  })}
-                  className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black rtl:text-right"
-                />
-                {errors.email && (
-                  <span className="text-xs text-red-600">{errors.email.message as string}</span>
-                )}
-
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder={generalData?.logging_page_settings.password_placeholder || "Password"}
-                    {...register("password", {
-                      required: locale === "ar" ? "يجب أن يكون لديك كلمة مرور" : "Password is required",
-                      validate: (val: string) => validatePassword(val) || (locale === "ar" ? "يجب أن تكون كلمة المرور على الأقل 8 أحرف, تحتوي على 1 حرف كبير, 1 رقم, و 1 حرف خاص." : "Password must be at least 8 characters, include 1 uppercase letter, 1 number, and 1 special character."),
-                    })}
-                    className="w-full border border-[#E73828] rounded-full px-4 py-2 pr-12 rtl:pl-12 rtl:pr-4 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
-                  />
-                  <div
-                    className="absolute right-4 rtl:left-4 rtl:right-auto top-1/2 -translate-y-1/2 cursor-pointer"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    <EyeIcon open={showPassword} />
+                <FormField error={errors.password?.message as string}>
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder={generalData?.logging_page_settings.password_placeholder || "Password"}
+                      {...register("password", {
+                        required: locale === "ar" ? "يجب أن يكون لديك كلمة مرور" : "Password is required",
+                        validate: (val: string) => validatePassword(val) || (locale === "ar" ? "يجب أن تكون كلمة المرور على الأقل 8 أحرف, تحتوي على 1 حرف كبير, 1 رقم, و 1 حرف خاص." : "Password must be at least 8 characters, include 1 uppercase letter, 1 number, and 1 special character."),
+                      })}
+                      invalid={Boolean(errors.password)}
+                      className="pr-12 rtl:pl-12 rtl:pr-4"
+                    />
+                    <PasswordToggle shown={showPassword} onClick={() => setShowPassword(!showPassword)} />
                   </div>
-                </div>
-                {errors.password && (
-                  <span className="text-xs text-red-600">{errors.password.message as string}</span>
-                )}
+                </FormField>
 
-                <div className="relative">
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder={generalData?.logging_page_settings.confirm_password_placeholder || "Confirm Password"}
-                    {...register("confirmPassword", {
-                      required: locale === "ar" ? "يرجى التأكد من كلمة المرور" : "Please confirm your password",
-                      validate: (val: string) => val === watch("password") || (locale === "ar" ? "كلمات المرور غير متطابقة." : "Passwords do not match."),
-                    })}
-                    className="w-full border border-[#E73828] rounded-full px-4 py-2 pr-12 rtl:pl-12 rtl:pr-4 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
-                  />
-                  <div
-                    className="absolute right-4 rtl:left-4 rtl:right-auto top-1/2 -translate-y-1/2 cursor-pointer"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    <EyeIcon open={showConfirmPassword} />
+                <FormField error={errors.confirmPassword?.message as string}>
+                  <div className="relative">
+                    <Input
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder={generalData?.logging_page_settings.confirm_password_placeholder || "Confirm Password"}
+                      {...register("confirmPassword", {
+                        required: locale === "ar" ? "يرجى التأكد من كلمة المرور" : "Please confirm your password",
+                        validate: (val: string) => val === watch("password") || (locale === "ar" ? "كلمات المرور غير متطابقة." : "Passwords do not match."),
+                      })}
+                      invalid={Boolean(errors.confirmPassword)}
+                      className="pr-12 rtl:pl-12 rtl:pr-4"
+                    />
+                    <PasswordToggle shown={showConfirmPassword} onClick={() => setShowConfirmPassword(!showConfirmPassword)} />
                   </div>
-                </div>
-                {errors.confirmPassword && (
-                  <span className="text-xs text-red-600">{errors.confirmPassword.message as string}</span>
-                )}
+                </FormField>
 
-                {submitLoading ? (
-                  <div className="w-full flex justify-center items-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E73828]"></div>
-                  </div>
-                ) : (
-                  <button
-                    type="submit"
-                    className="w-full bg-[#E73828] text-white rounded-full py-3 text-base font-bold mt-4 hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200"
-                  >
-                    {generalData?.logging_page_settings.sign_up_button || "CREATE ACCOUNT"}
-                  </button>
-                )}
+                <Button type="submit" loading={submitLoading} size="lg" fullWidth className="mt-4">
+                  {generalData?.logging_page_settings.sign_up_button || "CREATE ACCOUNT"}
+                </Button>
 
                 <div className="relative w-full my-4">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300"></div>
+                    <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-500">
+                    <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
                       {
                         locale === "ar" ?
                           "او استمرار ب"
@@ -337,7 +337,7 @@ export default function SignupPage() {
               <GoogleButton text={generalData?.logging_page_settings.google_button || "SIGNUP WITH GOOGLE"} onClick={handleGoogleSignup} locale={locale} />
 
               <div className="flex items-center justify-center gap-1 mt-6">
-                <div className="text-center text-black text-sm sm:text-base">
+                <div className="text-center text-app-black dark:text-white text-sm sm:text-base">
                   {
                     locale === "ar" ?
                       "لديك حساب؟"
@@ -347,7 +347,7 @@ export default function SignupPage() {
                 </div>
                 <Link
                   href="/auth/signin"
-                  className="text-[#E73828] font-bold hover:underline"
+                  className="text-app-red font-bold hover:underline"
                 >
                   {
                     locale === "ar" ?

@@ -30,7 +30,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
       <div className="flex flex-row items-center p-0 gap-4 min-w-0 flex-1">
         {/* Icon Circle */}
         <div className="relative w-9 h-9 flex-shrink-0">
-          <div className={`absolute w-9 h-9 rounded-full ${direction === 'up' ? 'bg-[#E73828]' : 'bg-[#5FD568]'}`}></div>
+          <div className={`absolute w-9 h-9 rounded-full ${direction === 'up' ? 'bg-app-red' : 'bg-[#5FD568]'}`}></div>
           <svg 
             width="24" 
             height="24" 
@@ -50,29 +50,29 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
         {/* Title and Date */}
         <div className="flex flex-col justify-center items-start p-0 gap-1 min-w-0">
           <div className="flex flex-row items-center p-0 gap-1 w-full">
-            <span className="font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] truncate">
+            <span className="font-normal text-base leading-[19px] text-[#070707] truncate">
               {title.split(' | ')[0]}
             </span>
             {title.includes(' | ') && (
               <>
-                <span className="w-[1px] h-3 bg-[#E73828] flex-shrink-0"></span>
-                <span className="font-['Roboto'] font-normal text-base leading-[19px] text-[#070707] truncate">
+                <span className="w-[1px] h-3 bg-app-red flex-shrink-0"></span>
+                <span className="font-normal text-base leading-[19px] text-[#070707] truncate">
                   {title.split(' | ')[1]}
                 </span>
               </>
             )}
           </div>
-          <span className="font-['Roboto'] font-normal text-xs leading-[14px] text-[#8E8E8E]">
+          <span className="font-normal text-xs leading-[14px] text-[#8E8E8E]">
             {formatDate(date)}
           </span>
         </div>
       </div>
       {/* Right Section - Prices */}
       <div className="flex flex-row justify-end items-center gap-2 flex-shrink-0">
-        <span className="font-['Roboto'] font-normal text-base leading-[19px] line-through text-[#E73828] text-right">
+        <span className="font-normal text-base leading-[19px] line-through text-app-red text-right">
           {oldPrice}
         </span>
-        <span className="font-['Roboto'] font-normal text-base leading-[19px] text-[#5FD568] text-right">
+        <span className="font-normal text-base leading-[19px] text-[#5FD568] text-right">
           {newPrice}
         </span>
       </div>

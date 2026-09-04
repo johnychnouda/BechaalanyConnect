@@ -6,9 +6,10 @@ import { useGlobalContext } from '@/context/GlobalContext';
 import { useRouter } from 'next/router';
 import { fetchCategoriesData } from '@/services/api.service';
 import { Category } from '@/types/category.type';
-import PageLoader from '@/components/ui/PageLoader';
 import CardSkeleton from '@/components/ui/card-skeleton';
 import SeoHead from '@/components/ui/SeoHead';
+import { ErrorState } from '@/components/ui/primitives/ErrorState';
+import { EmptyState } from '@/components/ui/primitives/EmptyState';
 
 const CategoryCard: React.FC<{ category: Category }> = ({ category }) => {
   return (
@@ -49,13 +50,13 @@ const CategoriesPage = () => {
         } else {
           console.error('Categories data is not an array:', data);
           setCategories([]);
-          setError('Invalid data format received');
+          setError(router.locale === 'ar' ? 'تم استلام بيانات بتنسيق غير صالح' : 'Invalid data format received');
         }
       })
       .catch((error) => {
         console.error('Error fetching categories:', error);
         setCategories([]);
-        setError('Failed to load categories');
+        setError(router.locale === 'ar' ? 'تعذر تحميل الفئات' : 'Failed to load categories');
       })
       .finally(() => {
         setIsLoading(false);
@@ -74,7 +75,7 @@ const CategoriesPage = () => {
 
 
       {/* Page Title */}
-      <h1 className="text-2xl font-bold mb-6 dark:text-[#E73828]">{generalData?.settings.categories_label || ''}</h1>
+      <h1 className="text-2xl font-bold mb-6 dark:text-app-red">{generalData?.settings.categories_label || ''}</h1>
 
       {/* Categories Grid */}
       {isLoading ? (
@@ -84,17 +85,19 @@ const CategoriesPage = () => {
           ))}
         </div>
       ) : error ? (
-        <div className="flex justify-center items-center py-8">
-          <div className="text-lg text-red-600">{error}</div>
-        </div>
+        <ErrorState
+          message={error}
+          onRetry={() => router.reload()}
+          retryLabel={router.locale === 'ar' ? 'إعادة المحاولة' : 'Try again'}
+        />
       ) : categories.length === 0 ? (
-        <div className="flex justify-center items-center py-8">
-          <div className="text-lg">
-            {
-              router.locale === 'ar' ? 'لم يتم العثور على أي فئات' : 'No categories found'
-            }
-          </div>
-        </div>
+        <EmptyState
+          title={router.locale === 'ar' ? 'لم يتم العثور على أي فئات' : 'No categories found'}
+          action={{
+            label: router.locale === 'ar' ? 'العودة للرئيسية' : 'Back to home',
+            href: '/',
+          }}
+        />
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {categories.map((category: Category) => (

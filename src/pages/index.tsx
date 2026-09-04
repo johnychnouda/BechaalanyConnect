@@ -50,6 +50,15 @@ function HomeContent() {
   return (
     <PageLayout className={`flex flex-col min-h-screen gap-16 pb-32`}>
       <SeoHead seo={homepageData?.seo} />
+      {/* The homepage had no <h1> at all — the hero banner's rotating title
+          (below) is CMS content inside a Swiper carousel, which keeps every
+          slide in the DOM, so making the visible slide title an <h1> would
+          put several <h1>s on the page at once as slides cycle. A single
+          screen-reader-only one, stable regardless of which slide is
+          showing, is the safer fix — no visual change. */}
+      <h1 className="sr-only">
+        {locale === 'ar' ? 'بيشعلاني كونكت' : 'Bechaalany Connect'}
+      </h1>
       <HomePageHeader bannerSwiper={bannerSwiper} homepageSettings={homepageSettings} />
       <section className="flex flex-col gap-20 px-6 md:px-12">
         {/* Categories */}

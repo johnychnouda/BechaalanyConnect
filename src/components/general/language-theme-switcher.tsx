@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useIsMounted } from "@/hooks/use-is-mounted";
 import ButtonLink from "../ui/button-link";
 import { useGlobalContext } from "@/context/GlobalContext";
+import { Spinner } from "../ui/primitives/Spinner";
 
 export default function LanguageThemeSwitcher({ isMobileMenu, setIsMobileMenuOpen }: { isMobileMenu?: boolean, setIsMobileMenuOpen?: (isOpen: boolean) => void }) {
   const { generalData } = useGlobalContext();
@@ -35,8 +36,8 @@ export default function LanguageThemeSwitcher({ isMobileMenu, setIsMobileMenuOpe
   return (
     <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 relative">
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-70 z-10">
-          <span className="loader border-2 border-t-2 border-gray-200 rounded-full w-5 h-5 animate-spin border-t-app-black"></span>
+        <div className="absolute inset-0 flex items-center justify-center bg-white/70 dark:bg-background-dark/70 z-10">
+          <Spinner size="sm" />
         </div>
       )}
       <div className="flex items-center gap-[3px] sm:gap-[5px] md:gap-[7px]">
@@ -45,7 +46,7 @@ export default function LanguageThemeSwitcher({ isMobileMenu, setIsMobileMenuOpe
           className={
             `${isEnActive
               ? isMobileMenu
-                ? "text-red-500 text-[14px]  md:text-sm"
+                ? "text-app-red text-[14px]  md:text-sm"
                 : "text-app-white text-[12px]  md:text-sm"
               : "text-app-black text-[14px]  md:text-sm"}`
           }
@@ -58,7 +59,7 @@ export default function LanguageThemeSwitcher({ isMobileMenu, setIsMobileMenuOpe
           className={
             `${!isEnActive
               ? isMobileMenu
-                ? "text-red-500 text-[14px] md:text-sm"
+                ? "text-app-red text-[14px] md:text-sm"
                 : "text-app-white text-[12px] md:text-sm"
               : "text-app-black text-[14px] md:text-sm"}`
           }

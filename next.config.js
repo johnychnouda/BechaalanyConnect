@@ -4,6 +4,19 @@ const nextConfig = {
   swcMinify: true,
   poweredByHeader: false,
 
+  // The Pages Router SSR path for styled-components (still used by ~5 components:
+  // notifications.tsx, theme-switcher.tsx, notification.tsx, google-button.tsx) is
+  // _document.tsx's manual ServerStyleSheet. This flag is the missing piece that
+  // makes styled-components' own SWC transform (displayName, minified class names,
+  // css prop) actually run — previously the app also carried a *second*,
+  // App-Router-shaped SSR registry (src/lib/registry.tsx, using
+  // useServerInsertedHTML) wrapping the whole tree for no reason, since Pages
+  // Router never calls that hook. It has been removed; this is the correct config
+  // for the approach _document.tsx already uses.
+  compiler: {
+    styledComponents: true,
+  },
+
   i18n: {
     locales: ["en", "ar"],
     defaultLocale: "en",

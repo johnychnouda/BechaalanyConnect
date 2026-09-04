@@ -10,6 +10,7 @@ interface CustomDropdownProps {
 const CustomDropdown: React.FC<CustomDropdownProps> = ({ options, value, onChange, placeholder }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -21,33 +22,55 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({ options, value, onChang
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Was mouse-only (options were <div onClick>, not real controls) with no
+  // Escape handling — same gap the product page's amount dropdown had.
+  useEffect(() => {
+    if (!open) return;
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
+
   return (
     <div className="relative w-full" ref={ref}>
       <button
+        ref={triggerRef}
         type="button"
-        className="w-full flex justify-between items-center border border-[#E73828] rounded-full px-4 py-2 bg-transparent text-black focus:outline-none"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className="w-full flex justify-between items-center border border-app-red rounded-full px-4 py-2 bg-transparent text-app-black dark:text-white"
         onClick={() => setOpen((o) => !o)}
       >
-        <span className={value ? "text-[#E73828]" : "text-black"}>
+        <span className={value ? "text-app-red" : "text-app-black dark:text-white"}>
           {value || placeholder}
         </span>
-        <svg className="w-5 h-5 text-[#E73828]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-5 h-5 text-app-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       {open && (
-        <div className="absolute left-0 right-0 mt-2 bg-white border border-[#E73828] rounded-[12px] z-10">
+        <div role="listbox" className="absolute left-0 right-0 mt-2 bg-white dark:bg-background-dark border border-app-red rounded-[12px] z-10 overflow-hidden">
           {options.map((opt) => (
-            <div
+            <button
               key={opt}
-              className="px-4 py-2 text-[#E73828] cursor-pointer hover:bg-[#ffeaea] rounded-[12px]"
+              type="button"
+              role="option"
+              aria-selected={opt === value}
+              className="w-full text-left rtl:text-right px-4 py-2 text-app-red cursor-pointer hover:bg-app-red/10"
               onClick={() => {
                 onChange(opt);
                 setOpen(false);
+                triggerRef.current?.focus();
               }}
             >
               {opt}
-            </div>
+            </button>
           ))}
         </div>
       )}
@@ -55,4 +78,4 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({ options, value, onChang
   );
 };
 
-export default CustomDropdown; 
+export default CustomDropdown;

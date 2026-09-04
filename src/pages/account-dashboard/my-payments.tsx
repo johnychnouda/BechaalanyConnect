@@ -8,6 +8,9 @@ import { useRouter } from "next/router";
 import { useGlobalContext } from "@/context/GlobalContext";
 import { useLanguage } from "@/hooks/use-language";
 import { toMessage, toNumber } from "@/utils/error-message";
+import { EmptyState } from "@/components/ui/primitives/EmptyState";
+import { ErrorState } from "@/components/ui/primitives/ErrorState";
+import { SkeletonRow } from "@/components/ui/primitives/Skeleton";
 
 const ITEMS_PER_PAGE = 5; // Number of items to show initially and per load more
 
@@ -116,8 +119,8 @@ export default function MyPayments() {
       key: "rejected",
       label: dashboardSettings?.dashboard_page_settings?.rejected_label,
       className: activeFilter === "rejected"
-        ? "bg-[#E73828] border border-[#E73828] text-white"
-        : "bg-white border border-[#E73828] text-[#E73828]",
+        ? "bg-app-red border border-app-red text-white"
+        : "bg-white border border-app-red text-app-red",
       icon: (
         <span className="absolute left-[12px] flex items-center justify-center" style={{ width: '19px', height: '19px', top: '50%', transform: 'translateY(-50%)' }}>
           <span style={{ background: '#E73828', borderRadius: '50%', width: '19px', height: '19px', display: 'block', position: 'absolute', left: 0, top: 0 }}></span>
@@ -171,13 +174,13 @@ export default function MyPayments() {
         <div className="w-fit">
           <BackButton label={generalData?.settings?.back_button_label} />
         </div>
-        <div className="text-[#E73828] text-[36px] font-semibold font-['Roboto'] leading-[42px] uppercase mb-8 mt-0 tracking-tight">{dashboardSettings?.dashboard_page_settings?.my_payments_page_title}</div>
+        <div className="text-app-red text-[36px] font-semibold leading-[42px] uppercase mb-8 mt-0 tracking-tight">{dashboardSettings?.dashboard_page_settings?.my_payments_page_title}</div>
         <div className="flex flex-col items-start w-full pb-6 gap-[25px] border-b border-[rgba(0,0,0,0.1)] mb-8" style={{ boxSizing: 'border-box' }}>
           <div className="flex flex-row gap-2 w-full overflow-x-auto whitespace-nowrap" style={{ height: '35px' }}>
             {filterButtons.map(btn => (
               <button
                 key={btn.key}
-                className={`flex items-center rounded-[50.5px] px-3 py-2 font-['Roboto'] font-semibold text-[15px] h-[35px] ${btn.className}`}
+                className={`flex items-center rounded-[50.5px] px-3 py-2 font-semibold text-[15px] h-[35px] ${btn.className}`}
                 style={{ minWidth: '140px', maxWidth: '160px' }}
                 onClick={() => handleFilterChange(btn.key)}
                 type="button"
@@ -193,22 +196,25 @@ export default function MyPayments() {
           </div>
         </div>
         {/* Error Message */}
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-            {error}
-          </div>
+        {error && !loading && (
+          <ErrorState
+            message={error}
+            onRetry={() => router.reload()}
+            retryLabel={locale === 'en' ? 'Try again' : 'إعادة المحاولة'}
+          />
         )}
-        {/* Loading Spinner */}
         {loading ? (
-          <div className="flex justify-center items-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E73828]"></div>
+          <div className="flex flex-col gap-4 w-full">
+            {[...Array(3)].map((_, i) => <SkeletonRow key={i} />)}
           </div>
-        ) : filteredPayments.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            {
-              locale === 'en' ? 'No payments found.' : 'لا يوجد دفعات مضافة'
-            }
-          </div>
+        ) : error ? null : filteredPayments.length === 0 ? (
+          <EmptyState
+            title={locale === 'en' ? 'No payments found.' : 'لا يوجد دفعات مضافة'}
+            action={{
+              label: locale === 'en' ? 'Add credits' : 'إضافة رصيد',
+              href: '/account-dashboard/add-credits',
+            }}
+          />
         ) : (
           <>
             <div className="flex flex-col gap-4 w-full">
@@ -229,7 +235,7 @@ export default function MyPayments() {
                 <button
                   onClick={handleLoadMore}
                   disabled={isLoadingMore}
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-[#E73828] hover:bg-[#d63224] disabled:bg-[#E73828]/50 text-white font-['Roboto'] font-medium text-base rounded-[25px] transition-all duration-200 disabled:cursor-not-allowed"
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-app-red hover:bg-app-red-hover disabled:bg-app-red/50 text-white font-medium text-base rounded-[25px] transition-all duration-200 disabled:cursor-not-allowed"
                 >
                   {isLoadingMore ? (
                     <>
@@ -252,7 +258,7 @@ export default function MyPayments() {
             {/* Only when there genuinely is more than one page. */}
             {!hasMoreItems && lastPage > 1 && (
               <div className="w-full flex justify-center items-center py-4">
-                <span className="font-['Roboto'] font-normal text-sm text-[#8E8E8E] dark:text-[#a0a0a0]">
+                <span className="font-normal text-sm text-[#8E8E8E] dark:text-[#a0a0a0]">
                   {locale === 'en' ? 'No more payments to load' : 'لا يوجد دفعات مضافة أخرى'}
                 </span>
               </div>

@@ -1,67 +1,41 @@
 import React, { useEffect } from 'react';
-import { isAndroidBrowser, isLegacyBrowser } from '@/utils/browser-detection';
+import { isLegacyBrowser } from '@/utils/browser-detection';
 
+/**
+ * This used to also fire on `isAndroidBrowser()` — any Android browser that isn't
+ * Chrome/Samsung Internet — and, on top of a readability floor, forced light theme
+ * globally (defeating dark mode for that entire segment with no documented reason
+ * class-based `dark:` theming doesn't already handle) AND set
+ * `button { background-color: #e73828 !important }` on every `<button>` on the page.
+ * That single rule would silently override every variant of the new `Button`
+ * primitive (secondary/outline/ghost) on any matching browser, so it's removed
+ * along with the forced-light override; only a body-level readability floor
+ * remains, scoped to engines old enough that CSS custom properties or the
+ * `class`-based dark-mode strategy may not be reliable (IE, Android 4/5 WebView).
+ */
 export default function FallbackTheme() {
   useEffect(() => {
-    if (isAndroidBrowser() || isLegacyBrowser()) {
-      // Add fallback styles for older browsers
+    if (isLegacyBrowser()) {
       const style = document.createElement('style');
       style.textContent = `
-        /* Force light theme for older browsers */
         body {
-          background-color: #ffffff !important;
-          color: #070707 !important;
+          background-color: #ffffff;
+          color: #070707;
         }
-        
-        /* Override dark theme styles */
-        .dark {
-          background-color: #2a2a2a !important;
-          color: #FFFFFF !important;
+
+        .dark body {
+          background-color: #2a2a2a;
+          color: #FFFFFF;
         }
-        
-        /* Ensure text is readable */
-        p, h1, h2, h3, h4, h5, h6, span, div {
-          color: inherit !important;
-        }
-        
-        /* Ensure links are visible */
+
         a {
-          color: #e73828 !important;
-        }
-        
-        /* Ensure buttons are visible */
-        button {
-          background-color: #e73828 !important;
-          color: #FFFFFF !important;
+          color: #e73828;
         }
 
-        /* Ensure form elements are visible */
         input, select, textarea {
-          background-color: #ffffff !important;
-          color: #070707 !important;
-          border: 1px solid #e5e7eb !important;
-        }
-
-        /* Ensure card backgrounds */
-        .bg-background-light {
-          background-color: #ffffff !important;
-        }
-
-        .bg-background-dark {
-          background-color: #2a2a2a !important;
-        }
-
-        /* Ensure text colors */
-        .text-app-black {
-          color: #070707 !important;
-        }
-
-        .text-app-white {
-          color: #FFFFFF !important;
-        }
-
-        .text-app-red {
-          color: #e73828 !important;
+          background-color: #ffffff;
+          color: #070707;
+          border: 1px solid #e5e7eb;
         }
       `;
       document.head.appendChild(style);
