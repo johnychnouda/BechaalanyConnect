@@ -23,9 +23,9 @@ export default function PageGrid<T>({
     <div className="flex flex-col gap-6">
       <div className="flex justify-between items-center">
         {label && (
-          <p className="text-app-red text-[20px] sm:text-[36px] font-semibold">
+          <h2 className="text-app-red text-[20px] sm:text-[36px] font-semibold">
             {label.toUpperCase()}
-          </p>
+          </h2>
         )}
         {viewMoreHref && (
           <ButtonLink

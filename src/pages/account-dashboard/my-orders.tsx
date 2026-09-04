@@ -11,6 +11,8 @@ import { useRouter } from "next/router";
 import { useLanguage } from "@/hooks/use-language";
 import { toMessage } from "@/utils/error-message";
 import { toProcessedOrder } from "@/utils/order";
+import { ErrorState } from "@/components/ui/primitives/ErrorState";
+import { EmptyState } from "@/components/ui/primitives/EmptyState";
 
 const ITEMS_PER_PAGE = 10; // Rows requested per page from the API
 
@@ -134,8 +136,8 @@ export default function MyOrders() {
       key: "rejected",
       label: dashboardSettings?.dashboard_page_settings?.rejected_label,
       className: activeFilter === "rejected"
-        ? "bg-[#E73828] border border-[#E73828] text-white"
-        : "bg-white border border-[#E73828] text-[#E73828]",
+        ? "bg-app-red border border-app-red text-white"
+        : "bg-white border border-app-red text-app-red",
       icon: (
         <span className="absolute left-[12px] flex items-center justify-center" style={{ width: '19px', height: '19px', top: '50%', transform: 'translateY(-50%)' }}>
           <span style={{ background: '#E73828', borderRadius: '50%', width: '19px', height: '19px', display: 'block', position: 'absolute', left: 0, top: 0 }}></span>
@@ -201,14 +203,14 @@ export default function MyOrders() {
         <div className="w-fit mb-6 md:mb-8">
           <BackButton label={generalData?.settings?.back_button_label} />
         </div>
-        <div className="text-[#E73828] text-[36px] font-semibold font-['Roboto'] leading-[42px] uppercase mt-0 tracking-tight">{dashboardSettings?.dashboard_page_settings?.my_orders_page_title}</div>
+        <div className="text-app-red text-[36px] font-semibold leading-[42px] uppercase mt-0 tracking-tight">{dashboardSettings?.dashboard_page_settings?.my_orders_page_title}</div>
       </div>
       <div className="flex flex-col lg:flex-row items-start md:justify-between w-full pb-6 gap-[25px] border-b border-[rgba(0,0,0,0.1)] mb-8" style={{ boxSizing: 'border-box' }}>
         <div className="flex flex-row w-full lg:w-auto gap-2 overflow-x-auto whitespace-nowrap" style={{ minHeight: '35px' }}>
           {filterButtons.map(btn => (
             <button
               key={btn.key}
-              className={`flex items-center rounded-[50.5px] px-3 py-2 font-['Roboto'] font-semibold text-[15px] h-[35px] ${btn.className}`}
+              className={`flex items-center rounded-[50.5px] px-3 py-2 font-semibold text-[15px] h-[35px] ${btn.className}`}
               style={{ minWidth: '140px', maxWidth: '160px' }}
               onClick={() => handleFilterChange(btn.key)}
               type="button"
@@ -252,7 +254,7 @@ export default function MyOrders() {
           <button
             onClick={() => fetchOrders(1)}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-[#E73828] text-white rounded-lg hover:bg-[#d32f2f] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            className="flex items-center gap-2 px-4 py-2 bg-app-red text-white rounded-lg hover:bg-[#d32f2f] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
             {loading ? (
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -265,13 +267,6 @@ export default function MyOrders() {
           </button>
         </div>
       </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-          {error}
-        </div>
-      )}
 
       {/* Auto-refresh indicator */}
       {autoRefreshing && (
@@ -286,33 +281,28 @@ export default function MyOrders() {
       <div className="flex flex-col gap-4 w-full">
         {loading ? (
           <div className="flex justify-center items-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E73828]"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-app-red"></div>
           </div>
         ) : error ? (
           /* A real error state. Previously an outage fell through to "No orders
              found." because api.service returned an empty list instead of throwing,
              so the customer was told they had no orders when in fact we could not
-             reach the server. */
-          <div className="text-center py-8">
-            <p className="text-[#E73828] mb-3">{error}</p>
-            <button
-              onClick={() => fetchOrders(1)}
-              className="px-5 py-2 rounded-[25px] bg-[#E73828] text-white text-sm font-medium hover:bg-[#d63224] transition-colors"
-            >
-              {locale === 'en' ? 'Try again' : 'إعادة المحاولة'}
-            </button>
-          </div>
+             reach the server. This used to ALSO render as a second, separate
+             red banner above the list for the same `error` — removed there,
+             kept here since this one has the retry action. */
+          <ErrorState
+            message={error}
+            onRetry={() => fetchOrders(1)}
+            retryLabel={locale === 'en' ? 'Try again' : 'إعادة المحاولة'}
+          />
         ) : filteredOrders.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <p className="mb-3">{locale === 'en' ? 'No orders found.' : 'لا يوجد طلبات مضافة'}</p>
-            {/* A dead end otherwise: the empty state offered no way forward. */}
-            <button
-              onClick={() => router.push('/categories')}
-              className="px-5 py-2 rounded-[25px] bg-[#E73828] text-white text-sm font-medium hover:bg-[#d63224] transition-colors"
-            >
-              {locale === 'en' ? 'Browse products' : 'تصفح المنتجات'}
-            </button>
-          </div>
+          <EmptyState
+            title={locale === 'en' ? 'No orders found.' : 'لا يوجد طلبات مضافة'}
+            action={{
+              label: locale === 'en' ? 'Browse products' : 'تصفح المنتجات',
+              href: '/categories',
+            }}
+          />
         ) : (
           <>
             {displayedOrders.map((order: ProcessedOrder) => (
@@ -325,7 +315,7 @@ export default function MyOrders() {
                 <button
                   onClick={handleLoadMore}
                   disabled={isLoadingMore}
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-[#E73828] hover:bg-[#d63224] disabled:bg-[#E73828]/50 text-white font-['Roboto'] font-medium text-base rounded-[25px] transition-all duration-200 disabled:cursor-not-allowed"
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-app-red hover:bg-app-red-hover disabled:bg-app-red/50 text-white font-medium text-base rounded-[25px] transition-all duration-200 disabled:cursor-not-allowed"
                 >
                   {isLoadingMore ? (
                     <>
@@ -348,7 +338,7 @@ export default function MyOrders() {
                 appear under every list, including a list of two orders. */}
             {!hasMoreItems && lastPage > 1 && (
               <div className="w-full flex justify-center items-center py-4">
-                <span className="font-['Roboto'] font-normal text-sm text-[#8E8E8E] dark:text-[#a0a0a0]">
+                <span className="font-normal text-sm text-[#8E8E8E] dark:text-[#a0a0a0]">
                   {locale === 'en' ? 'No more orders to load' : 'لا يوجد طلبات مضافة أخرى'}
                 </span>
               </div>

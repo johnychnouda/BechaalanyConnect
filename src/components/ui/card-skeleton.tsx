@@ -1,14 +1,20 @@
 import React from 'react'
+import { Skeleton } from './primitives/Skeleton'
 
+/**
+ * Kept as its own file/export (unchanged call signature — no props, default
+ * export) since every catalog page already imports it this way. Internally it
+ * now composes the shared `Skeleton` primitive instead of hand-rolling
+ * `animate-pulse` + `bg-gray-*` again.
+ */
 const CardSkeleton = () => {
     return (
-        <div className="flex flex-col items-center animate-pulse">
-            <div className="block rounded-lg overflow-hidden shadow-sm border border-gray-200 bg-gray-200 dark:bg-gray-700 w-full relative aspect-[4/3]">
-                {/* Image skeleton */}
-                <div className="absolute inset-0 bg-gray-300 dark:bg-gray-600" />
+        <div className="flex flex-col items-center">
+            <div className="w-full relative aspect-[4/3] rounded-lg overflow-hidden">
+                <Skeleton className="absolute inset-0" rounded="rounded-lg" />
             </div>
             <div className="w-full mt-2 px-2 flex items-center justify-center">
-                <div className="h-4 w-3/4 bg-gray-300 dark:bg-gray-600 rounded" />
+                <Skeleton className="h-4 w-3/4" />
             </div>
         </div>
     )

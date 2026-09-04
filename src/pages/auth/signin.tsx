@@ -8,6 +8,9 @@ import { useRouter } from "next/router";
 import { getSession } from "next-auth/react";
 import PageLayout from "@/components/ui/page-layout";
 import { useGlobalContext } from "@/context/GlobalContext";
+import { Button } from "@/components/ui/primitives/Button";
+import { FormField } from "@/components/ui/primitives/FormField";
+import { Input } from "@/components/ui/primitives/Input";
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
@@ -16,7 +19,7 @@ function EyeIcon({ open }: { open: boolean }) {
       className="w-5 h-5 transition-transform duration-200 hover:scale-110"
       viewBox="0 0 24 24"
       fill="none"
-      stroke="#E73828"
+      stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -30,7 +33,7 @@ function EyeIcon({ open }: { open: boolean }) {
       className="w-5 h-5 transition-transform duration-200 hover:scale-110"
       viewBox="0 0 24 24"
       fill="none"
-      stroke="#E73828"
+      stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -119,25 +122,25 @@ export default function SigninPage() {
 
   return (
     <PageLayout>
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-background-dark py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#E73828] mb-1 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-app-red mb-1 tracking-tight">
               {generalData?.logging_page_settings.sign_in_title}
             </h2>
-            <p className="text-black text-sm sm:text-base mb-4 sm:mb-6">
+            <p className="text-app-black dark:text-white text-sm sm:text-base mb-4 sm:mb-6">
               {generalData?.logging_page_settings.sign_in_subtitle}
             </p>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-8">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
             {error && (
-              <div className="w-full mb-4 text-center text-red-600 text-xs sm:text-sm font-semibold">
+              <div className="w-full mb-4 text-center text-red-600 text-xs sm:text-sm font-semibold" role="alert">
                 {error}
               </div>
             )}
             {success && (
-              <div className="w-full mb-4 text-center text-green-600 text-xs sm:text-sm font-semibold">
+              <div className="w-full mb-4 text-center text-green-600 text-xs sm:text-sm font-semibold" role="status">
                 {
                   locale === "ar" ?
                     "تم تسجيل الدخول بنجاح!"
@@ -148,76 +151,67 @@ export default function SigninPage() {
             )}
 
             <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
-              <input
-                type="text"
-                {...register("email", {
-                  required: "Email is required.",
-                  validate: value =>
-                    validateEmail(value) || "Please enter a valid email.",
-                })}
-                placeholder={generalData?.logging_page_settings.email_placeholder}
-                required
-                className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black rtl:text-right"
-                autoComplete="username"
-              />
-              {errors.email && (
-                <div className="w-full mb-2 text-center text-red-600 text-xs sm:text-sm font-semibold">
-                  {errors.email.message as string}
-                </div>
-              )}
-
-              <div className="relative w-full">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  {...register("password", {
-                    required: "Password is required.",
+              <FormField error={errors.email?.message as string}>
+                <Input
+                  type="email"
+                  {...register("email", {
+                    required: "Email is required.",
                     validate: value =>
-                      validatePassword(value) || PasswordValidationErrorMessage
+                      validateEmail(value) || "Please enter a valid email.",
                   })}
-                  placeholder={generalData?.logging_page_settings.password_placeholder}
+                  placeholder={generalData?.logging_page_settings.email_placeholder}
                   required
-                  className="w-full border border-[#E73828] rounded-full px-4 py-2 pr-12 rtl:pl-12 rtl:pr-4 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black"
-                  autoComplete="current-password"
+                  className="rtl:text-right"
+                  autoComplete="username"
                 />
-                <button
-                  type="button"
-                  tabIndex={-1}
-                  className="absolute right-4 rtl:left-4 rtl:right-auto top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-[#E73828]/10 transition-colors duration-200 focus:outline-none"
-                  onClick={() => setShowPassword((v) => !v)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  <EyeIcon open={showPassword} />
-                </button>
-              </div>
-              {errors.password && (
-                <div className="w-full mb-2 text-center text-red-600 text-xs sm:text-sm font-semibold">
-                  {errors.password.message as string}
+              </FormField>
+
+              <FormField error={errors.password?.message as string}>
+                <div className="relative w-full">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    {...register("password", {
+                      required: "Password is required.",
+                      validate: value =>
+                        validatePassword(value) || PasswordValidationErrorMessage
+                    })}
+                    placeholder={generalData?.logging_page_settings.password_placeholder}
+                    required
+                    invalid={Boolean(errors.password)}
+                    className="pr-12 rtl:pl-12 rtl:pr-4"
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    className="absolute right-4 rtl:left-4 rtl:right-auto top-1/2 -translate-y-1/2 p-1 rounded-full text-app-red hover:bg-app-red/10 transition-colors duration-200"
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    <EyeIcon open={showPassword} />
+                  </button>
                 </div>
-              )}
+              </FormField>
 
               <div className="w-full flex justify-end">
                 <Link
                   href="/auth/forgot-password"
-                  className="text-xs text-[#E73828] hover:underline font-semibold"
+                  className="text-xs text-app-red hover:underline font-semibold"
                 >
                   {generalData?.logging_page_settings.forget_password_label}
                 </Link>
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-[#E73828] text-white font-bold py-3 rounded-full mt-2 hover:bg-white hover:text-[#E73828] border border-[#E73828] transition-colors duration-200 text-lg disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {loading ? locale === "ar" ? "جاري التسجيل..." : "Signing in..." : generalData?.logging_page_settings.login_button}
-              </button>
+              <Button type="submit" loading={loading} size="lg" fullWidth>
+                {generalData?.logging_page_settings.login_button}
+              </Button>
 
               <div className="relative w-full my-4">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300"></div>
+                  <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">
+                  <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
                     {
                       locale === "ar" ?
                         "او استمرار ب"
@@ -236,7 +230,7 @@ export default function SigninPage() {
             />
 
             <div className="flex items-center justify-center gap-1 mt-6">
-              <div className="text-center text-black text-sm sm:text-base">
+              <div className="text-center text-app-black dark:text-white text-sm sm:text-base">
                 {
                   locale === "ar" ?
                     "ليس لديك حساب؟"
@@ -246,7 +240,7 @@ export default function SigninPage() {
               </div>
               <Link
                 href="/auth/signup"
-                className="text-[#E73828] font-bold hover:underline"
+                className="text-app-red font-bold hover:underline"
               >
                 {
                   locale === "ar" ?

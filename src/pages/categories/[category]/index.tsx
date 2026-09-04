@@ -9,6 +9,8 @@ import { useGlobalContext } from "@/context/GlobalContext";
 import { fetchSubCategoriesData } from "@/services/api.service";
 import CardSkeleton from "@/components/ui/card-skeleton";
 import SeoHead from "@/components/ui/SeoHead";
+import { useLanguage } from "@/hooks/use-language";
+import { ErrorState } from "@/components/ui/primitives/ErrorState";
 
 interface SubCategory {
   id: number;
@@ -36,6 +38,7 @@ export default function CategoryPage() {
   const router = useRouter();
   const { category } = router.query;
   const { generalData } = useGlobalContext();
+  const { locale } = useLanguage();
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [currentCategory, setCurrentCategory] = useState<string | ''>('');
   const [isLoading, setIsLoading] = useState(true);
@@ -58,19 +61,19 @@ export default function CategoryPage() {
           console.error('SubCategories data is invalid:', data);
           setSubCategories([]);
           setCurrentCategory('');
-          setError('Invalid data format received');
+          setError(locale === 'ar' ? 'تم استلام بيانات بتنسيق غير صالح' : 'Invalid data format received');
         }
       })
       .catch((error) => {
         console.error('Error fetching subategories:', error);
         setSubCategories([]);
         setCurrentCategory('');
-        setError('Failed to load subcategories');
+        setError(locale === 'ar' ? 'تعذر تحميل الفئات الفرعية' : 'Failed to load subcategories');
       })
       .finally(() => {
         setIsLoading(false);
       });
-  }, [router.locale, category]);
+  }, [router.locale, category, locale]);
 
 
   // Sync page from query param
@@ -141,9 +144,20 @@ export default function CategoryPage() {
             <CardSkeleton key={i} />
           ))}
         </div>
+      ) : error ? (
+        /* A genuine fetch failure and "this category has no subcategories yet"
+           are different things and must not look the same — `error` used to
+           be set here but never rendered, so an outage fell through to the
+           `hasContent` check below and rendered <ComingSoon>, telling the
+           customer the category was an upcoming release instead of down. */
+        <ErrorState
+          message={error}
+          onRetry={() => router.reload()}
+          retryLabel={locale === 'ar' ? 'إعادة المحاولة' : 'Try again'}
+        />
       ) : hasContent ? (
         <div>
-          <h1 className="text-2xl font-bold mb-6 dark:text-[#E73828]">{currentCategory}</h1>
+          <h1 className="text-2xl font-bold mb-6 text-app-black dark:text-app-red">{currentCategory}</h1>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {paginatedSubCategories.map((subCategory) => (
               <SubCategoryCard
@@ -158,15 +172,15 @@ export default function CategoryPage() {
               <button
                 onClick={() => goToPage(currentPage - 1)}
                 disabled={currentPage === 1}
-                className={`px-3 py-1 rounded-full border border-app-red ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-app-red hover:text-white'} text-black`}
+                className={`px-3 py-1 rounded-full border border-app-red ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-app-red hover:text-white'} text-app-black dark:text-white`}
               >
-                Prev
+                {locale === 'ar' ? 'السابق' : 'Prev'}
               </button>
               {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
                 <button
                   key={pageNum}
                   onClick={() => goToPage(pageNum)}
-                  className={`px-3 py-1 rounded-full border ${pageNum === currentPage ? 'bg-app-red text-white border-app-red' : 'border-app-red text-black hover:bg-app-red hover:text-white'}`}
+                  className={`px-3 py-1 rounded-full border ${pageNum === currentPage ? 'bg-app-red text-white border-app-red' : 'border-app-red text-app-black dark:text-white hover:bg-app-red hover:text-white'}`}
                 >
                   {pageNum}
                 </button>
@@ -174,9 +188,9 @@ export default function CategoryPage() {
               <button
                 onClick={() => goToPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className={`px-3 py-1 rounded-full border border-app-red ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-app-red hover:text-white'} text-black`}
+                className={`px-3 py-1 rounded-full border border-app-red ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-app-red hover:text-white'} text-app-black dark:text-white`}
               >
-                Next
+                {locale === 'ar' ? 'التالي' : 'Next'}
               </button>
             </div>
           )}

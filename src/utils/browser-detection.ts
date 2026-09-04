@@ -1,15 +1,3 @@
-export const isAndroidBrowser = () => {
-  if (typeof window === 'undefined') return false;
-  
-  const userAgent = window.navigator.userAgent.toLowerCase();
-  const isAndroid = userAgent.includes('android');
-  const isChrome = userAgent.includes('chrome');
-  const isSamsung = userAgent.includes('samsung');
-  
-  // Check if it's Android's built-in browser (not Chrome)
-  return isAndroid && !isChrome && !isSamsung;
-};
-
 export const isLegacyBrowser = () => {
   if (typeof window === 'undefined') return false;
   

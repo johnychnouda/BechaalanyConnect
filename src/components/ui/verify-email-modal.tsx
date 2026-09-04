@@ -1,6 +1,8 @@
 import React from "react";
 import Modal from "@/components/ui/modal";
 import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/primitives/Button";
+import { Input } from "@/components/ui/primitives/Input";
 
 interface VerifyEmailModalProps {
   isOpen: boolean;
@@ -15,6 +17,7 @@ interface VerifyEmailModalProps {
 }
 
 const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({ isOpen, onClose, onVerify, onResend, loading, error, success, locale, disableBackdropClose }) => {
+  const isArabic = locale === 'ar';
   const { register, handleSubmit, formState: { errors } } = useForm<{ code: string }>({
     defaultValues: { code: "" },
   });
@@ -24,35 +27,38 @@ const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({ isOpen, onClose, on
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} disableBackdropClose={disableBackdropClose}>
-      <h2 className="text-3xl font-extrabold text-[#E73828] text-center mb-1 tracking-tight">{ locale === 'ar' ? 'تحقق من بريدك الإلكتروني' : 'VERIFY YOUR EMAIL'}</h2>
-      <p className="text-center text-black text-base mb-6">{ locale === 'ar' ? 'لقد أرسلنا رمز التحقق إلى بريدك الإلكتروني يرجى التحقق من صندوق الوارد وإدخال الرمز أدناه' : "We've sent a verification code to your email please check your inbox and enter the code below"}</p>
-      {error && <div className="w-full mb-2 text-center text-red-600 text-sm font-semibold">{error}</div>}
-      {success && <div className="w-full mb-2 text-center text-green-600 text-sm font-semibold">{success}</div>}
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      disableBackdropClose={disableBackdropClose}
+      title={isArabic ? 'تحقق من بريدك الإلكتروني' : 'VERIFY YOUR EMAIL'}
+      closeLabel={isArabic ? 'إغلاق' : 'Close'}
+    >
+      <p className="text-center text-app-black dark:text-white text-base mb-6">{ isArabic ? 'لقد أرسلنا رمز التحقق إلى بريدك الإلكتروني يرجى التحقق من صندوق الوارد وإدخال الرمز أدناه' : "We've sent a verification code to your email please check your inbox and enter the code below"}</p>
+      {error && <div className="w-full mb-2 text-center text-red-600 text-sm font-semibold" role="alert">{error}</div>}
+      {success && <div className="w-full mb-2 text-center text-green-600 text-sm font-semibold" role="status">{success}</div>}
       <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
-        <input
+        <Input
           type="text"
-          {...register("code", { required: locale === 'ar' ? 'رمز التحقق مطلوب' : 'Verification code is required' })}
+          {...register("code", { required: isArabic ? 'رمز التحقق مطلوب' : 'Verification code is required' })}
           placeholder="Verification Code"
-          className="w-full border border-[#E73828] rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black text-center"
+          invalid={Boolean(errors.code)}
+          className="text-center"
+          aria-describedby={errors.code ? "verify-code-error" : undefined}
         />
         {errors.code && (
-          <span className="text-xs text-red-600 text-center">{errors.code.message}</span>
+          <span id="verify-code-error" role="alert" className="text-xs text-red-600 text-center">{errors.code.message}</span>
         )}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-[#E73828] text-white font-bold py-3 rounded-full mt-2 hover:bg-white hover:text-[#E73828] border border-[#E73828] transition-colors duration-200 text-lg disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {loading ? locale === 'ar' ? 'جاري التحقق...' : 'Verifying...' : locale === 'ar' ? 'تحقق' : 'VERIFY'}
-        </button>
+        <Button type="submit" disabled={loading} loading={loading} fullWidth size="lg">
+          {isArabic ? 'تحقق' : 'VERIFY'}
+        </Button>
       </form>
-      <div className="w-full text-center mt-4 text-black text-base">
-        { locale === 'ar' ? 'لم تستلم بريد إلكتروني؟' : "Didn't Receive an Email ? "}
-        {onResend && <button type="button" className="text-[#E73828] font-bold hover:underline" onClick={onResend}>{ locale === 'ar' ? 'حاول مرة أخرى' : 'Try Again'}</button>}
+      <div className="w-full text-center mt-4 text-app-black dark:text-white text-base">
+        { isArabic ? 'لم تستلم بريد إلكتروني؟' : "Didn't Receive an Email ? "}
+        {onResend && <button type="button" className="text-app-red font-bold hover:underline" onClick={onResend}>{ isArabic ? 'حاول مرة أخرى' : 'Try Again'}</button>}
       </div>
     </Modal>
   );
 };
 
-export default VerifyEmailModal; 
+export default VerifyEmailModal;

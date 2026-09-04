@@ -76,7 +76,7 @@ export default function OrderDetailPage() {
     return (
       <DashboardLayout>
         <div className="flex justify-center items-center py-16">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E73828]" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-app-red" />
         </div>
       </DashboardLayout>
     );
@@ -94,7 +94,7 @@ export default function OrderDetailPage() {
           </p>
           <button
             onClick={() => router.push('/account-dashboard/my-orders')}
-            className="px-5 py-2 rounded-[25px] bg-[#E73828] text-white text-sm font-medium hover:bg-[#d63224] transition-colors"
+            className="px-5 py-2 rounded-[25px] bg-app-red text-white text-sm font-medium hover:bg-app-red-hover transition-colors"
           >
             {locale === 'en' ? 'Back to My Orders' : 'العودة إلى طلباتي'}
           </button>
@@ -110,10 +110,10 @@ export default function OrderDetailPage() {
           <BackButton href="/account-dashboard/my-orders" label={generalData?.settings?.back_button_label} />
         </div>
         <div className="text-center py-16">
-          <p className="text-[#E73828] mb-3">{toMessage(error, locale)}</p>
+          <p className="text-app-red mb-3">{toMessage(error, locale)}</p>
           <button
             onClick={() => refetch()}
-            className="px-5 py-2 rounded-[25px] bg-[#E73828] text-white text-sm font-medium hover:bg-[#d63224] transition-colors"
+            className="px-5 py-2 rounded-[25px] bg-app-red text-white text-sm font-medium hover:bg-app-red-hover transition-colors"
           >
             {locale === 'en' ? 'Try again' : 'إعادة المحاولة'}
           </button>
@@ -149,7 +149,7 @@ export default function OrderDetailPage() {
             <BackButton href="/account-dashboard/my-orders" label={generalData?.settings?.back_button_label} />
           </div>
           <div className="flex items-center gap-3">
-            <h1 className="text-[#E73828] text-2xl md:text-[32px] font-semibold font-['Roboto'] uppercase tracking-tight">
+            <h1 className="text-app-red text-2xl md:text-[32px] font-semibold uppercase tracking-tight">
               {locale === 'en' ? `Order #${order.id}` : `الطلب #${order.id}`}
             </h1>
             {isFetching && !isLoading && (
@@ -170,7 +170,7 @@ export default function OrderDetailPage() {
             </p>
           )}
           {isRejected && (
-            <p className="text-sm text-[#E73828] mt-4">
+            <p className="text-sm text-app-red mt-4">
               {locale === 'en'
                 ? 'This order was rejected and the full amount has been returned to your credits balance.'
                 : 'تم رفض هذا الطلب وتمت إعادة كامل المبلغ إلى رصيدك.'}
@@ -216,7 +216,7 @@ export default function OrderDetailPage() {
 
             <div className="flex justify-between items-center bg-app-red/5 rounded-xl px-4 py-3 mt-1">
               <span className="text-sm text-[#070707] dark:text-white">{locale === 'en' ? 'Total' : 'الإجمالي'}</span>
-              <span className="text-lg font-semibold text-[#E73828]">{processed.value}</span>
+              <span className="text-lg font-semibold text-app-red">{processed.value}</span>
             </div>
           </div>
         </div>
@@ -232,7 +232,7 @@ export default function OrderDetailPage() {
         <div className="flex justify-end">
           <button
             onClick={() => setShowPreview(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#E73828] hover:bg-[#d32f2f] text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow-md text-sm font-medium"
+            className="flex items-center gap-2 px-4 py-2.5 bg-app-red hover:bg-[#d32f2f] text-white rounded-lg transition-all duration-200 shadow-sm hover:shadow-md text-sm font-medium"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />

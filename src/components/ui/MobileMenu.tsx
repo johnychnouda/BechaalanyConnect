@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import NavigationMenu from "./navigation-menu";
 import ButtonLink from "./button-link";
 import LanguageThemeSwitcher from "../general/language-theme-switcher";
+import ThemeSwitcher from "../general/theme-switcher";
 import Notification from "./notification";
 import BlurredPrice from "./BlurredPrice";
 import ProfileIcon from "@/assets/icons/profile.icon";
@@ -48,9 +49,17 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
 
     return (
         <>
-            {/* Overlay */}
+            {/* Overlay.
+                Used to toggle `hidden` (display:none) when closed — that
+                removes the element from layout on the same frame the close
+                is triggered, so opacity never has a chance to transition and
+                the fade-out never played. `bg-black/40` is now a constant
+                background (the 40% dim it always meant to be); toggling the
+                element's own opacity 0/1 both animates the fade AND keeps the
+                intended 0.4 peak, since CSS opacity multiplies against the
+                background's own alpha. */}
             <div
-                className={`${isMobileMenuOpen ? 'fixed opacity-100' : 'hidden opacity-0'} inset-0 z-50 bg-black transition-opacity duration-300 ${isMobileMenuOpen ? "bg-opacity-40 pointer-events-auto" : "bg-opacity-0 pointer-events-none"}`}
+                className={`fixed inset-0 z-50 bg-black/40 transition-opacity duration-300 ${isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
                 onClick={() => setIsMobileMenuOpen(false)}
             />
             {/* Sliding Menu */}
@@ -65,7 +74,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
           flex flex-col p-4 gap-4`}>
                 {/* Close Button */}
                 <button
-                    className="self-end mb-2 p-2 rounded focus:outline-none"
+                    className="self-end mb-2 p-2 rounded-full hover:bg-app-red/10"
                     onClick={() => setIsMobileMenuOpen(false)}
                     aria-label="Close menu"
                     type="button"
@@ -74,9 +83,10 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                 </button>
                 {isAuthenticated && (
                     <div className="flex items-center justify-center w-full gap-2">
-                        {/* <Notification
+                        <Notification
                             count={count}
-                        /> */}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        />
                         {user && <BlurredPrice price={creditsBalance || user.credits_balance || 0} />}
                         <ButtonLink
                             onClick={() => {
@@ -133,10 +143,10 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                         :
                         (
                             <div className="flex flex-col gap-2 mt-4">
-                                <div className=" pt-4 border-t border-[#070707]/20 w-full   flex flex-col items-center">
+                                <div className=" pt-4 border-t border-app-black/20 w-full   flex flex-col items-center">
                                     <button
                                         onClick={() => { logout(); router.push(router.locale === "ar" ? "/ar" : "/"); }}
-                                        className="group flex items-center justify-center gap-2 font-['Roboto'] font-semibold text-[13px] bg-[#E73828] text-white border border-[#E73828] rounded-lg px-4 py-2.5 transition-all duration-200 hover:bg-white hover:text-[#E73828] hover:border-[#E73828] shadow-sm"
+                                        className="group flex items-center justify-center gap-2 font-semibold text-[13px] bg-app-red text-white border border-app-red rounded-lg px-4 py-2.5 transition-all duration-200 hover:bg-white hover:text-app-red hover:border-app-red shadow-sm"
                                     >
                                         <ArrowRightOnRectangleIcon className="w-4 h-4 text-white" />
                                         <span>{generalData?.settings.logout_button}</span>
@@ -146,8 +156,9 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                         )
                 }
 
-                <div className="flex items-center justify-center w-full  text-center  py-2 px-4  font-bold text-xs whitespace-nowrap">
+                <div className="flex items-center justify-center gap-3 w-full text-center py-2 px-4 font-bold text-xs whitespace-nowrap">
                     <LanguageThemeSwitcher isMobileMenu={true} setIsMobileMenuOpen={setIsMobileMenuOpen} />
+                    <ThemeSwitcher />
                 </div>
             </div>
         </>

@@ -25,7 +25,7 @@ export default function ButtonLink({
 
   if (target && href) {
     return (
-      <a href={href} target="_blank" className={clsx("cursor-pointer", className)} {...props}>
+      <a href={href} target="_blank" rel="noopener noreferrer" className={clsx("cursor-pointer", className)} {...props}>
         {children}
       </a>
     );

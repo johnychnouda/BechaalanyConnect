@@ -26,9 +26,9 @@ interface SlotState {
 }
 
 const primaryBtn =
-  "inline-flex items-center justify-center gap-2 bg-[#E73828] text-white rounded-full font-bold px-4 py-2.5 hover:bg-white hover:text-[#E73828] border border-[#E73828] transition-colors duration-200 disabled:opacity-60";
+  "inline-flex items-center justify-center gap-2 bg-app-red text-white rounded-full font-bold px-4 py-2.5 hover:bg-white hover:text-app-red border border-app-red transition-colors duration-200 disabled:opacity-60";
 const outlineBtn =
-  "inline-flex items-center justify-center gap-2 border border-[#E73828] text-[#E73828] rounded-full font-semibold px-4 py-2.5 hover:bg-[#E73828] hover:text-white transition-colors duration-200";
+  "inline-flex items-center justify-center gap-2 border border-app-red text-app-red rounded-full font-semibold px-4 py-2.5 hover:bg-app-red hover:text-white transition-colors duration-200";
 const neutralBtn =
   "inline-flex items-center justify-center gap-2 border border-gray-300 text-gray-600 rounded-full font-semibold px-4 py-2.5 hover:bg-gray-100 transition-colors duration-200";
 
@@ -169,10 +169,10 @@ export default function AccountVerificationPage() {
       <PageLayout>
         <div className="min-h-screen flex items-center justify-center bg-gray-50 py-8 sm:py-12 px-4">
           <div className="max-w-md w-full bg-white rounded-2xl shadow-md p-6 sm:p-8 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#E73828]/10 text-[#E73828]">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-app-red/10 text-app-red">
               <FiShield className="h-7 w-7" />
             </div>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-[#E73828] mb-3">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-app-red mb-3">
               {t("ACCOUNT UNDER REVIEW", "الحساب قيد المراجعة")}
             </h2>
             <p className="text-black text-sm sm:text-base mb-6">
@@ -217,7 +217,7 @@ export default function AccountVerificationPage() {
     return (
       <div className="flex flex-col gap-2">
         <label className="flex items-center gap-2 text-black font-semibold">
-          <LabelIcon className="h-4 w-4 text-[#E73828]" />
+          <LabelIcon className="h-4 w-4 text-app-red" />
           {label}
         </label>
 
@@ -283,10 +283,10 @@ export default function AccountVerificationPage() {
         <div className="min-h-screen flex items-center justify-center bg-gray-50 py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-md sm:max-w-lg lg:max-w-xl w-full space-y-6">
             <div className="text-center">
-              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-[#E73828]/10 text-[#E73828]">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-app-red/10 text-app-red">
                 <FiShield className="h-7 w-7" />
               </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#E73828] mb-1 tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-app-red mb-1 tracking-tight">
                 {t("VERIFY YOUR IDENTITY", "تحقق من هويتك")}
               </h2>
               <p className="text-black text-sm sm:text-base">
@@ -321,7 +321,7 @@ export default function AccountVerificationPage() {
 
                 {submitting ? (
                   <div className="w-full flex justify-center items-center py-4">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E73828]"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-app-red"></div>
                   </div>
                 ) : (
                   <button type="submit" className={`${primaryBtn} w-full py-3 text-base`}>

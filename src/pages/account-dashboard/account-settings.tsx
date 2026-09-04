@@ -36,45 +36,55 @@ const CustomDropdown: React.FC<{
 
   const selectedOption = options.find(opt => opt.value === value);
 
+  // Was a <div onClick> trigger with <div onClick> options — mouse-only, no
+  // ARIA role, no keyboard path — a third divergent implementation of the
+  // same "custom select" pattern already fixed in ui/custom-dropdown.tsx and
+  // the product page's amount dropdown.
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
-      <div
-        className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] cursor-pointer hover:border-[#E73828] transition-colors duration-200 bg-white dark:bg-[#232323]"
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-app-black dark:border-gray-600 rounded-[50.5px] cursor-pointer hover:border-app-red transition-colors duration-200 bg-white dark:bg-gray-800"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className="flex-1 font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white">
+        <span className="flex-1 text-left rtl:text-right font-normal text-[16px] text-app-black dark:text-white">
           {selectedOption?.label || placeholder}
         </span>
-        <span className="pointer-events-none">
+        <span className="pointer-events-none text-app-red">
           <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path
               d={isOpen ? "M5 13L10 8L15 13" : "M5 8L10 13L15 8"}
-              stroke="#E73828"
+              stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
         </span>
-      </div>
+      </button>
       {isOpen && (
-        <div className="absolute z-10 w-full mt-2 bg-white dark:bg-[#232323] border border-[#070707] dark:border-[#444] rounded-[25px] shadow-sm max-h-60 overflow-auto">
+        <div role="listbox" className="absolute z-10 w-full mt-2 bg-white dark:bg-gray-800 border border-app-black dark:border-gray-600 rounded-[25px] shadow-sm max-h-60 overflow-auto">
           {options.map((option) => (
-            <div
+            <button
               key={option.value}
-              className={`px-6 py-3 cursor-pointer transition-colors duration-200 ${option.value === value
-                ? "bg-[#E73828] text-white"
-                : "hover:bg-[#E73828] hover:text-white dark:hover:bg-[#E73828] dark:hover:text-white"
+              type="button"
+              role="option"
+              aria-selected={option.value === value}
+              className={`w-full text-left rtl:text-right px-6 py-3 cursor-pointer transition-colors duration-200 ${option.value === value
+                ? "bg-app-red text-white"
+                : "hover:bg-app-red hover:text-white dark:hover:bg-app-red dark:hover:text-white"
                 } dark:text-white`}
               onClick={() => {
                 onChange(option.value);
                 setIsOpen(false);
               }}
             >
-              <span className="font-['Roboto'] font-normal text-[16px] dark:text-white">
+              <span className="font-normal text-[16px]">
                 {option.label}
               </span>
-            </div>
+            </button>
           ))}
         </div>
       )}
@@ -274,7 +284,7 @@ export default function AccountSettings() {
         <div className="w-fit">
           <BackButton label={generalData?.settings?.back_button_label} href="/account-dashboard" />
         </div>
-        <div className="text-[#E73828] font-semibold font-['Roboto'] uppercase mb-8 mt-0 tracking-tight whitespace-nowrap text-[22px] xs:text-[26px] sm:text-[30px] md:text-[36px] lg:text-[40px] xl:text-[42px] leading-tight text-center sm:text-left">
+        <div className="text-app-red font-semibold uppercase mb-8 mt-0 tracking-tight whitespace-nowrap text-[22px] xs:text-[26px] sm:text-[30px] md:text-[36px] lg:text-[40px] xl:text-[42px] leading-tight text-center sm:text-left">
           {dashboardSettings?.dashboard_page_settings?.account_settings_page_title}
         </div>
         <div className="flex flex-col md:flex-row gap-12">
@@ -284,8 +294,8 @@ export default function AccountSettings() {
             <div className="relative">
               {(isRefreshing || isLoadingProfile) && (
                 <div className="absolute inset-0 bg-white/70 dark:bg-black/70 z-10 flex items-center justify-center rounded-lg">
-                  <div className="flex items-center gap-3 bg-white dark:bg-[#232323] px-6 py-3 rounded-full shadow-lg border border-[#E73828]/20">
-                    <span className="text-[#E73828] font-semibold">
+                  <div className="flex items-center gap-3 bg-white dark:bg-[#232323] px-6 py-3 rounded-full shadow-lg border border-app-red/20">
+                    <span className="text-app-red font-semibold">
                       {isLoadingProfile ? 'Loading account data...' : 'Updating account data...'}
                     </span>
                   </div>
@@ -303,30 +313,30 @@ export default function AccountSettings() {
               )}
 
               <form onSubmit={handleInfoSubmit} className="mb-12">
-                <div className="text-[22px] font-semibold text-[#E73828] mb-6">{dashboardSettings?.dashboard_page_settings?.account_info_label}</div>
+                <div className="text-[22px] font-semibold text-app-red mb-6">{dashboardSettings?.dashboard_page_settings?.account_info_label}</div>
                 <div className="mb-4">
-                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.username_placeholder}</label>
+                  <label className="font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.username_placeholder}</label>
                   <div className="flex flex-row items-center p-[12px_24px] mt-2 gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
-                    <input name="username" value={accountInfo.username} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" />
+                    <input name="username" value={accountInfo.username} onChange={handleInfoChange} className="w-full font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" />
                   </div>
                 </div>
                 {/* <div className="mb-4">
-                <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">Email</label>
-                <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#E73828] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
-                  <input name="email" value={accountInfo.email} onChange={handleInfoChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="email" />
+                <label className="font-semibold text-[16px] text-[#070707] dark:text-white">Email</label>
+                <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-app-red dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
+                  <input name="email" value={accountInfo.email} onChange={handleInfoChange} className="w-full font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="email" />
                 </div>
               </div> */}
                 {/* Phone Number */}
                 <div className="flex flex-col items-start gap-1 w-full mb-4">
-                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.phone_number_placeholder}</label>
+                  <label className="font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.phone_number_placeholder}</label>
                   <div className="flex flex-row rtl:flex-row-reverse rtl:justify-end items-center p-[12px_24px] mt-2 gap-2 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
-                    <div className="font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white select-none rtl:text-right">{locale == 'en' ? `+${phonePrefix}` : `${phonePrefix}+` || ''}</div>
+                    <div className="font-normal text-[16px] text-[#070707] dark:text-white select-none rtl:text-right">{locale == 'en' ? `+${phonePrefix}` : `${phonePrefix}+` || ''}</div>
                     <div className="max-w-[calc(100%-70px)]">
                       <input
                         name="phone"
                         value={accountInfo.phone}
                         onChange={handleInfoChange}
-                        className="w-fit font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none rtl:text-right"
+                        className="w-fit font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none rtl:text-right"
                         placeholder={generalData?.logging_page_settings?.phone_number_placeholder}
                         style={{ direction: 'ltr' }}
                       />
@@ -335,7 +345,7 @@ export default function AccountSettings() {
                 </div>
                 {/* Country */}
                 <div className="flex flex-col items-start gap-1 w-full mb-4">
-                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.country_placeholder}</label>
+                  <label className="font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.country_placeholder}</label>
                   <CustomDropdown
                     options={countries.map(country => ({
                       value: country.slug,
@@ -361,24 +371,24 @@ export default function AccountSettings() {
                   be a privilege-escalation route.
                 */}
                 <div className="flex flex-col items-start gap-1 w-full mb-4">
-                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.user_type_placeholder}</label>
+                  <label className="font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.user_type_placeholder}</label>
                   <div className="flex flex-row items-center p-[12px_24px] mt-2 gap-1 w-full border border-[#E0E0E0] dark:border-[#333] rounded-[50.5px] bg-[#F7F7F7] dark:bg-[#1c1c1c]">
-                    <span className="w-full font-['Roboto'] font-normal text-[16px] text-[#6B6B6B] dark:text-[#a0a0a0]">
+                    <span className="w-full font-normal text-[16px] text-[#6B6B6B] dark:text-[#a0a0a0]">
                       {userTypes.find((t) => t.id.toString() === accountInfo.userType.toString())?.title
                         || (locale === 'ar' ? 'حساب عادي' : 'Standard account')}
                     </span>
                   </div>
                 </div>
                 <div className="mb-4">
-                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.store_name_placeholder}</label>
+                  <label className="font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.store_name_placeholder}</label>
                   <div className="flex flex-row items-center p-[12px_24px] mt-2 gap-1 w-full border border-[#E0E0E0] dark:border-[#333] rounded-[50.5px] bg-[#F7F7F7] dark:bg-[#1c1c1c]">
-                    <span className="w-full font-['Roboto'] font-normal text-[16px] text-[#6B6B6B] dark:text-[#a0a0a0]">{accountInfo.storeName || '—'}</span>
+                    <span className="w-full font-normal text-[16px] text-[#6B6B6B] dark:text-[#a0a0a0]">{accountInfo.storeName || '—'}</span>
                   </div>
                 </div>
                 <div className="mb-8">
-                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.store_location_placeholder}</label>
+                  <label className="font-semibold text-[16px] text-[#070707] dark:text-white">{generalData?.logging_page_settings?.store_location_placeholder}</label>
                   <div className="flex flex-row items-center p-[12px_24px] mt-2 gap-1 w-full border border-[#E0E0E0] dark:border-[#333] rounded-[50.5px] bg-[#F7F7F7] dark:bg-[#1c1c1c]">
-                    <span className="w-full font-['Roboto'] font-normal text-[16px] text-[#6B6B6B] dark:text-[#a0a0a0]">{accountInfo.storeLocation || '—'}</span>
+                    <span className="w-full font-normal text-[16px] text-[#6B6B6B] dark:text-[#a0a0a0]">{accountInfo.storeLocation || '—'}</span>
                   </div>
                 </div>
 
@@ -394,7 +404,7 @@ export default function AccountSettings() {
                     disabled={!hasFormChanges() || isRefreshing || isLoadingProfile}
                     className={`rounded-full py-3 font-bold text-lg transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap ${!hasFormChanges() || isRefreshing || isLoadingProfile
                       ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                      : 'bg-[#E73828] text-white hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828]'
+                      : 'bg-app-red text-white hover:bg-white hover:text-app-red hover:border hover:border-app-red'
                       }`}
                     style={{ flexShrink: 1, maxWidth: '200px' }}
                     onClick={handleInfoSubmit}
@@ -408,7 +418,7 @@ export default function AccountSettings() {
                       type="button"
                       onClick={handleResetForm}
                       disabled={isRefreshing || isLoadingProfile}
-                      className="border-2 border-[#E73828] text-[#E73828] rounded-full py-3 font-bold text-lg hover:bg-[#E73828] hover:text-white transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="border-2 border-app-red text-app-red rounded-full py-3 font-bold text-lg hover:bg-app-red hover:text-white transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                       style={{ flexShrink: 1, maxWidth: '200px' }}
                       title="Reset form to original values"
                     >
@@ -420,7 +430,7 @@ export default function AccountSettings() {
                 <div className="flex flex-row items-center justify-between gap-2 flex-nowrap w-full overflow-x-auto mb-8" style={{ minWidth: 0 }}>
                   <button
                     type="button"
-                    className="bg-[#E73828] text-white rounded-full px-6 py-2 font-bold whitespace-nowrap border border-[#E73828] hover:bg-white hover:text-[#E73828] hover:border-[#E73828] transition-colors duration-200 text-base min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0"
+                    className="bg-app-red text-white rounded-full px-6 py-2 font-bold whitespace-nowrap border border-app-red hover:bg-white hover:text-app-red hover:border-app-red transition-colors duration-200 text-base min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0"
                     style={{ flexShrink: 1, maxWidth: '200px' }}
                     onClick={() => setShowSecurity(true)}
                   >
@@ -444,23 +454,23 @@ export default function AccountSettings() {
             </div>
             {showSecurity && (
               <form onSubmit={handleSecuritySubmit} id="security-section">
-                <div className="text-[22px] font-semibold text-[#E73828] mb-6">{locale === 'en' ? 'Account Security' : 'أمان الحساب'}</div>
+                <div className="text-[22px] font-semibold text-app-red mb-6">{locale === 'en' ? 'Account Security' : 'أمان الحساب'}</div>
                 <div className="mb-4">
-                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{locale === 'en' ? 'Old Password' : 'كلمة المرور القديمة'}</label>
+                  <label className="font-semibold text-[16px] text-[#070707] dark:text-white">{locale === 'en' ? 'Old Password' : 'كلمة المرور القديمة'}</label>
                   <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
-                    <input name="oldPassword" value={security.oldPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="password" placeholder={locale === 'en' ? 'Old Password' : 'كلمة المرور القديمة'} />
+                    <input name="oldPassword" value={security.oldPassword} onChange={handleSecurityChange} className="w-full font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="password" placeholder={locale === 'en' ? 'Old Password' : 'كلمة المرور القديمة'} />
                   </div>
                 </div>
                 <div className="mb-4">
-                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{locale === 'en' ? 'New Password' : 'كلمة المرور الجديدة'}</label>
+                  <label className="font-semibold text-[16px] text-[#070707] dark:text-white">{locale === 'en' ? 'New Password' : 'كلمة المرور الجديدة'}</label>
                   <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
-                    <input name="newPassword" value={security.newPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="password" placeholder={locale === 'en' ? 'New Password' : 'كلمة المرور الجديدة'} />
+                    <input name="newPassword" value={security.newPassword} onChange={handleSecurityChange} className="w-full font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="password" placeholder={locale === 'en' ? 'New Password' : 'كلمة المرور الجديدة'} />
                   </div>
                 </div>
                 <div className="mb-8">
-                  <label className="font-['Roboto'] font-semibold text-[16px] text-[#070707] dark:text-white">{locale === 'en' ? 'Confirm New Password' : 'تأكيد كلمة المرور الجديدة'}</label>
+                  <label className="font-semibold text-[16px] text-[#070707] dark:text-white">{locale === 'en' ? 'Confirm New Password' : 'تأكيد كلمة المرور الجديدة'}</label>
                   <div className="flex flex-row items-center p-[12px_24px] gap-1 w-full border border-[#070707] dark:border-[#444] rounded-[50.5px] bg-white dark:bg-[#232323]">
-                    <input name="confirmPassword" value={security.confirmPassword} onChange={handleSecurityChange} className="w-full font-['Roboto'] font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="password" placeholder={locale === 'en' ? 'Confirm New Password' : 'تأكيد كلمة المرور الجديدة'} />
+                    <input name="confirmPassword" value={security.confirmPassword} onChange={handleSecurityChange} className="w-full font-normal text-[16px] text-[#070707] dark:text-white bg-transparent border-none outline-none" type="password" placeholder={locale === 'en' ? 'Confirm New Password' : 'تأكيد كلمة المرور الجديدة'} />
                   </div>
                 </div>
                 {
@@ -473,14 +483,14 @@ export default function AccountSettings() {
                 <div className="flex flex-row flex-nowrap w-full gap-4 overflow-x-auto">
                   <button
                     type="submit"
-                    className="bg-[#E73828] text-white rounded-full py-3 font-bold text-lg border border-[#E73828] hover:bg-white hover:text-[#E73828] hover:border hover:border-[#E73828] transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap"
+                    className="bg-app-red text-white rounded-full py-3 font-bold text-lg border border-app-red hover:bg-white hover:text-app-red hover:border hover:border-app-red transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap"
                     style={{ flexShrink: 1, maxWidth: '200px' }}
                   >
                     {locale === 'en' ? 'SAVE PASSWORD' : 'حفظ كلمة المرور'}
                   </button>
                   <button
                     type="button"
-                    className="border-2 border-[#E73828] text-[#E73828] rounded-full py-3 font-bold text-lg hover:bg-[#E73828] hover:text-white transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap"
+                    className="border-2 border-app-red text-app-red rounded-full py-3 font-bold text-lg hover:bg-app-red hover:text-white transition-colors duration-200 min-[320px]:text-sm min-[320px]:px-3 min-[320px]:py-1.5 min-w-0 whitespace-nowrap"
                     style={{ flexShrink: 1, maxWidth: '200px' }}
                     onClick={handleDiscard}
                   >

@@ -24,6 +24,10 @@ interface NotificationStore {
   hasMore: boolean;
   setFilter: (filter: NotificationFilterType) => void;
   setNotifications: (notifications: Notification[]) => void;
+  /** Sets the badge count directly, without touching the loaded notification
+   *  list — used to hydrate the header badge before the full list has ever
+   *  been fetched (see useNotificationCount). */
+  setUnreadCount: (count: number) => void;
   addNotification: (notification: Omit<Notification, 'id'>) => void; // Add new notification
   markAsRead: (id: number) => void;
   markAllAsRead: () => void;
@@ -44,10 +48,12 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   
   setFilter: (filter) => set({ filter, page: 1 }),
   
-  setNotifications: (notifications) => set({ 
+  setNotifications: (notifications) => set({
     notifications,
     count: notifications.filter(n => n.readStatus === 'unread').length
   }),
+
+  setUnreadCount: (count) => set({ count }),
 
   addNotification: (notification) => set((state) => {
     try {

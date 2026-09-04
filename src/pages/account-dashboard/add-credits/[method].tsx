@@ -53,7 +53,7 @@ export default function AddCreditMethod() {
     return (
       <DashboardLayout>
         <div className="flex justify-center items-center py-24">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E73828]"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-app-red"></div>
         </div>
       </DashboardLayout>
     );
@@ -170,15 +170,15 @@ export default function AddCreditMethod() {
 
   return (
     <DashboardLayout>
-      <div className="text-[#E73828] text-[36px] font-semibold font-['Roboto'] leading-[42px] uppercase mb-8 mt-0 tracking-tight">{dashboardSettings?.dashboard_page_settings?.add_credits_page_title}</div>
+      <div className="text-app-red text-[36px] font-semibold leading-[42px] uppercase mb-8 mt-0 tracking-tight">{dashboardSettings?.dashboard_page_settings?.add_credits_page_title}</div>
       <div className="flex flex-col items-start p-0 gap-[32px] w-full max-w-[578px] mx-auto min-w-0" style={{ position: 'relative', top: '0', left: '0' }}>
-        <div className="w-full font-['Roboto'] font-semibold text-[36px] leading-[42px] uppercase text-[#E73828]">{creditType?.title}</div>
+        <div className="w-full font-semibold text-[36px] leading-[42px] uppercase text-app-red">{creditType?.title}</div>
         <form className="flex flex-col items-start p-0 gap-[24px] w-full" onSubmit={handleSubmit}>
           {/* Number Row */}
           <div className="flex flex-row items-center p-0 gap-[12px] w-full min-w-0">
-            <label className="w-[106px] min-w-[106px] font-['Roboto'] font-semibold text-[16px] leading-[19px] text-[#070707] dark:text-white">{locale === 'en' ? `${creditType?.title} Number:` : `${creditType?.title} رقم:`}</label>
+            <label className="w-[106px] min-w-[106px] font-semibold text-[16px] leading-[19px] text-[#070707] dark:text-white">{locale === 'en' ? `${creditType?.title} Number:` : `${creditType?.title} رقم:`}</label>
             <div className="flex flex-row justify-between items-center px-[24px] py-[12px] gap-[10px] flex-1 border border-[rgba(7,7,7,0.2)] rounded-[50.5px] bg-white min-w-0">
-              <span className="font-['Roboto'] font-normal text-[14px] sm:text-[16px] md:text-[18px] lg:text-[20px] leading-[19px] text-[#070707] whitespace-nowrap truncate overflow-hidden">{creditType.number}</span>
+              <span className="font-normal text-[14px] sm:text-[16px] md:text-[18px] lg:text-[20px] leading-[19px] text-[#070707] whitespace-nowrap truncate overflow-hidden">{creditType.number}</span>
               <button type="button" className="w-[20px] h-[20px] flex items-center justify-center flex-shrink-0" title="Copy" onClick={handleCopy}>
                 <svg width="20" height="20" fill="none" viewBox="0 0 20 20"><rect x="5" y="5" width="10" height="10" rx="2" stroke="#E73828" strokeWidth="2" /><rect x="8" y="2" width="10" height="10" rx="2" stroke="#E73828" strokeWidth="2" /></svg>
               </button>
@@ -186,7 +186,7 @@ export default function AddCreditMethod() {
           </div>
           {/* Value to be sent Row */}
           <div className="flex flex-row items-center p-0 gap-[12px] w-full min-w-0">
-            <label className="w-[116px] min-w-[116px] font-['Roboto'] font-semibold text-[16px] leading-[19px] text-[#070707] dark:text-white">{locale === 'en' ? 'Value' : 'القيمة'}</label>
+            <label className="w-[116px] min-w-[116px] font-semibold text-[16px] leading-[19px] text-[#070707] dark:text-white">{locale === 'en' ? 'Value' : 'القيمة'}</label>
             <div className="flex flex-row items-center px-[24px] py-[12px] gap-[10px] flex-1 border border-[rgba(7,7,7,0.2)] rounded-[50.5px] bg-white min-w-0">
               <input
                 name="amount"
@@ -204,22 +204,22 @@ export default function AddCreditMethod() {
                   }
                 }}
                 placeholder="0.00"
-                className="font-['Roboto'] font-normal text-[16px] leading-[19px] text-[#070707] bg-transparent border-none outline-none flex-1 min-w-0"
+                className="font-normal text-[16px] leading-[19px] text-[#070707] bg-transparent border-none outline-none flex-1 min-w-0"
                 style={{ minWidth: '0' }}
               />
-              <span className="font-['Roboto'] font-normal text-[16px] leading-[19px] text-[#E73828]">$</span>
+              <span className="font-normal text-[16px] leading-[19px] text-app-red">$</span>
             </div>
           </div>
           {/* Screenshot Row */}
           <div className="flex flex-col items-start p-0 gap-[4px] w-full min-w-0">
-            <label className="w-[82px] min-w-[82px] font-['Roboto'] font-semibold text-[16px] leading-[19px] text-[#070707] dark:text-white">{locale === 'en' ? 'Screenshot' : 'الشاشة'}</label>
+            <label className="w-[82px] min-w-[82px] font-semibold text-[16px] leading-[19px] text-[#070707] dark:text-white">{locale === 'en' ? 'Screenshot' : 'الشاشة'}</label>
             <div className="flex flex-row justify-between items-center px-[24px] py-[12px] gap-[4px] w-full border border-[#070707] rounded-[50.5px] bg-white min-w-0">
               <input
                 type="text"
                 value={screenshot}
                 onChange={e => setScreenshot(e.target.value)}
                 placeholder={locale === 'en' ? 'Screenshot' : 'الشاشة'}
-                className="font-['Roboto'] font-normal text-[16px] leading-[19px] text-[#070707] bg-transparent border-none outline-none flex-1 min-w-0"
+                className="font-normal text-[16px] leading-[19px] text-[#070707] bg-transparent border-none outline-none flex-1 min-w-0"
                 style={{ minWidth: '0' }}
                 readOnly
               />
@@ -247,11 +247,11 @@ export default function AddCreditMethod() {
           </div>
           {/* Request Button */}
           <div className="flex flex-row justify-center items-center w-full mt-8">
-            <div className="flex flex-row justify-center items-center px-[24px] py-[8px] gap-[10px] w-full max-w-[200px] h-[43px] bg-[#E73828] rounded-[50.5px] hover:bg-white hover:border hover:border-[#E73828] transition-all duration-200 group">
+            <div className="flex flex-row justify-center items-center px-[24px] py-[8px] gap-[10px] w-full max-w-[200px] h-[43px] bg-app-red rounded-[50.5px] hover:bg-white hover:border hover:border-app-red transition-all duration-200 group">
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full h-[19px] font-['Roboto'] font-bold text-[16px] leading-[19px] text-white uppercase bg-transparent border-none outline-none group-hover:text-[#E73828] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-[19px] font-bold text-[16px] leading-[19px] text-white uppercase bg-transparent border-none outline-none group-hover:text-app-red transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? locale === 'en' ? 'SUBMITTING...' : 'جاري التسليم...' : locale === 'en' ? 'REQUEST' : 'طلب'}
               </button>

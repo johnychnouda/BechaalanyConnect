@@ -3,49 +3,90 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * CSS custom properties mirroring the Tailwind `background.*` / `app.black` /
+ * `app.white` tokens (tailwind.config.js), for the styled-components corner of
+ * the app that can't reach Tailwind's theme directly (notifications.tsx).
+ *
+ * `--color-background-light` / `--color-background-dark` were removed here
+ * once already on the assumption they were dead — they were not:
+ * notifications.tsx's PageWrapper reads them for its page background. It also
+ * reads `--color-app-black` / `--color-app-white`, which never existed at all
+ * (in this file or anywhere else), so every `color: var(--color-app-black)`
+ * in that component has always silently resolved to nothing.
+ */
 :root {
   --color-background-light: #ffffff;
   --color-background-dark: #2a2a2a;
-  --color-text-light: #070707;
-  --color-text-dark: #ffffff;
+  --color-app-black: #070707;
+  --color-app-white: #ffffff;
 }
 
-/* Theme transition */
-* {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-}
-
-/* Base styles */
+/* Base styles.
+ *
+ * font-sans (Inter, via next/font — see src/lib/fonts.ts) is the default; an
+ * ancestor with [dir="rtl"] switches to font-arabic (Noto Sans Arabic) instead.
+ * _document.tsx sets dir on <html>, so this covers the whole document including
+ * portalled content (toasts, modals).
+ */
 body {
-  @apply bg-background-light text-app-black dark:bg-background-dark dark:text-app-white;
+  @apply bg-background-light text-app-black dark:bg-background-dark dark:text-app-white font-sans;
 }
 
-/* Responsive no-wrap for account and login buttons */
-.no-wrap-account-btn, .no-wrap-login-btn {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 18px;
-  min-width: 0;
-  max-width: 100%;
+html[dir='rtl'] body {
+  @apply font-arabic;
 }
 
-@media (max-width: 400px) {
-  .no-wrap-account-btn, .no-wrap-login-btn {
-    font-size: 14px;
-    padding-left: 10px;
-    padding-right: 10px;
+/*
+ * Theme-flip transition, scoped to color-scheme-relevant properties on the
+ * elements that actually opt into it, not `*`.
+ *
+ * This used to be `* { transition: background-color .3s, color .3s, border-color
+ * .3s }` — applied to every element on every page regardless of whether it was
+ * near a theme toggle, which taxes every paint, makes hover/focus states feel
+ * laggy, and fights framer-motion's own transitions on the same properties.
+ */
+body,
+[class*='bg-'],
+[class*='text-'],
+[class*='border-'] {
+  transition-property: background-color, color, border-color;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
-@media (max-width: 340px) {
-  .no-wrap-account-btn, .no-wrap-login-btn {
-    font-size: 11px;
-    padding-left: 8px;
-    padding-right: 8px;
-  }
+
+/*
+ * A visible keyboard-focus ring, app-red to match the brand rather than the
+ * browser default. There was no global focus-visible style at all — several
+ * components additionally strip the native outline with `focus:outline-none`
+ * and supply nothing in its place, which this backstops even there since it
+ * targets :focus-visible on every element, not just ones that ask for it.
+ */
+:focus-visible {
+  outline: 2px solid #e73828;
+  outline-offset: 2px;
 }
 
-/* Responsive no-wrap for WhatsApp channel button, always visible text */
+/* Responsive no-wrap for WhatsApp channel button, always visible text.
+ *
+ * Kept as plain CSS rather than migrated to Tailwind's `xs:` breakpoint (added
+ * to tailwind.config.js) because these use `clamp()` for genuinely fluid
+ * sizing — a discrete breakpoint utility would change the actual behavior
+ * (stepped instead of fluid), not just where the rule lives. The
+ * `.no-wrap-account-btn` / `.no-wrap-login-btn` rules that used to sit here
+ * had zero call sites anywhere in the app and have been removed rather than
+ * migrated. */
 .whatsapp-channel-text {
   white-space: nowrap;
   font-size: clamp(10px, 4vw, 16px);
@@ -71,7 +112,7 @@ body {
   flex-shrink: 0;
 }
 
-@media (max-width: 400px) {
+@media (max-width: 399px) {
   .whatsapp-channel-text {
     font-size: 13px;
     padding-left: 8px;
@@ -104,4 +145,4 @@ body {
     padding-right: 6px;
     height: 28px;
   }
-} 
+}

@@ -4,13 +4,20 @@ import { useNotificationStore } from '@/store/notification.store';
 import { useAppTheme } from '@/hooks/use-app-theme';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/hooks/use-language';
+import DashboardLayout from '@/components/ui/dashboard-layout';
+import { Button } from '@/components/ui/primitives/Button';
+import api from '@/utils/api';
 
-// Error Boundary Component for notifications
+// Error Boundary Component for notifications. Class components can't call
+// hooks, so `locale` is passed in as a prop by the functional wrapper below
+// rather than read via useLanguage() here — this page used to be 100%
+// hardcoded English (the only page in the app that was) including this
+// fallback, unlike every other error path in the codebase which is bilingual.
 class NotificationErrorBoundary extends React.Component<
-  { children: React.ReactNode },
+  { children: React.ReactNode; locale?: string },
   { hasError: boolean; error?: Error }
 > {
-  constructor(props: { children: React.ReactNode }) {
+  constructor(props: { children: React.ReactNode; locale?: string }) {
     super(props);
     this.state = { hasError: false };
   }
@@ -25,23 +32,14 @@ class NotificationErrorBoundary extends React.Component<
 
   render() {
     if (this.state.hasError) {
+      const isArabic = this.props.locale === 'ar';
       return (
         <div style={{ padding: '20px', textAlign: 'center' }}>
-          <h2>Something went wrong with notifications</h2>
-          <p>We're having trouble loading your notifications. Please refresh the page.</p>
-          <button 
-            onClick={() => this.setState({ hasError: false })}
-            style={{ 
-              padding: '10px 20px', 
-              background: '#E73828', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '5px',
-              cursor: 'pointer'
-            }}
-          >
-            Try Again
-          </button>
+          <h2>{isArabic ? 'حدث خطأ أثناء تحميل الإشعارات' : 'Something went wrong with notifications'}</h2>
+          <p>{isArabic ? 'نواجه مشكلة في تحميل إشعاراتك. يرجى تحديث الصفحة.' : "We're having trouble loading your notifications. Please refresh the page."}</p>
+          <Button onClick={() => this.setState({ hasError: false })} className="mt-3">
+            {isArabic ? 'حاول مرة أخرى' : 'Try Again'}
+          </Button>
         </div>
       );
     }
@@ -89,20 +87,28 @@ const NotificationsPageContent: React.FC = () => {
         });
 
         if (response.ok) {
-          const backendNotifications = await response.json();
-          
+          const payload = await response.json();
+          const isArabic = locale === 'ar';
+
+          // `getAllNotifications` returns a paginated envelope
+          // ({ notifications, unread_count, total, ... }), not a bare array —
+          // this used to call `.map()` directly on that object, which throws,
+          // so the whole fetch silently failed (caught below) and the page
+          // never showed anything but "No notifications yet".
+          const backendNotifications = Array.isArray(payload) ? payload : payload.notifications ?? [];
+
           // Map backend notifications to frontend format
           const mappedNotifications = backendNotifications.map((notification: any) => ({
             id: notification.id,
-            status: notification.type === 'credit_approved' ? 'success' : 
+            status: notification.type === 'credit_approved' ? 'success' :
                    notification.type === 'credit_rejected' ? 'rejected' : 'success',
-            title: notification.type === 'credit_approved' ? 'Credit Request Approved' :
-                   notification.type === 'credit_rejected' ? 'Credit Request Rejected' :
-                   'Notification',
-            description: notification.message || 
-                        (notification.type === 'credit_approved' ? `Your credit request has been approved and $${notification.amount} has been added to your balance.` :
-                         notification.type === 'credit_rejected' ? `Your credit request for $${notification.amount} has been rejected.` :
-                         'You have a new notification.'),
+            title: notification.type === 'credit_approved' ? (isArabic ? 'تمت الموافقة على طلب الرصيد' : 'Credit Request Approved') :
+                   notification.type === 'credit_rejected' ? (isArabic ? 'تم رفض طلب الرصيد' : 'Credit Request Rejected') :
+                   (isArabic ? 'إشعار' : 'Notification'),
+            description: notification.message ||
+                        (notification.type === 'credit_approved' ? (isArabic ? `تمت الموافقة على طلب الرصيد الخاص بك وتمت إضافة $${notification.amount} إلى رصيدك.` : `Your credit request has been approved and $${notification.amount} has been added to your balance.`) :
+                         notification.type === 'credit_rejected' ? (isArabic ? `تم رفض طلب الرصيد الخاص بك بقيمة $${notification.amount}.` : `Your credit request for $${notification.amount} has been rejected.`) :
+                         (isArabic ? 'لديك إشعار جديد.' : 'You have a new notification.')),
             date: notification.created_at,
             readStatus: notification.read_at ? 'read' : 'unread',
             type: notification.type?.includes('credit') ? 'credit' : 'system',
@@ -195,6 +201,26 @@ const NotificationsPageContent: React.FC = () => {
     }
   };
 
+  // `POST /user/notifications/{id}/read` and `/read-all` both already existed
+  // on the backend and were never called — markAsRead/markAllAsRead only ever
+  // updated the local Zustand store, so a notification marked read here came
+  // back unread on the next real fetch (or on another device).
+  const handleMarkAsRead = (id: number) => {
+    markAsRead(id);
+    if (!token) return;
+    api.post(`/user/notifications/${id}/read`).catch((error) => {
+      console.error('Error marking notification as read:', error);
+    });
+  };
+
+  const handleMarkAllAsRead = () => {
+    markAllAsRead();
+    if (!token) return;
+    api.post('/user/notifications/read-all').catch((error) => {
+      console.error('Error marking all notifications as read:', error);
+    });
+  };
+
   const formatDate = (dateString: string) => {
     try {
       if (!dateString) return 'Invalid Date';
@@ -276,29 +302,30 @@ const NotificationsPageContent: React.FC = () => {
   }, [filteredNotifications]);
 
   const hasNotifications = notifications.length > 0;
+  const isArabic = locale === 'ar';
 
   return (
     <PageWrapper className={theme === 'dark' ? 'dark' : 'light'}>
       <MainContent>
         <HeaderContainer>
-          <Header>NOTIFICATIONS</Header>
+          <Header>{isArabic ? 'الإشعارات' : 'NOTIFICATIONS'}</Header>
           {hasNotifications && (
             <ButtonGroup>
-              <ActionButton onClick={markAllAsRead}>
+              <ActionButton onClick={handleMarkAllAsRead}>
                 <ActionContent>
-                  <ActionTitle>Mark All as Read</ActionTitle>
+                  <ActionTitle>{isArabic ? 'تعليم الكل كمقروء' : 'Mark All as Read'}</ActionTitle>
                   <ActionBadge>{notifications.filter(n => n.readStatus !== 'read').length}</ActionBadge>
                 </ActionContent>
               </ActionButton>
               <ActionButton onClick={handleDeleteAllRead}>
                 <ActionContent>
-                  <ActionTitle>Delete Read</ActionTitle>
+                  <ActionTitle>{isArabic ? 'حذف المقروء' : 'Delete Read'}</ActionTitle>
                   <ActionBadge>{notifications.filter(n => n.readStatus === 'read').length}</ActionBadge>
                 </ActionContent>
               </ActionButton>
               <ActionButton onClick={clearAll}>
                 <ActionContent>
-                  <ActionTitle>Clear All</ActionTitle>
+                  <ActionTitle>{isArabic ? 'حذف الكل' : 'Clear All'}</ActionTitle>
                   <ActionBadge>{notifications.length}</ActionBadge>
                 </ActionContent>
               </ActionButton>
@@ -307,38 +334,38 @@ const NotificationsPageContent: React.FC = () => {
         </HeaderContainer>
 
         <FilterContainer>
-          <FilterButton 
-            active={filter === 'all'} 
+          <FilterButton
+            active={filter === 'all'}
             onClick={() => setFilter('all')}
           >
             <StatusDot status="all" />
-            <span>All</span>
+            <span>{isArabic ? 'الكل' : 'All'}</span>
           </FilterButton>
-          <FilterButton 
-            active={filter === 'success'} 
+          <FilterButton
+            active={filter === 'success'}
             onClick={() => setFilter('success')}
           >
             <StatusDot status="success" />
-            <span>Success</span>
+            <span>{isArabic ? 'ناجح' : 'Success'}</span>
           </FilterButton>
-          <FilterButton 
-            active={filter === 'rejected'} 
+          <FilterButton
+            active={filter === 'rejected'}
             onClick={() => setFilter('rejected')}
           >
             <StatusDot status="rejected" />
-            <span>Rejected</span>
+            <span>{isArabic ? 'مرفوض' : 'Rejected'}</span>
           </FilterButton>
-          <FilterButton 
-            active={filter === 'credits'} 
+          <FilterButton
+            active={filter === 'credits'}
             onClick={() => setFilter('credits')}
           >
-            <div style={{ 
-              width: '8px', 
-              height: '8px', 
-              backgroundColor: '#3B82F6', 
-              borderRadius: '50%' 
+            <div style={{
+              width: '8px',
+              height: '8px',
+              backgroundColor: '#3B82F6',
+              borderRadius: '50%'
             }} />
-            <span>Credits</span>
+            <span>{isArabic ? 'الرصيد' : 'Credits'}</span>
           </FilterButton>
         </FilterContainer>
 
@@ -346,7 +373,7 @@ const NotificationsPageContent: React.FC = () => {
           {isLoading ? (
             <EmptyState>
               <span className="empty-icon">⏳</span>
-              <span className="empty-text">Loading notifications...</span>
+              <span className="empty-text">{isArabic ? 'جارٍ تحميل الإشعارات...' : 'Loading notifications...'}</span>
             </EmptyState>
           ) : hasNotifications ? (
             <>
@@ -355,10 +382,10 @@ const NotificationsPageContent: React.FC = () => {
                   <DateHeader>{formatDateHeader(date)}</DateHeader>
                   <NotificationList>
                     {notifications.map((notif) => (
-                      <NotificationCard 
+                      <NotificationCard
                         key={notif.id}
                         read={notif.readStatus === 'read'}
-                        onClick={() => markAsRead(notif.id)}
+                        onClick={() => handleMarkAsRead(notif.id)}
                       >
                         <NotifLeft>
                           <StatusIconContainer>
@@ -395,12 +422,13 @@ const NotificationsPageContent: React.FC = () => {
                         </NotifLeft>
                         <NotifRight>
                           <NotifDate>{formatDate(notif.date)}</NotifDate>
-                          <DeleteButton 
+                          <DeleteButton
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDeleteNotification(notif.id);
                             }}
-                            title="Delete notification"
+                            title={isArabic ? 'حذف الإشعار' : 'Delete notification'}
+                            aria-label={isArabic ? 'حذف الإشعار' : 'Delete notification'}
                           >
                             ×
                           </DeleteButton>
@@ -412,14 +440,14 @@ const NotificationsPageContent: React.FC = () => {
               ))}
               {hasMore && (
                 <LoadMoreButton onClick={loadMore}>
-                  Load More
+                  {isArabic ? 'تحميل المزيد' : 'Load More'}
                 </LoadMoreButton>
               )}
             </>
           ) : (
             <EmptyState>
               <span className="empty-icon">🔔</span>
-              <span className="empty-text">No notifications yet</span>
+              <span className="empty-text">{isArabic ? 'لا توجد إشعارات بعد' : 'No notifications yet'}</span>
             </EmptyState>
           )}
         </ListArea>
@@ -428,32 +456,23 @@ const NotificationsPageContent: React.FC = () => {
   );
 };
 
+/*
+ * This page used to render standalone (no DashboardLayout — see the page
+ * component below), so PageWrapper supplied its own full-viewport background,
+ * padding and font. Now that it sits inside DashboardLayout's card, all three
+ * are supplied by the parent; keeping them here as well would have meant
+ * double padding and a min-height:100vh child inside an already-sized card,
+ * pushing the footer far below the content on every page shorter than a full
+ * screen. font-family: inherit picks up the real font-sans/font-arabic set on
+ * <body> (src/lib/fonts.ts) — the 'Roboto' this declared was never loaded to
+ * begin with.
+ */
 const PageWrapper = styled.div`
-  min-height: 100vh;
-  background: var(--color-background-light);
-  font-family: 'Roboto', Arial, sans-serif;
-  padding: 0 16px;
-
-  &.dark {
-    background: var(--color-background-dark);
-  }
-
-  @media (max-width: 768px) {
-    padding: 0 12px;
-  }
+  font-family: inherit;
 `;
 
 const MainContent = styled.div`
   width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding-top: 50px;
-  min-height: 867px;
-
-  @media (max-width: 768px) {
-    padding-top: 30px;
-    min-height: auto;
-  }
 `;
 
 const HeaderContainer = styled.div`
@@ -527,7 +546,7 @@ const ActionContent = styled.div`
 `;
 
 const ActionTitle = styled.span`
-  font-family: 'Roboto';
+  font-family: inherit;
   font-size: clamp(11px, 1.2vw, 13px);
   font-weight: 500;
   color: var(--color-app-black);
@@ -588,7 +607,7 @@ const FilterContainer = styled.div`
 const FilterButton = styled.button<{ active: boolean }>`
   position: relative;
   padding: 8px 16px;
-  font-family: 'Roboto';
+  font-family: inherit;
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
@@ -814,7 +833,7 @@ const NotifTexts = styled.div`
 `;
 
 const NotifTitle = styled.div`
-  font-family: 'Roboto';
+  font-family: inherit;
   font-style: normal;
   font-weight: 700;
   font-size: clamp(14px, 2vw, 20px);
@@ -826,7 +845,7 @@ const NotifTitle = styled.div`
 `;
 
 const NotifDesc = styled.div`
-  font-family: 'Roboto';
+  font-family: inherit;
   font-style: normal;
   font-weight: 400;
   font-size: clamp(12px, 1.5vw, 16px);
@@ -854,7 +873,7 @@ const NotifRight = styled.div`
 `;
 
 const NotifDate = styled.div`
-  font-family: 'Roboto';
+  font-family: inherit;
   font-style: normal;
   font-weight: 500;
   font-size: clamp(12px, 1.5vw, 16px);
@@ -901,7 +920,7 @@ const LoadMoreButton = styled.button`
   padding: 12px;
   margin: 20px auto;
   border-radius: 50.5px;
-  font-family: 'Roboto';
+  font-family: inherit;
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
@@ -1005,10 +1024,13 @@ const RequestId = styled.span`
 `;
 
 const NotificationsPage: React.FC = () => {
+  const { locale } = useLanguage();
   return (
-    <NotificationErrorBoundary>
-      <NotificationsPageContent />
-    </NotificationErrorBoundary>
+    <DashboardLayout>
+      <NotificationErrorBoundary locale={locale}>
+        <NotificationsPageContent />
+      </NotificationErrorBoundary>
+    </DashboardLayout>
   );
 };
 

@@ -59,7 +59,7 @@ export default function ForgotPasswordPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#E73828] mb-1 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-app-red mb-1 tracking-tight">
               {generalData?.logging_page_settings?.forgot_password_title || (locale === 'ar' ? 'نسيت كلمة المرور' : 'Forgot password')}
             </h2>
             <p className="text-black text-sm sm:text-base mb-4 sm:mb-6">
@@ -84,7 +84,7 @@ export default function ForgotPasswordPage() {
                 })}
                 placeholder={generalData?.logging_page_settings?.email_placeholder || (locale === 'ar' ? 'البريد الإلكتروني' : 'Email')}
                 autoComplete="username"
-                className="w-full border border-[#E73828] rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#E73828] text-black bg-transparent placeholder:text-black rtl:text-right"
+                className="w-full border border-app-red rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-app-red text-black bg-transparent placeholder:text-black rtl:text-right"
               />
               {errors.email && (
                 <div className="w-full mb-2 text-center text-red-600 text-xs sm:text-sm font-semibold">{errors.email.message}</div>
@@ -93,7 +93,7 @@ export default function ForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#E73828] text-white font-bold py-3 rounded-full mt-2 hover:bg-white hover:text-[#E73828] border border-[#E73828] transition-colors duration-200 text-lg disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full bg-app-red text-white font-bold py-3 rounded-full mt-2 hover:bg-white hover:text-app-red border border-app-red transition-colors duration-200 text-lg disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {loading
                   ? (locale === 'ar' ? 'جاري الإرسال...' : 'Sending...')
@@ -105,7 +105,7 @@ export default function ForgotPasswordPage() {
               <div className="text-center text-black text-sm sm:text-base">
                 {locale === 'ar' ? 'تذكرت كلمة المرور؟' : "Remembered your password?"}
               </div>
-              <Link href="/auth/signin" className="text-[#E73828] font-bold hover:underline">
+              <Link href="/auth/signin" className="text-app-red font-bold hover:underline">
                 {generalData?.logging_page_settings?.login_button || (locale === 'ar' ? 'تسجيل الدخول' : 'Sign in')}
               </Link>
             </div>
