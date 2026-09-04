@@ -24,9 +24,9 @@ import { formatDateTime, formatDateHeading } from '@/utils/date';
  * rejection, so it stays neutral rather than guessing.)
  *
  * `notification.message` is the backend's own translated sentence, resolved
- * from data.message_key under the request locale — it wins. The literals
- * below are the fallback for legacy rows written before message_key existed,
- * which hold a frozen English string.
+ * from data.message_key (or reconstructed from type / status on older rows)
+ * under the request locale — it wins. The literals below only run when the
+ * API sent no message at all.
  */
 function deriveNotificationDisplay(
   notification: { type?: string; amount?: number | string; message?: string },
