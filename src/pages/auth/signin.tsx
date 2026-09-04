@@ -161,7 +161,7 @@ export default function SigninPage() {
                   })}
                   placeholder={generalData?.logging_page_settings.email_placeholder}
                   required
-                  className="rtl:text-right"
+                  className="text-start"
                   autoComplete="username"
                 />
               </FormField>

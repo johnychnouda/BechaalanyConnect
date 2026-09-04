@@ -124,7 +124,7 @@ export default function MyOrders() {
         ? "bg-[#5FD568] border border-[#5FD568] text-white"
         : "bg-white border border-[#5FD568] text-[#5FD568]",
       icon: (
-        <span className="absolute left-[12px] flex items-center justify-center" style={{ width: '19px', height: '19px', top: '50%', transform: 'translateY(-50%)' }}>
+        <span className="absolute start-[12px] flex items-center justify-center" style={{ width: '19px', height: '19px', top: '50%', transform: 'translateY(-50%)' }}>
           <span style={{ background: '#5FD568', borderRadius: '50%', width: '19px', height: '19px', display: 'block', position: 'absolute', left: 0, top: 0 }}></span>
           <svg width="12.67" height="12.67" viewBox="0 0 12.67 12.67" fill="none" style={{ position: 'absolute', left: '3.17px', top: '3.17px' }}>
             <path d="M3.5 7.5L6 10L10 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -139,7 +139,7 @@ export default function MyOrders() {
         ? "bg-app-red border border-app-red text-white"
         : "bg-white border border-app-red text-app-red",
       icon: (
-        <span className="absolute left-[12px] flex items-center justify-center" style={{ width: '19px', height: '19px', top: '50%', transform: 'translateY(-50%)' }}>
+        <span className="absolute start-[12px] flex items-center justify-center" style={{ width: '19px', height: '19px', top: '50%', transform: 'translateY(-50%)' }}>
           <span style={{ background: '#E73828', borderRadius: '50%', width: '19px', height: '19px', display: 'block', position: 'absolute', left: 0, top: 0 }}></span>
           <svg width="12.67" height="12.67" viewBox="0 0 12.67 12.67" fill="none" style={{ position: 'absolute', left: '3.17px', top: '3.17px' }}>
             <rect x="3" y="5.5" width="7" height="1.67" rx="0.8" fill="white" transform="rotate(45 6.335 6.335)" />
@@ -155,7 +155,7 @@ export default function MyOrders() {
         ? "bg-[#FB923C] border border-[#FB923C] text-white"
         : "bg-white border border-[#FB923C] text-[#FB923C]",
       icon: (
-        <span className="absolute left-[12px] flex items-center justify-center" style={{ width: '19px', height: '19px', top: '50%', transform: 'translateY(-50%)' }}>
+        <span className="absolute start-[12px] flex items-center justify-center" style={{ width: '19px', height: '19px', top: '50%', transform: 'translateY(-50%)' }}>
           <span style={{ background: '#FF9D00', borderRadius: '50%', width: '19px', height: '19px', display: 'block', position: 'absolute', left: 0, top: 0 }}></span>
           <svg width="12.67" height="12.67" viewBox="0 0 12.67 12.67" fill="none" style={{ position: 'absolute', left: '3.17px', top: '3.17px' }}>
             <rect x="5.5" y="3" width="1.67" height="5.5" rx="0.8" fill="white" />
@@ -216,7 +216,7 @@ export default function MyOrders() {
               type="button"
             >
               {btn.icon && (
-                <span className="flex items-center justify-center mr-3" style={{ width: 19, height: 19, position: 'relative' }}>
+                <span className="flex items-center justify-center me-3" style={{ width: 19, height: 19, position: 'relative' }}>
                   {btn.icon}
                 </span>
               )}

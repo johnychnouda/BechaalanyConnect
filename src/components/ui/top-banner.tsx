@@ -57,7 +57,7 @@ export default function TopBanner({ children }: PropsWithChildren) {
                 </div>
               </ButtonLink>
             ))}
-            <div className="items-center ml-0.5 sm:ml-1 md:ml-2 h-[15px] sm:h-[17px] md:h-[18px] hidden lg:flex">
+            <div className="items-center ms-0.5 sm:ms-1 md:ms-2 h-[15px] sm:h-[17px] md:h-[18px] hidden lg:flex">
               <LanguageThemeSwitcher />
             </div>
           </div>

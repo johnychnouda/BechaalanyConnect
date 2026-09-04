@@ -222,7 +222,7 @@ export default function SignupPage() {
                     type="text"
                     placeholder={generalData?.logging_page_settings.username_placeholder}
                     {...register("username", { required: locale === "ar" ? "يجب أن يكون لديك اسم مستخدم" : "Username is required" })}
-                    className="rtl:text-right"
+                    className="text-start"
                   />
                 </FormField>
 
@@ -261,7 +261,7 @@ export default function SignupPage() {
                         required: locale === "ar" ? "يجب أن يكون لديك رقم هاتف" : "Phone number is required",
                         validate: (val: string) => validatePhone(val) || `${locale === "ar" ? "يرجى إدخال رقم هاتف صالح" : "Please enter a valid phone number"} ${country ? `for ${countries.find(c => c.slug === country)?.title}` : ''}`,
                       })}
-                      className="w-full outline-none text-base text-app-black dark:text-white bg-transparent placeholder:text-neutral-400 rtl:text-right"
+                      className="w-full outline-none text-base text-app-black dark:text-white bg-transparent placeholder:text-neutral-400 text-start"
                     />
                   </div>
                 </FormField>
@@ -277,7 +277,7 @@ export default function SignupPage() {
                         message: locale === "ar" ? "يرجى إدخال عنوان بريد إلكتروني صالح (مثال: user@example.com)." : "Please enter a valid email address (e.g. user@example.com).",
                       },
                     })}
-                    className="rtl:text-right"
+                    className="text-start"
                   />
                 </FormField>
 

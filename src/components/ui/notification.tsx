@@ -76,7 +76,10 @@ const StyledWrapper = styled.div`
     border-radius: 50%;
     background-color: red;
     position: absolute;
-    right: 8px;
+    /* Logical, not "right": this is styled-components so the rtl: Tailwind
+       variant cannot reach it, and the badge stayed on the visual right of the
+       bell in Arabic instead of mirroring with the rest of the header. */
+    inset-inline-end: 8px;
     top: 8px;
     display: flex;
     justify-content: center;

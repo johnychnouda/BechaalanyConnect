@@ -40,6 +40,11 @@ export default class MyDocument extends Document {
      * variant (tailwind.config.js) able to work at all, since it keys off
      * [dir="rtl"] on an ancestor.
      *
+     * This covers the SERVER-rendered first paint only — _document never runs again,
+     * and switching language is a client-side router.push. _app.tsx has an effect
+     * keyed on router.locale that keeps <html lang/dir> correct after that; both are
+     * required.
+     *
      * `this.props.locale` is populated by Next from the active i18n locale.
      */
     const locale = (this.props as any).locale || 'en';

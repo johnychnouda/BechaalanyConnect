@@ -93,7 +93,7 @@ function orderRow({ order }: { order: ProcessedOrder }) {
           {/* Icon Circle */}
           <div className="relative w-9 h-9">
             <div className={`absolute w-9 h-9 rounded-full`} style={{ background: meta.color }}></div>
-            <span className="absolute left-[6px] top-[6px]">{meta.icon}</span>
+            <span className="absolute start-[6px] top-[6px]">{meta.icon}</span>
           </div>
           {/* Title and Date */}
 
@@ -132,7 +132,7 @@ function orderRow({ order }: { order: ProcessedOrder }) {
 
               <div className="flex flex-row justify-end items-center gap-3">
                 {/* Price */}
-                <div className="h-[19px] font-normal text-base leading-[19px] text-[#070707] dark:text-white text-right">
+                <div className="h-[19px] font-normal text-base leading-[19px] text-[#070707] dark:text-white text-end">
                   {order.value}
                 </div>
                 {/* Export PDF Button */}
@@ -159,7 +159,7 @@ function orderRow({ order }: { order: ProcessedOrder }) {
         {/* Right Section - Price and Export Button */}
         <div className="hidden flex-row justify-end items-center gap-3 sm:flex">
           {/* Price */}
-          <div className="h-[19px] font-normal text-base leading-[19px] text-[#070707] dark:text-white text-right">
+          <div className="h-[19px] font-normal text-base leading-[19px] text-[#070707] dark:text-white text-end">
             {order.value}
           </div>
           {/* Export PDF Button */}

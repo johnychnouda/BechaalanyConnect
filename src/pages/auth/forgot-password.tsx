@@ -84,7 +84,7 @@ export default function ForgotPasswordPage() {
                 })}
                 placeholder={generalData?.logging_page_settings?.email_placeholder || (locale === 'ar' ? 'البريد الإلكتروني' : 'Email')}
                 autoComplete="username"
-                className="w-full border border-app-red rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-app-red text-black bg-transparent placeholder:text-black rtl:text-right"
+                className="w-full border border-app-red rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-app-red text-black bg-transparent placeholder:text-black text-start"
               />
               {errors.email && (
                 <div className="w-full mb-2 text-center text-red-600 text-xs sm:text-sm font-semibold">{errors.email.message}</div>

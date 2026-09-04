@@ -51,7 +51,7 @@ export function FormField({ label, hint, error, required, className, children }:
       {label && (
         <label
           htmlFor={isCloneableControl ? (children as React.ReactElement<any>).props.id ?? generatedId : generatedId}
-          className="text-sm font-semibold text-app-black dark:text-white rtl:text-right"
+          className="text-sm font-semibold text-app-black dark:text-white text-start"
         >
           {label}
           {required && <span className="text-app-red ml-1 rtl:mr-1 rtl:ml-0">*</span>}

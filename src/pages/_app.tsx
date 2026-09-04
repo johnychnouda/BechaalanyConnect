@@ -71,6 +71,23 @@ export default function App({
     }
   }, []);
 
+  /*
+   * Keep <html lang/dir> in sync with the active locale.
+   *
+   * _document.tsx sets them for the SERVER-rendered first paint, but it never runs
+   * again. Switching language is a client-side router.push (see
+   * components/general/language-theme-switcher.tsx), so without this the document
+   * kept dir="ltr" lang="en" while showing Arabic until a hard refresh — which
+   * inerted EVERY `rtl:` Tailwind variant (tailwind.config.js registers them as
+   * `[dir="rtl"] &`), the Arabic font swap in globals.css (`html[dir='rtl'] body`),
+   * and therefore the whole header/layout mirroring.
+   */
+  useEffect(() => {
+    const activeLocale = nextRouter.locale || 'en';
+    document.documentElement.lang = activeLocale;
+    document.documentElement.dir = activeLocale === 'ar' ? 'rtl' : 'ltr';
+  }, [nextRouter.locale]);
+
   useEffect(() => {
     const handleStart = () => setLoading(true);
     const handleStop = () => setLoading(false);
@@ -119,6 +136,33 @@ export default function App({
                                   }
                                 }}
                               >
+                                {/*
+                                  * next/font hands back CSS variables, and they were
+                                  * declared ONLY on the <main> className below. But
+                                  * globals.css consumes them on `body`
+                                  * (`body { @apply font-sans }` → font-family:
+                                  * var(--font-inter), …), and custom properties inherit
+                                  * downwards, never up from a child. So at body level the
+                                  * var was undefined, the whole declaration was invalid at
+                                  * computed-value time, and every page in BOTH locales
+                                  * rendered in the browser's default serif — Arabic never
+                                  * reached Noto Sans Arabic at all.
+                                  *
+                                  * Declaring them at :root fixes it for `body`, for the
+                                  * `html[dir='rtl'] body` Arabic swap, and for the toast
+                                  * container, which renders outside <main>. Server-rendered,
+                                  * so there is no flash of the fallback font.
+                                  *
+                                  * (next/font cannot be imported in _document.tsx — Next
+                                  * rejects font loaders there — which is why this is here
+                                  * rather than as a className on <Html>.)
+                                  */}
+                                <style jsx global>{`
+                                  :root {
+                                    --font-inter: ${inter.style.fontFamily};
+                                    --font-arabic: ${notoSansArabic.style.fontFamily};
+                                  }
+                                `}</style>
                                 <FallbackTheme />
                                 {loading && <PageLoader />}
                                 {/* Nothing in the app let a keyboard user jump past the
@@ -131,10 +175,12 @@ export default function App({
                                 >
                                   {isRTL ? 'تخطَّ إلى المحتوى' : 'Skip to content'}
                                 </a>
-                                {/* dir now lives on <html> (see _document.tsx), so it
-                                    also covers the toast container and every fixed
-                                    modal — all of which render outside this element
-                                    and used to stay left-to-right in Arabic.
+                                {/* dir lives on <html>: _document.tsx emits it for the
+                                    SSR first paint and the effect above keeps it
+                                    correct across client-side locale switches. That
+                                    covers the toast container and every fixed modal —
+                                    all of which render outside this element and used
+                                    to stay left-to-right in Arabic.
 
                                     The two font CSS variables (src/lib/fonts.ts) live
                                     here too: fontFamily.sans / .arabic in

@@ -36,7 +36,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
             height="24" 
             viewBox="0 0 24 24" 
             fill="none" 
-            className={`absolute left-[6px] top-[6px] ${direction === 'down' ? 'transform rotate-180' : ''}`}
+            className={`absolute start-[6px] top-[6px] ${direction === 'down' ? 'transform rotate-180' : ''}`}
           >
             <path 
               d="M12 5V19M12 5L5 12M12 5L19 12" 
@@ -69,10 +69,10 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
       </div>
       {/* Right Section - Prices */}
       <div className="flex flex-row justify-end items-center gap-2 flex-shrink-0">
-        <span className="font-normal text-base leading-[19px] line-through text-app-red text-right">
+        <span className="font-normal text-base leading-[19px] line-through text-app-red text-end">
           {oldPrice}
         </span>
-        <span className="font-normal text-base leading-[19px] text-[#5FD568] text-right">
+        <span className="font-normal text-base leading-[19px] text-[#5FD568] text-end">
           {newPrice}
         </span>
       </div>

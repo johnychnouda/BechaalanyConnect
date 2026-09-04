@@ -58,7 +58,7 @@ const StyledWrapper = styled.div`
   .svg {
     height: 24px;
     min-width: 24px;
-    margin-right: 10px;
+    margin-inline-end: 10px;
     flex-shrink: 0;
   }
 
@@ -84,7 +84,7 @@ const StyledWrapper = styled.div`
     .svg {
       height: 20px;
       min-width: 20px;
-      margin-right: 8px;
+      margin-inline-end: 8px;
     }
   }
   @media (max-width: 340px) {
@@ -98,7 +98,7 @@ const StyledWrapper = styled.div`
     .svg {
       height: 16px;
       min-width: 16px;
-      margin-right: 6px;
+      margin-inline-end: 6px;
     }
   }
 
@@ -124,7 +124,7 @@ const StyledWrapper = styled.div`
     display: block;
     position: absolute;
     top: 50%;
-    left: 9%;
+    inset-inline-start: 9%;
     transform: translate(-50%, -50%);
     width: 0;
     height: 0;
@@ -138,7 +138,7 @@ const StyledWrapper = styled.div`
     display: block;
     position: absolute;
     top: 50%;
-    left: 9%;
+    inset-inline-start: 9%;
     transform: translate(-50%, -50%);
     width: 0;
     height: 0;

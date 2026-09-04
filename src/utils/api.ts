@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Router from 'next/router';
 import { getSession } from 'next-auth/react';
 
 // Create axios instance with default config
@@ -78,6 +79,22 @@ const isPublicEndpoint = (url?: string): boolean => {
 // Add request interceptor
 api.interceptors.request.use(
     async (config) => {
+        /*
+         * Not every endpoint is locale-prefixed: /register, /verify-email,
+         * /contact-form-submit and EVERY notification mutation live outside the
+         * {locale} group in routes/api.php, so LocaleMiddleware never runs on them
+         * and Laravel fell back to the `en` default. Sending the header on every
+         * request lets ResolveRequestLocale pick the caller's language up instead.
+         *
+         * Router.locale is undefined before the router is ready (and on the server);
+         * <html lang> is kept in sync with the active locale by _app.tsx, so it is a
+         * reliable second source.
+         */
+        config.headers['Accept-Language'] =
+            Router.locale ||
+            (typeof document !== 'undefined' ? document.documentElement.lang : '') ||
+            'en';
+
         // Only get session for authenticated endpoints
         if (!isPublicEndpoint(config.url)) {
             const session = await getCachedSession();

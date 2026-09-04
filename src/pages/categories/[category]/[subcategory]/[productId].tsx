@@ -584,7 +584,7 @@ const ProductPage: React.FC = () => {
                           type="button"
                           role="option"
                           aria-selected={amount.id === selectedAmount.id}
-                          className={`text-left rtl:text-right px-4 py-2 text-[16px] font-normal uppercase cursor-pointer ${amount.id === selectedAmount.id ? 'bg-app-red/10 text-black dark:text-white font-bold' : 'text-black dark:text-white'} hover:bg-app-red/20 transition-all rounded-[8px]`}
+                          className={`text-start px-4 py-2 text-[16px] font-normal uppercase cursor-pointer ${amount.id === selectedAmount.id ? 'bg-app-red/10 text-black dark:text-white font-bold' : 'text-black dark:text-white'} hover:bg-app-red/20 transition-all rounded-[8px]`}
                           onClick={() => { setSelectedAmount(amount); setDropdownOpen(false); dropdownTriggerRef.current?.focus(); }}
                         >
                           {amount.amount}
@@ -699,7 +699,7 @@ const ProductPage: React.FC = () => {
                       setRecipientPhoneNumber(e.target.value);
                       if (fieldErrors.phone) setFieldErrors((prev) => ({ ...prev, phone: undefined }));
                     }}
-                    className={locale === 'ar' ? 'rtl:text-right' : ''}
+                    className="text-start"
                     placeholder={generalData?.settings.phone_number_placeholder}
                   />
                 </FormField>

@@ -107,10 +107,10 @@ function Row({ label, value, bold, emphasize }: { label: string; value: string; 
       <span
         className={
           emphasize
-            ? 'font-semibold text-app-red text-right break-all'
+            ? 'font-semibold text-app-red text-end break-all'
             : bold
             ? 'font-bold text-app-black dark:text-white'
-            : 'text-app-black dark:text-white text-right break-all'
+            : 'text-app-black dark:text-white text-end break-all'
         }
       >
         {value}

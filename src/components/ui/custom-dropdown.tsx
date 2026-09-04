@@ -62,7 +62,7 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({ options, value, onChang
               type="button"
               role="option"
               aria-selected={opt === value}
-              className="w-full text-left rtl:text-right px-4 py-2 text-app-red cursor-pointer hover:bg-app-red/10"
+              className="w-full text-start px-4 py-2 text-app-red cursor-pointer hover:bg-app-red/10"
               onClick={() => {
                 onChange(opt);
                 setOpen(false);

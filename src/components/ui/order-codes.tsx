@@ -49,7 +49,7 @@ const OrderCodes: React.FC<OrderCodesProps> = ({ htmlContent, className = "" ,lo
             <ul className="space-y-2">
                 {codes.map((code, index) => (
                     <li key={index} className="flex items-center justify-between">
-                        <span className="font-mono text-sm text-[#070707] dark:text-white bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded flex-1 mr-2">
+                        <span className="font-mono text-sm text-[#070707] dark:text-white bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded flex-1 me-2">
                             {code}
                         </span>
                         <button
