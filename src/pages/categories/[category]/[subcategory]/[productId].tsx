@@ -41,12 +41,6 @@ interface ProductVariation {
   // quantity parameter at all (usharez quota allocates exactly one bundle), so
   // {min:1,max:1} means "the stepper is a lie" — see maxQty below.
   external_qty_values: { min?: number; max?: number } | null;
-  // Last availability the supplier's feed reported for this row. null for a
-  // manually-priced (non-supplier) product/variation, which is never out of
-  // stock in this sense. A DECIMAL-adjacent boolean-ish column reaching the API
-  // through an uncast model attribute — same defensive coercion as `price`
-  // above needed — so this may arrive as boolean, 0/1, or "0"/"1".
-  supplier_available: boolean | number | string | null;
   price_variations: PriceVariation[];
 }
 
@@ -81,11 +75,6 @@ interface SelectedAmount {
   // Highest quantity the supplier accepts in one order, or null when unbounded.
   // 1 pins the purchase to a single unit and hides the quantity stepper.
   maxQty: number | null;
-  // false = the supplier's feed currently reports this row out of stock (an
-  // admin override is keeping it purchasable anyway — see CLAUDE.md's
-  // ignore_supplier_availability). null = not supplier-managed, never out of
-  // stock in this sense.
-  supplierAvailable: boolean | null;
 }
 
 const ProductPage: React.FC = () => {
@@ -149,10 +138,6 @@ const ProductPage: React.FC = () => {
       unitAmount: variation.unit_amount,
       unitLabel: variation.unit_label,
       maxQty: variation.external_qty_values?.max ?? null,
-      supplierAvailable:
-        variation.supplier_available === null || variation.supplier_available === undefined
-          ? null
-          : Boolean(Number(variation.supplier_available)),
     }),
     [userTypeId]
   );
@@ -603,11 +588,6 @@ const ProductPage: React.FC = () => {
                           onClick={() => { setSelectedAmount(amount); setDropdownOpen(false); dropdownTriggerRef.current?.focus(); }}
                         >
                           {amount.amount}
-                          {amount.supplierAvailable === false && (
-                            <span className="text-gray-400 dark:text-gray-500 normal-case font-normal text-sm">
-                              {locale === 'ar' ? ' (غير متوفر)' : ' (out of stock)'}
-                            </span>
-                          )}
                         </button>
                       ))}
                     </div>
@@ -730,24 +710,6 @@ const ProductPage: React.FC = () => {
                 <span className="text-black dark:text-white text-base font-semibold">{generalData?.settings.total}</span>
                 <span className={`text-2xl font-extrabold text-app-red ${user && !isApproved ? 'filter blur-[6px] select-none' : ''}`}>${total.toFixed(2)}</span>
               </div>
-
-              {/*
-                Supplier out-of-stock notice — this row's `supplier_available` is
-                false, meaning an admin used ignore_supplier_availability to keep it
-                purchasable even though the last sync couldn't source it. The buy
-                button stays enabled: if the supplier still can't fulfil it,
-                FulfillSupplierOrderJob rejects the order and its refund path (see
-                CLAUDE.md "Credits, money and the ledger") runs automatically.
-              */}
-              {selectedAmount.supplierAvailable === false && (
-                <div className="rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-3 text-sm">
-                  <p className="text-gray-600 dark:text-gray-300">
-                    {locale === 'en'
-                      ? "This item is currently out of stock at our supplier. You can still place the order — if it can't be fulfilled, your credits are refunded automatically."
-                      : 'هذا المنتج غير متوفر حالياً لدى المورّد. يمكنك إتمام الطلب — وإذا تعذّر تنفيذه، يُعاد رصيدك تلقائياً.'}
-                  </p>
-                </div>
-              )}
 
               {/*
                 Insufficient-credits warning, shown BEFORE the user tries to buy.
