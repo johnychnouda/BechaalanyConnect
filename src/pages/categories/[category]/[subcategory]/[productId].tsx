@@ -95,6 +95,9 @@ const ProductPage: React.FC = () => {
   const [productVariations, setProductVariations] = useState<ProductVariation[]>([]);
   const [currentCategory, setCurrentCategory] = useState<string>('');
   const [currentSubcategory, setCurrentSubcategory] = useState<string>('');
+  // Subcategory hidden as a storefront level: its products live on the
+  // category page, so the breadcrumb and back button skip it.
+  const [subcategoryHidden, setSubcategoryHidden] = useState<boolean>(false);
   const [product, setProduct] = useState<Product>();
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [selectedAmount, setSelectedAmount] = useState<SelectedAmount | null>(null);
@@ -157,6 +160,7 @@ const ProductPage: React.FC = () => {
           setRelatedProducts(data.product.related_products || []);
           setCurrentCategory(data.category || '');
           setCurrentSubcategory(data.subcategory || '');
+          setSubcategoryHidden(Boolean(data.show_products_in_category));
         }
         else {
           console.error('Products data is invalid:', data);
@@ -262,7 +266,9 @@ const ProductPage: React.FC = () => {
     { label: generalData?.settings.homepage_label || '', href: '/' },
     { label: generalData?.settings.categories_label || '', href: '/categories' },
     { label: currentCategory, href: `/categories/${categorySlug}` },
-    { label: currentSubcategory, href: single ? `/categories/${categorySlug}` : `/categories/${categorySlug}/${subcategorySlug}` },
+    ...(subcategoryHidden ? [] : [
+      { label: currentSubcategory, href: single ? `/categories/${categorySlug}` : `/categories/${categorySlug}/${subcategorySlug}` },
+    ]),
     { label: product?.name || '' }
   ];
 
@@ -314,7 +320,7 @@ const ProductPage: React.FC = () => {
           <Breadcrumb items={breadcrumbItems} />
         </div>
         <div className="w-full px-4 md:px-12 mb-4">
-          <BackButton label={generalData?.settings.back_button_label} href={single ? `/categories/${categorySlug}` : `/categories/${categorySlug}/${subcategorySlug}`} />
+          <BackButton label={generalData?.settings.back_button_label} href={single || subcategoryHidden ? `/categories/${categorySlug}` : `/categories/${categorySlug}/${subcategorySlug}`} />
         </div>
         <ErrorState
           message={error}
@@ -335,7 +341,7 @@ const ProductPage: React.FC = () => {
         </div>
         {/*Back Button*/}
         <div className="w-full px-4 md:px-12 mb-4">
-          <BackButton label={generalData?.settings.back_button_label} href={single ? `/categories/${categorySlug}` : `/categories/${categorySlug}/${subcategorySlug}`} />
+          <BackButton label={generalData?.settings.back_button_label} href={single || subcategoryHidden ? `/categories/${categorySlug}` : `/categories/${categorySlug}/${subcategorySlug}`} />
         </div>
         <div className="flex items-center justify-center h-64">
           <ComingSoon />
@@ -502,7 +508,7 @@ const ProductPage: React.FC = () => {
             <Breadcrumb items={breadcrumbItems} />
           </div>
           <div className="w-full px-4 md:px-12 mb-4">
-            <BackButton label={generalData?.settings.back_button_label} href={single ? `/categories/${categorySlug}` : `/categories/${categorySlug}/${subcategorySlug}`} />
+            <BackButton label={generalData?.settings.back_button_label} href={single || subcategoryHidden ? `/categories/${categorySlug}` : `/categories/${categorySlug}/${subcategorySlug}`} />
           </div>
 
           {/* Main Content */}

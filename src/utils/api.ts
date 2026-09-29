@@ -76,6 +76,21 @@ const isPublicEndpoint = (url?: string): boolean => {
     return PUBLIC_ENDPOINT_SEGMENTS.includes(first);
 };
 
+/*
+ * The `next/router` singleton THROWS ("No router instance found") when read
+ * outside a mounted router — i.e. on the server. Reading Router.locale bare
+ * made every getServerSideProps request through this instance reject before
+ * it was sent, silently disabling the SSR redirects built on it.
+ */
+const routerLocale = (): string | undefined => {
+    if (typeof window === 'undefined') return undefined;
+    try {
+        return Router.locale;
+    } catch {
+        return undefined;
+    }
+};
+
 // Add request interceptor
 api.interceptors.request.use(
     async (config) => {
@@ -91,7 +106,7 @@ api.interceptors.request.use(
          * reliable second source.
          */
         config.headers['Accept-Language'] =
-            Router.locale ||
+            routerLocale() ||
             (typeof document !== 'undefined' ? document.documentElement.lang : '') ||
             'en';
 
