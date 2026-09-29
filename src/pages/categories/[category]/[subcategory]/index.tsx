@@ -44,6 +44,12 @@ const SubCategoryPage: React.FC = () => {
     fetchProductsData(router.locale, categorySlug as string, subcategorySlug as string)
       .then((data) => {
         if (data && typeof data === 'object') {
+          // Hidden level (see getServerSideProps): mirror its redirect for a
+          // client-side navigation that skipped it.
+          if (data.show_products_in_category) {
+            router.replace(`/categories/${categorySlug}`);
+            return;
+          }
           setProducts(data.products || []);
           setCurrentCategory(data.category || '');
           setCurrentSubcategory(data.subcategory || '');
@@ -166,6 +172,20 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     const { category, subcategory } = context.params as { category: string; subcategory: string };
 
     const data = await fetchProductsData(locale, category, subcategory);
+    // A getServerSideProps redirect is NOT locale-prefixed by Next.js.
+    const prefix = locale === (context.defaultLocale || 'en') ? '' : `/${locale}`;
+
+    // A subcategory flagged `show_products_in_category` is not a storefront
+    // level — its products are listed on the category page itself.
+    if (data?.show_products_in_category) {
+      return {
+        redirect: {
+          destination: `${prefix}/categories/${category}`,
+          permanent: false
+        }
+      };
+    }
+
     const products = data?.products || [];
 
     if (Array.isArray(products) && products.length === 1) {
@@ -173,7 +193,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       if (productSlug) {
         return {
           redirect: {
-            destination: `/categories/${category}/${subcategory}/${productSlug}?single=1`,
+            destination: `${prefix}/categories/${category}/${subcategory}/${productSlug}?single=1`,
             permanent: false
           }
         };

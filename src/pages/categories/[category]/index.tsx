@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import BackButton from "@/components/ui/back-button";
 import ComingSoon from "@/components/ui/coming-soon";
@@ -21,6 +21,24 @@ interface SubCategory {
   }
 }
 
+// A product from a subcategory flagged `show_products_in_category` — listed
+// here on the category page, since that subcategory is not a storefront level.
+interface CategoryProduct {
+  id: number;
+  slug: string;
+  name: string;
+  full_path: {
+    image: string | null;
+  };
+  subcategory: {
+    slug: string;
+  };
+}
+
+type CategoryItem =
+  | { kind: 'subcategory'; item: SubCategory }
+  | { kind: 'product'; item: CategoryProduct };
+
 const SubCategoryCard = ({ category, parentSlug }: { category: SubCategory; parentSlug: string }) => {
   const subcategorySlug = category.slug;
   return (
@@ -40,6 +58,7 @@ export default function CategoryPage() {
   const { generalData } = useGlobalContext();
   const { locale } = useLanguage();
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
+  const [products, setProducts] = useState<CategoryProduct[]>([]);
   const [currentCategory, setCurrentCategory] = useState<string | ''>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,20 +74,23 @@ export default function CategoryPage() {
       .then((data) => {
         if (data && typeof data === 'object') {
           setSubCategories(data.subcategories || []);
+          setProducts(data.products || []);
           setCurrentCategory(data.category || '');
         }
         else {
           console.error('SubCategories data is invalid:', data);
           setSubCategories([]);
+          setProducts([]);
           setCurrentCategory('');
           setError(locale === 'ar' ? 'تم استلام بيانات بتنسيق غير صالح' : 'Invalid data format received');
         }
       })
       .catch((error) => {
-        console.error('Error fetching subategories:', error);
+        console.error('Error fetching category:', error);
         setSubCategories([]);
+        setProducts([]);
         setCurrentCategory('');
-        setError(locale === 'ar' ? 'تعذر تحميل الفئات الفرعية' : 'Failed to load subcategories');
+        setError(locale === 'ar' ? 'تعذر تحميل الفئة' : 'Failed to load this category');
       })
       .finally(() => {
         setIsLoading(false);
@@ -84,23 +106,29 @@ export default function CategoryPage() {
     setCurrentPage(Number.isFinite(parsed) && parsed > 0 ? parsed : 1);
   }, [router.query.page]);
 
+  // Subcategories first, then the products listed directly on this category.
+  const items = useMemo<CategoryItem[]>(() => [
+    ...subCategories.map((item) => ({ kind: 'subcategory' as const, item })),
+    ...products.map((item) => ({ kind: 'product' as const, item })),
+  ], [subCategories, products]);
+
   // Clamp current page when data changes
   useEffect(() => {
-    const totalPages = Math.max(1, Math.ceil(subCategories.length / itemsPerPage));
+    const totalPages = Math.max(1, Math.ceil(items.length / itemsPerPage));
     if (currentPage > totalPages) {
       setCurrentPage(1);
     }
-  }, [subCategories, currentPage, itemsPerPage]);
+  }, [items, currentPage, itemsPerPage]);
 
   // If no category or categories, show 404 - MUST BE AFTER ALL HOOKS
   if (!category || !category.length) {
     return <Error statusCode={404} />;
   }
 
-  const hasContent = subCategories.length > 0;
-  const totalPages = Math.max(1, Math.ceil(subCategories.length / itemsPerPage));
+  const hasContent = items.length > 0;
+  const totalPages = Math.max(1, Math.ceil(items.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedSubCategories = subCategories.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedItems = items.slice(startIndex, startIndex + itemsPerPage);
 
   const goToPage = (page: number) => {
     const target = Math.min(Math.max(1, page), totalPages);
@@ -159,11 +187,20 @@ export default function CategoryPage() {
         <div>
           <h1 className="text-2xl font-bold mb-6 text-app-black dark:text-app-red">{currentCategory}</h1>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {paginatedSubCategories.map((subCategory) => (
+            {paginatedItems.map((entry) => entry.kind === 'subcategory' ? (
               <SubCategoryCard
-                key={subCategory.id}
-                category={subCategory}
+                key={`subcategory-${entry.item.id}`}
+                category={entry.item}
                 parentSlug={category as string}
+              />
+            ) : (
+              <Card
+                key={`product-${entry.item.id}`}
+                id={entry.item.id.toString()}
+                title={entry.item.name}
+                image={entry.item.full_path.image}
+                type="product"
+                href={`/categories/${category}/${entry.item.subcategory.slug}/${entry.item.slug}`}
               />
             ))}
           </div>
