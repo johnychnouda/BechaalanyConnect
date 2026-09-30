@@ -57,7 +57,6 @@ interface UserType {
   role: string;
   country: string;
   phone_number: string;
-  is_business_user: boolean;
   business_name: string;
   business_location: string;
   credits_balance: number;
@@ -175,7 +174,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       role: sessionUser?.role || pu?.role || 'user',
       country: pu?.country || '',
       phone_number: pu?.phone_number || '',
-      is_business_user: pu?.is_business_user || false,
       business_name: pu?.business_name || '',
       business_location: pu?.business_location || '',
       // Profile first, session second. /user/profile refetches every 5 minutes, so an

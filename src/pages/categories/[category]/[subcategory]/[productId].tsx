@@ -31,7 +31,6 @@ interface ProductVariation {
     image: string | null;
   }
   price: number;
-  wholesale_price: number | null;
   product_id: number;
   is_active: number;
   quantity: number | null;
