@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import GoogleButton from "@/components/ui/google-button";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
+import { useForm, FieldValues } from "react-hook-form";
 import { getErrorMessage } from "@/utils/getErrorMessage";
 import { useRouter } from "next/router";
 import { getSession } from "next-auth/react";
@@ -78,7 +78,7 @@ export default function SigninPage() {
    */
   const validatePassword = (value: string) => value.trim().length > 0;
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: FieldValues) => {
     setError("");
     setSuccess(false);
     try {

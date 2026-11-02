@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
 
 interface Product {
     id: number;

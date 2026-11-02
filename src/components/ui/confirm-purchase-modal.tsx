@@ -17,6 +17,10 @@ interface ConfirmPurchaseModalProps {
   recipientValue?: string;
   quantity: number;
   unitPrice: number;
+  /** Coin Recharge: "25,000 Coins" and "1,000 Coins = $0.13" replace the
+   *  Quantity / Unit price rows, whose per-coin unit price would read $0.00. */
+  coinLabel?: string;
+  coinRate?: string;
   total: number;
   currentBalance: number;
 }
@@ -40,6 +44,8 @@ export default function ConfirmPurchaseModal({
   recipientValue,
   quantity,
   unitPrice,
+  coinLabel,
+  coinRate,
   total,
   currentBalance,
 }: ConfirmPurchaseModalProps) {
@@ -64,8 +70,17 @@ export default function ConfirmPurchaseModal({
             emphasize
           />
         )}
-        <Row label={isArabic ? 'الكمية' : 'Quantity'} value={String(quantity)} />
-        <Row label={isArabic ? 'سعر الوحدة' : 'Unit price'} value={`$${unitPrice.toFixed(2)}`} />
+        {coinLabel ? (
+          <>
+            <Row label={isArabic ? 'الكمية' : 'Amount'} value={coinLabel} emphasize />
+            {coinRate && <Row label={isArabic ? 'السعر' : 'Rate'} value={coinRate} />}
+          </>
+        ) : (
+          <>
+            <Row label={isArabic ? 'الكمية' : 'Quantity'} value={String(quantity)} />
+            <Row label={isArabic ? 'سعر الوحدة' : 'Unit price'} value={`$${unitPrice.toFixed(2)}`} />
+          </>
+        )}
 
         <div className="border-t border-app-black/10 dark:border-white/10 my-1" />
 

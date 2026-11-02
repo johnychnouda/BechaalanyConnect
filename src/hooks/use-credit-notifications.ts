@@ -142,7 +142,7 @@ export const useCreditNotifications = () => {
             console.log(`Processing ${newNotifications.length} new credit notifications`);
           }
 
-          newNotifications.forEach(async (notification, index) => {
+          newNotifications.forEach(async (notification) => {
             try {
               console.log('Processing credit notification:', notification.type, notification.request_id);
               
@@ -162,7 +162,7 @@ export const useCreditNotifications = () => {
                     
                     // Send acknowledgment to backend (optional - helps ensure notification is truly marked as read)
                     try {
-                      const ackResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/${locale}/user/notifications/${notification.id}/acknowledge`, {
+                      await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/${locale}/user/notifications/${notification.id}/acknowledge`, {
                         method: 'POST',
                         headers: {
                           'Authorization': `Bearer ${token}`,
@@ -184,7 +184,7 @@ export const useCreditNotifications = () => {
                   
                   // Send acknowledgment to backend (optional)
                   try {
-                    const ackResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/${locale}/user/notifications/${notification.id}/acknowledge`, {
+                    await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/${locale}/user/notifications/${notification.id}/acknowledge`, {
                       method: 'POST',
                       headers: {
                         'Authorization': `Bearer ${token}`,

@@ -200,12 +200,16 @@ export default function OrderDetailPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
               <div>
                 <div className="text-[#8E8E8E] text-xs">{locale === 'en' ? 'Quantity' : 'الكمية'}</div>
-                <div className="text-[#070707] dark:text-white font-medium">{order.quantity}</div>
+                <div className="text-[#070707] dark:text-white font-medium">{Number(order.quantity).toLocaleString('en-US')}</div>
               </div>
-              <div>
-                <div className="text-[#8E8E8E] text-xs">{locale === 'en' ? 'Unit price' : 'سعر الوحدة'}</div>
-                <div className="text-[#070707] dark:text-white font-medium">${unitPrice.toFixed(2)}</div>
-              </div>
+              {/* A coin order's quantity is the coin count, so its unit price is
+                  sub-cent and would read $0.00 — leave it out. */}
+              {unitPrice >= 0.01 && (
+                <div>
+                  <div className="text-[#8E8E8E] text-xs">{locale === 'en' ? 'Unit price' : 'سعر الوحدة'}</div>
+                  <div className="text-[#070707] dark:text-white font-medium">${unitPrice.toFixed(2)}</div>
+                </div>
+              )}
               {processed.recipient_info && (
                 <div className="col-span-2 sm:col-span-1">
                   <div className="text-[#8E8E8E] text-xs">{locale === 'en' ? 'Recipient' : 'المستلم'}</div>

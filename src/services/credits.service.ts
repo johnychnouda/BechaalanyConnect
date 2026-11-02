@@ -1,6 +1,5 @@
 import { useCreditsStore } from '@/store/credits.store';
 import { useNotificationStore } from '@/store/notification.store';
-import { toast } from 'react-toastify';
 
 export class CreditsService {
   private static instance: CreditsService;

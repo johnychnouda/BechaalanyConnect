@@ -69,6 +69,8 @@ interface UserType {
    *  the user_types relation stops being eager-loaded again. */
   user_types_id: number | null;
   verification_status: 'unsubmitted' | 'pending' | 'approved' | 'rejected';
+  /** Admin-granted reseller API access (users.api_enabled) — shows the API keys page. */
+  api_enabled: boolean;
 }
 
 interface UserSalesType {
@@ -188,6 +190,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       received_amount: Number(profile?.received_amount ?? pu?.received_amount ?? 0) || 0,
       orders: profile?.orders || [],
       verification_status: (pu?.verification_status || sessionUser?.verification_status || 'unsubmitted'),
+      api_enabled: Boolean(pu?.api_enabled),
     };
   }, [sessionUser, profile]);
 

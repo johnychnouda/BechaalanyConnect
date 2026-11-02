@@ -1,5 +1,4 @@
 import React from 'react';
-import { useCreditNotifications } from '@/hooks/use-credit-notifications';
 
 interface CreditNotificationProviderProps {
   children: React.ReactNode;

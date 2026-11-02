@@ -210,7 +210,7 @@ const NotificationsPageContent: React.FC = () => {
       // an approval. `deriveNotificationDisplay` below is keyed off the full set of
       // types the backend actually emits (NotificationController.php's
       // create*Notification factories), so a rejection can never present as one.
-      return backendNotifications.map((notification: any) => {
+      return backendNotifications.map((notification: { id: number | string; created_at: string; read_at?: string | null; type?: string; amount?: number | string; request_id?: string; message?: string }) => {
         const { status, title, description } = deriveNotificationDisplay(notification, isArabic);
         return {
           id: notification.id,
@@ -1064,6 +1064,7 @@ const EmptyState = styled.div`
 `;
 
 // Credit-specific styled components
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- prepared styles for the credit-notification detail view
 const CreditInfo = styled.div<{ status: 'success' | 'rejected' }>`
   display: flex;
   align-items: center;
@@ -1083,6 +1084,7 @@ const CreditInfo = styled.div<{ status: 'success' | 'rejected' }>`
   };
 `;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- prepared styles for the credit-notification detail view
 const CreditAmount = styled.span`
   font-weight: 600;
   font-size: 1.1rem;
@@ -1093,6 +1095,7 @@ const CreditAmount = styled.span`
   }
 `;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- prepared styles for the credit-notification detail view
 const RequestId = styled.span`
   font-size: 0.85rem;
   color: #666;

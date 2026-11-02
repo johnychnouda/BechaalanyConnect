@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
-  swcMinify: true,
   poweredByHeader: false,
 
   // The Pages Router SSR path for styled-components (still used by ~5 components:
@@ -35,6 +34,7 @@ const nextConfig = {
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "admin.bechaalanyconnect.com" },
       { protocol: "http", hostname: "localhost" },
+      { protocol: "https", hostname: "bechaalany-connect-backend.test" },
       { protocol: "http", hostname: "127.0.0.1" },
       // Supplier-hosted category artwork (Yassen serves absolute image URLs).
       { protocol: "https", hostname: "yassen-card.com" },

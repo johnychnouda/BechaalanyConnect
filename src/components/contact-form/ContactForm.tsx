@@ -1,13 +1,15 @@
 import { ContactUsDataType } from '@/types/ContactPageData.type'
 import React from 'react'
 import { useRouter } from 'next/router'
+import { FieldErrors, UseFormRegister, UseFormHandleSubmit, SubmitHandler } from 'react-hook-form'
+import type { ContactFormData } from '@/pages/contact-us'
 
 interface ContactFormProps {
   contactUsData: ContactUsDataType | null;
-  errors: any;
-  register: any;
-  handleSubmit: any;
-  onSubmit: any;
+  errors: FieldErrors<ContactFormData>;
+  register: UseFormRegister<ContactFormData>;
+  handleSubmit: UseFormHandleSubmit<ContactFormData>;
+  onSubmit: SubmitHandler<ContactFormData>;
   setIsDropdownOpen: (value: boolean) => void;
   isDropdownOpen: boolean;
   selectedSubject: string;

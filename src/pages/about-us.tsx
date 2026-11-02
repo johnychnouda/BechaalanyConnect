@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
-import Head from "next/head";
 import SeoHead from "@/components/ui/SeoHead";
 import Image from "next/image";
 import Link from "next/link";
-import { FaInstagram, FaFacebook, FaTiktok } from "react-icons/fa";
 import BackButton from "@/components/ui/back-button";
 import { useGlobalContext } from "@/context/GlobalContext";
 import { fetchAboutUsData } from "@/services/api.service";
@@ -17,7 +15,7 @@ export default function AboutUs() {
   const router = useRouter();
   const [aboutUsData, setAboutUsData] = useState<AboutUsDataType | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!router.locale) return;

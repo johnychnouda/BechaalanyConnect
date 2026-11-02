@@ -39,8 +39,8 @@ export function FormField({ label, hint, error, required, className, children }:
   const isCloneableControl = isValidElement(children) && typeof children.type !== "string";
 
   const control = isCloneableControl
-    ? cloneElement(children as React.ReactElement<any>, {
-        id: (children as React.ReactElement<any>).props.id ?? generatedId,
+    ? cloneElement(children as React.ReactElement<{ id?: string; invalid?: boolean; 'aria-describedby'?: string }>, {
+        id: (children as React.ReactElement<{ id?: string; invalid?: boolean; 'aria-describedby'?: string }>).props.id ?? generatedId,
         invalid: Boolean(error),
         "aria-describedby": describedBy,
       })
@@ -50,7 +50,7 @@ export function FormField({ label, hint, error, required, className, children }:
     <div className={clsx("flex flex-col gap-1.5", className)}>
       {label && (
         <label
-          htmlFor={isCloneableControl ? (children as React.ReactElement<any>).props.id ?? generatedId : generatedId}
+          htmlFor={isCloneableControl ? (children as React.ReactElement<{ id?: string; invalid?: boolean; 'aria-describedby'?: string }>).props.id ?? generatedId : generatedId}
           className="text-sm font-semibold text-app-black dark:text-white text-start"
         >
           {label}

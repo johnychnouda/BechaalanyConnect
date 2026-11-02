@@ -1,16 +1,21 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/router";
-import BackButton from "@/components/ui/back-button";
-import ComingSoon from "@/components/ui/coming-soon";
-import Breadcrumb from "@/components/ui/breadcrumb";
-import Card from "@/components/ui/card";
-import Error from "next/error";
-import { useGlobalContext } from "@/context/GlobalContext";
-import { fetchSubCategoriesData } from "@/services/api.service";
-import CardSkeleton from "@/components/ui/card-skeleton";
-import SeoHead from "@/components/ui/SeoHead";
-import { useLanguage } from "@/hooks/use-language";
-import { ErrorState } from "@/components/ui/primitives/ErrorState";
+import React, { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/router';
+import BackButton from '@/components/ui/back-button';
+import ComingSoon from '@/components/ui/coming-soon';
+import Breadcrumb from '@/components/ui/breadcrumb';
+import Card from '@/components/ui/card';
+import Error from 'next/error';
+import { useGlobalContext } from '@/context/GlobalContext';
+import { fetchSubCategoriesData } from '@/services/api.service';
+import CardSkeleton from '@/components/ui/card-skeleton';
+import SeoHead from '@/components/ui/SeoHead';
+import { useLanguage } from '@/hooks/use-language';
+import { ErrorState } from '@/components/ui/primitives/ErrorState';
+import { EmptyState } from '@/components/ui/primitives/EmptyState';
+import { Input } from '@/components/ui/primitives/Input';
+import Pagination from '@/components/ui/pagination';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { useListSearchPagination } from '@/hooks/use-list-search-pagination';
 
 interface SubCategory {
   id: number;
@@ -18,7 +23,7 @@ interface SubCategory {
   title: string;
   full_path: {
     image: string | null;
-  }
+  };
 }
 
 // A product from a subcategory flagged `show_products_in_category` — listed
@@ -39,7 +44,13 @@ type CategoryItem =
   | { kind: 'subcategory'; item: SubCategory }
   | { kind: 'product'; item: CategoryProduct };
 
-const SubCategoryCard = ({ category, parentSlug }: { category: SubCategory; parentSlug: string }) => {
+const SubCategoryCard = ({
+  category,
+  parentSlug,
+}: {
+  category: SubCategory;
+  parentSlug: string;
+}) => {
   const subcategorySlug = category.slug;
   return (
     <Card
@@ -62,8 +73,6 @@ export default function CategoryPage() {
   const [currentCategory, setCurrentCategory] = useState<string | ''>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const itemsPerPage = 12;
 
   useEffect(() => {
     if (!router.locale || !category) return;
@@ -71,21 +80,22 @@ export default function CategoryPage() {
     setError(null);
 
     fetchSubCategoriesData(router.locale, category as string)
-      .then((data) => {
+      .then(data => {
         if (data && typeof data === 'object') {
           setSubCategories(data.subcategories || []);
           setProducts(data.products || []);
           setCurrentCategory(data.category || '');
-        }
-        else {
+        } else {
           console.error('SubCategories data is invalid:', data);
           setSubCategories([]);
           setProducts([]);
           setCurrentCategory('');
-          setError(locale === 'ar' ? 'تم استلام بيانات بتنسيق غير صالح' : 'Invalid data format received');
+          setError(
+            locale === 'ar' ? 'تم استلام بيانات بتنسيق غير صالح' : 'Invalid data format received'
+          );
         }
       })
-      .catch((error) => {
+      .catch(error => {
         console.error('Error fetching category:', error);
         setSubCategories([]);
         setProducts([]);
@@ -97,28 +107,22 @@ export default function CategoryPage() {
       });
   }, [router.locale, category, locale]);
 
-
-  // Sync page from query param
-  useEffect(() => {
-    const pageParam = router.query.page;
-    const raw = Array.isArray(pageParam) ? pageParam[0] : pageParam;
-    const parsed = raw ? parseInt(raw as string, 10) : 1;
-    setCurrentPage(Number.isFinite(parsed) && parsed > 0 ? parsed : 1);
-  }, [router.query.page]);
-
   // Subcategories first, then the products listed directly on this category.
-  const items = useMemo<CategoryItem[]>(() => [
-    ...subCategories.map((item) => ({ kind: 'subcategory' as const, item })),
-    ...products.map((item) => ({ kind: 'product' as const, item })),
-  ], [subCategories, products]);
+  const items = useMemo<CategoryItem[]>(
+    () => [
+      ...subCategories.map(item => ({ kind: 'subcategory' as const, item })),
+      ...products.map(item => ({ kind: 'product' as const, item })),
+    ],
+    [subCategories, products]
+  );
 
-  // Clamp current page when data changes
-  useEffect(() => {
-    const totalPages = Math.max(1, Math.ceil(items.length / itemsPerPage));
-    if (currentPage > totalPages) {
-      setCurrentPage(1);
-    }
-  }, [items, currentPage, itemsPerPage]);
+  // Search mirrored to ?q= and page to ?page=, so refresh/share keep both.
+  const { searchQuery, setSearchQuery, filteredItems, paginatedItems, currentPage, totalPages, goToPage } =
+    useListSearchPagination(
+      items,
+      entry => (entry.kind === 'subcategory' ? entry.item.title : entry.item.name),
+      { isLoading, resetKey: category }
+    );
 
   // If no category or categories, show 404 - MUST BE AFTER ALL HOOKS
   if (!category || !category.length) {
@@ -126,46 +130,37 @@ export default function CategoryPage() {
   }
 
   const hasContent = items.length > 0;
-  const totalPages = Math.max(1, Math.ceil(items.length / itemsPerPage));
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedItems = items.slice(startIndex, startIndex + itemsPerPage);
-
-  const goToPage = (page: number) => {
-    const target = Math.min(Math.max(1, page), totalPages);
-    router.push(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, page: target }
-      },
-      undefined,
-      { shallow: true, scroll: true }
-    );
-  };
 
   const breadcrumbItems = [
     { label: generalData?.settings?.homepage_label || '', href: '/' },
     { label: generalData?.settings?.categories_label || '', href: '/categories' },
-    { label: currentCategory || (category as string) || '' }
+    { label: currentCategory || (category as string) || '' },
   ];
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <SeoHead seo={{
-        title: `${currentCategory || (category as string)} - Bechaalany Connect`,
-        description: `Browse category ${currentCategory || category}`,
-        og: {
+      <SeoHead
+        seo={{
           title: `${currentCategory || (category as string)} - Bechaalany Connect`,
           description: `Browse category ${currentCategory || category}`,
-          image: generalData?.settings?.full_path?.logo || undefined,
-          url: `${process.env.NEXT_PUBLIC_SITE_URL}/categories/${category}`,
-          type: 'website',
-        },
-        canonical_url: `${process.env.NEXT_PUBLIC_SITE_URL}/categories/${category}`,
-        meta_robots: 'index, follow',
-        keywords: `${currentCategory || (category as string)} - Bechaalany Connect`,
-      }} />
+          og: {
+            title: `${currentCategory || (category as string)} - Bechaalany Connect`,
+            description: `Browse category ${currentCategory || category}`,
+            image: generalData?.settings?.full_path?.logo || undefined,
+            url: `${process.env.NEXT_PUBLIC_SITE_URL}/categories/${category}`,
+            type: 'website',
+          },
+          canonical_url: `${process.env.NEXT_PUBLIC_SITE_URL}/categories/${category}`,
+          meta_robots: 'index, follow',
+          keywords: `${currentCategory || (category as string)} - Bechaalany Connect`,
+        }}
+      />
       <Breadcrumb items={breadcrumbItems} />
-      <BackButton href="/categories" className="mb-4" label={generalData?.settings.back_button_label || ''} />
+      <BackButton
+        href="/categories"
+        className="mb-4"
+        label={generalData?.settings.back_button_label || ''}
+      />
       {isLoading ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-8">
           {[...Array(4)].map((_, i) => (
@@ -185,51 +180,70 @@ export default function CategoryPage() {
         />
       ) : hasContent ? (
         <div>
-          <h1 className="text-2xl font-bold mb-6 text-app-black dark:text-app-red">{currentCategory}</h1>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {paginatedItems.map((entry) => entry.kind === 'subcategory' ? (
-              <SubCategoryCard
-                key={`subcategory-${entry.item.id}`}
-                category={entry.item}
-                parentSlug={category as string}
-              />
-            ) : (
-              <Card
-                key={`product-${entry.item.id}`}
-                id={entry.item.id.toString()}
-                title={entry.item.name}
-                image={entry.item.full_path.image}
-                type="product"
-                href={`/categories/${category}/${entry.item.subcategory.slug}/${entry.item.slug}`}
-              />
-            ))}
+          <h1 className="text-2xl font-bold mb-6 text-app-black dark:text-app-red">
+            {currentCategory}
+          </h1>
+          <div className="relative mb-6 max-w-md">
+            <MagnifyingGlassIcon
+              className="w-5 h-5 absolute top-1/2 -translate-y-1/2 start-4 text-neutral-400 pointer-events-none"
+              aria-hidden="true"
+            />
+            <Input
+              type="search"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder={
+                locale === 'ar'
+                  ? `ابحث في ${currentCategory}...`
+                  : `Search in ${currentCategory}...`
+              }
+              aria-label={locale === 'ar' ? 'بحث' : 'Search'}
+              className="ps-11"
+            />
           </div>
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-6">
-              <button
-                onClick={() => goToPage(currentPage - 1)}
-                disabled={currentPage === 1}
-                className={`px-3 py-1 rounded-full border border-app-red ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-app-red hover:text-white'} text-app-black dark:text-white`}
-              >
-                {locale === 'ar' ? 'السابق' : 'Prev'}
-              </button>
-              {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
-                <button
-                  key={pageNum}
-                  onClick={() => goToPage(pageNum)}
-                  className={`px-3 py-1 rounded-full border ${pageNum === currentPage ? 'bg-app-red text-white border-app-red' : 'border-app-red text-app-black dark:text-white hover:bg-app-red hover:text-white'}`}
-                >
-                  {pageNum}
-                </button>
-              ))}
-              <button
-                onClick={() => goToPage(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className={`px-3 py-1 rounded-full border border-app-red ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-app-red hover:text-white'} text-app-black dark:text-white`}
-              >
-                {locale === 'ar' ? 'التالي' : 'Next'}
-              </button>
-            </div>
+          {filteredItems.length === 0 ? (
+            <EmptyState
+              icon={<MagnifyingGlassIcon className="w-10 h-10" />}
+              title={
+                locale === 'ar'
+                  ? `لا توجد نتائج لـ "${searchQuery}"`
+                  : `No results for "${searchQuery}"`
+              }
+              action={{
+                label: locale === 'ar' ? 'مسح البحث' : 'Clear search',
+                onClick: () => setSearchQuery(''),
+                variant: 'outline',
+              }}
+            />
+          ) : (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {paginatedItems.map(entry =>
+                  entry.kind === 'subcategory' ? (
+                    <SubCategoryCard
+                      key={`subcategory-${entry.item.id}`}
+                      category={entry.item}
+                      parentSlug={category as string}
+                    />
+                  ) : (
+                    <Card
+                      key={`product-${entry.item.id}`}
+                      id={entry.item.id.toString()}
+                      title={entry.item.name}
+                      image={entry.item.full_path.image}
+                      type="product"
+                      href={`/categories/${category}/${entry.item.subcategory.slug}/${entry.item.slug}`}
+                    />
+                  )
+                )}
+              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={goToPage}
+                locale={locale}
+              />
+            </>
           )}
         </div>
       ) : (
@@ -237,4 +251,4 @@ export default function CategoryPage() {
       )}
     </div>
   );
-} 
+}

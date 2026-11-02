@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, useContext, useEffect, useState } from "react";
+import React, { PropsWithChildren, useState } from "react";
 import PageLayout from "./page-layout";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useIsMounted } from "@/hooks/use-is-mounted";
@@ -12,7 +12,6 @@ import Notification from "./notification";
 import { useNotificationStore } from "@/store/notification.store";
 import { useNotificationCount } from "@/hooks/use-notification-count";
 import { useCreditsBalance, useIsCreditsUpdating } from "@/store/credits.store";
-import { useRouter } from "next/router";
 import Image from "next/image";
 import { useGlobalContext } from "@/context/GlobalContext";
 import { BurgerIcon } from "@/assets/icons/burger.icon";
@@ -35,7 +34,6 @@ export default function Header({ children }: PropsWithChildren) {
   const isCreditsUpdating = useIsCreditsUpdating();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const router = useRouter();
 
   // Was `if (!isMounted) return null`, which blanked the ENTIRE header (burger,
   // logo, nav, everything) until hydration on every single page load — a

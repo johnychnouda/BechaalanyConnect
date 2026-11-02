@@ -8,7 +8,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 declare module "next-auth" {
     interface Session {
         laravelToken?: string;
-        laravelUser?: any;
+        laravelUser?: Record<string, unknown>;
         // Slim identity only. Volatile fields (credits_balance, totals, business_*, user_types,
         // orders) live in AuthContext, fetched from /user/profile — never in the session cookie.
         user: {
@@ -25,7 +25,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
     interface JWT {
         laravelToken?: string;
-        laravelUser?: any;
+        laravelUser?: Record<string, unknown>;
     }
 }
 
@@ -161,8 +161,8 @@ export default NextAuth({
 
             // Handle credentials login
             if (account?.provider === "credentials" && user) {
-                token.laravelToken = (user as any).laravelToken;
-                token.laravelUser = (user as any).laravelUser;
+                token.laravelToken = (user as { laravelToken?: string }).laravelToken;
+                token.laravelUser = (user as { laravelUser?: Record<string, unknown> }).laravelUser;
             }
 
   
@@ -187,13 +187,14 @@ export default NextAuth({
             session.laravelUser = token.laravelUser;
 
             if (token.laravelUser) {
+                const lu = token.laravelUser as { id?: string | number; email?: string; name?: string; role?: string; user_types_id?: number; verification_status?: 'unsubmitted' | 'pending' | 'approved' | 'rejected' };
                 session.user = {
-                    id: token.laravelUser.id?.toString(),
-                    email: token.laravelUser.email,
-                    name: token.laravelUser.name,
-                    role: token.laravelUser.role,
-                    user_types_id: token.laravelUser.user_types_id,
-                    verification_status: token.laravelUser.verification_status,
+                    id: lu.id?.toString(),
+                    email: lu.email,
+                    name: lu.name,
+                    role: lu.role,
+                    user_types_id: lu.user_types_id,
+                    verification_status: lu.verification_status,
                 };
             }
 

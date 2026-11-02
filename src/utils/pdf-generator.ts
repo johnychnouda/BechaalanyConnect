@@ -1,5 +1,15 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import type { ProcessedOrder } from '@/components/dashboard/orderRow';
+
+type JsPdfExtras = {
+    addFileToVFS: (filename: string, data: string) => void;
+    addFont: (postScriptName: string, id: string, fontStyle: string) => void;
+    internal: { pageSize: { getWidth: () => number } };
+    lastAutoTable: { finalY: number };
+};
+
+type ReceiptOrder = ProcessedOrder & { users_id?: number; locale?: string };
 
 // Cache to avoid re-fetching/registering the font per session
 let amiriFontRegistered = false;
@@ -35,10 +45,10 @@ async function ensureAmiriFont(doc: jsPDF): Promise<void> {
     ]);
     const base64Regular = arrayBufferToBase64(abRegular);
     const base64Bold = arrayBufferToBase64(abBold);
-    (doc as any).addFileToVFS(AMIRI_FONT_REGULAR_FILE, base64Regular);
-    (doc as any).addFileToVFS(AMIRI_FONT_BOLD_FILE, base64Bold);
-    (doc as any).addFont(AMIRI_FONT_REGULAR_FILE, AMIRI_FONT_FAMILY, 'normal');
-    (doc as any).addFont(AMIRI_FONT_BOLD_FILE, AMIRI_FONT_FAMILY, 'bold');
+    (doc as unknown as JsPdfExtras).addFileToVFS(AMIRI_FONT_REGULAR_FILE, base64Regular);
+    (doc as unknown as JsPdfExtras).addFileToVFS(AMIRI_FONT_BOLD_FILE, base64Bold);
+    (doc as unknown as JsPdfExtras).addFont(AMIRI_FONT_REGULAR_FILE, AMIRI_FONT_FAMILY, 'normal');
+    (doc as unknown as JsPdfExtras).addFont(AMIRI_FONT_BOLD_FILE, AMIRI_FONT_FAMILY, 'bold');
     amiriFontRegistered = true;
 }
 
@@ -95,7 +105,7 @@ export const generateOrderReceipt = async (orderData: OrderReceiptData, locale?:
         doc.setTextColor(0, 0, 0);
 
         // Compute mirrored X positions for RTL
-        const pageWidth = (doc as any).internal.pageSize.getWidth();
+        const pageWidth = (doc as unknown as JsPdfExtras).internal.pageSize.getWidth();
         const leftColX = 20;
         const rightColX = 120;
         const leftColX_AR = pageWidth - rightColX; // mirror of 120 from right
@@ -152,7 +162,7 @@ export const generateOrderReceipt = async (orderData: OrderReceiptData, locale?:
             ? rawRows.map(([label, value]) => [value, label]) // reverse columns for RTL: Details | Item
             : rawRows; // Item | Details
 
-        const pageWidthTable = (doc as any).internal.pageSize.getWidth();
+        const pageWidthTable = (doc as unknown as JsPdfExtras).internal.pageSize.getWidth();
         const rightMargin = 20;
         const labelColWidth = 40;
         const valueColWidth = 80;
@@ -172,15 +182,15 @@ export const generateOrderReceipt = async (orderData: OrderReceiptData, locale?:
                 textColor: 255,
                 fontStyle: 'bold',
                 font: AMIRI_FONT_FAMILY,
-                halign: (isArabic ? 'right' : 'left') as any,
+                halign: (isArabic ? 'right' : 'left') as 'right' | 'left',
             },
             styles: {
                 fontSize: 10,
                 cellPadding: 5,
                 font: AMIRI_FONT_FAMILY,
-                halign: (isArabic ? 'right' : 'left') as any,
+                halign: (isArabic ? 'right' : 'left') as 'right' | 'left',
             },
-            didParseCell: (data: any) => {
+            didParseCell: (data: { cell: { styles: { font: string; halign: string } } }) => {
                 if (isArabic) {
                     data.cell.styles.font = AMIRI_FONT_FAMILY;
                     data.cell.styles.halign = 'right';
@@ -198,7 +208,7 @@ export const generateOrderReceipt = async (orderData: OrderReceiptData, locale?:
         });
 
         // Get the table's end position to avoid overlap
-        const tableEndY = (doc as any).lastAutoTable.finalY || (140);
+        const tableEndY = (doc as unknown as JsPdfExtras).lastAutoTable.finalY || (140);
 
         // Footer - positioned below the table with proper spacing
         const footerY = tableEndY + 20; // Add 20px spacing after table
@@ -219,7 +229,7 @@ export const generateOrderReceipt = async (orderData: OrderReceiptData, locale?:
 };
 
 export const generateOrderReceiptFromProcessedOrder = async (
-    order: any,
+    order: ReceiptOrder,
     locale?: string
 ): Promise<void> => {
     try {
@@ -267,7 +277,7 @@ export const generateOrderReceiptFromProcessedOrder = async (
     }
 };
 
-export const generateBulkOrderReceipts = async (orders: any[]): Promise<void> => {
+export const generateBulkOrderReceipts = async (orders: ReceiptOrder[]): Promise<void> => {
     try {
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];

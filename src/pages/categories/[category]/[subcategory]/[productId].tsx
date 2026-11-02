@@ -14,7 +14,7 @@ import { useCreditOperations } from "@/services/credits.service";
 import SeoHead from "@/components/ui/SeoHead";
 import PendingApprovalModal from "@/components/ui/pending-approval-modal";
 import ConfirmPurchaseModal from "@/components/ui/confirm-purchase-modal";
-import { PRODUCT_TYPE_USER_ID, PRODUCT_TYPE_PHONE, PRODUCT_TYPE_COIN } from "@/constants/productTypes";
+import { PRODUCT_TYPE_USER_ID, PRODUCT_TYPE_PHONE, PRODUCT_TYPE_COIN, PRODUCT_TYPE_SOCIAL } from "@/constants/productTypes";
 import { toMessage, insufficientCreditsMessage } from "@/utils/error-message";
 import { useCreditsStore } from "@/store/credits.store";
 import { Button } from "@/components/ui/primitives/Button";
@@ -40,7 +40,26 @@ interface ProductVariation {
   // quantity parameter at all (usharez quota allocates exactly one bundle), so
   // {min:1,max:1} means "the stepper is a lie" — see maxQty below.
   external_qty_values: { min?: number; max?: number } | null;
+  // Smallest / largest quantity the backend accepts (real coins for Coin Recharge
+  // products) — the admin's minimum, the supplier's bounds and our own cap.
+  // saveOrder refuses anything outside them.
+  min_order_quantity?: number;
+  max_order_quantity?: number;
+  // Social Media Services (1xpanel): what the supplier publishes about the
+  // service, refreshed by every catalog sync. null for every other product.
+  external_details?: ServiceDetails | null;
   price_variations: PriceVariation[];
+}
+
+interface ServiceDetails {
+  quality?: string | null;
+  speed?: string | null;
+  refill?: string | null;
+  link?: string | null;
+  start_time?: string | null;
+  drop?: string | null;
+  average_time?: string | null;
+  notes?: string[];
 }
 
 interface PriceVariation {
@@ -74,13 +93,16 @@ interface SelectedAmount {
   // Highest quantity the supplier accepts in one order, or null when unbounded.
   // 1 pins the purchase to a single unit and hides the quantity stepper.
   maxQty: number | null;
+  // Lowest quantity (coins for Coin Recharge) one order may hold; 1 when unbounded.
+  minQty: number;
+  details: ServiceDetails | null;
 }
 
 const ProductPage: React.FC = () => {
   const router = useRouter();
   const { deductFromBalance } = useCreditOperations();
   const creditsBalance = useCreditsStore((state) => state.balance);
-  const { user, isApproved, refreshUserData, balanceStatus } = useAuth();
+  const { user, isApproved, balanceStatus } = useAuth();
   const [showPendingModal, setShowPendingModal] = useState(false);
   const { refreshOrders, generalData } = useGlobalContext();
   const { locale } = useRouter();
@@ -139,7 +161,9 @@ const ProductPage: React.FC = () => {
       description: variation.description,
       unitAmount: variation.unit_amount,
       unitLabel: variation.unit_label,
-      maxQty: variation.external_qty_values?.max ?? null,
+      maxQty: variation.max_order_quantity ?? variation.external_qty_values?.max ?? null,
+      minQty: Math.max(1, Number(variation.min_order_quantity) || 1),
+      details: variation.external_details ?? null,
     }),
     [userTypeId]
   );
@@ -197,17 +221,26 @@ const ProductPage: React.FC = () => {
   }, [productVariations, toAmount]);
 
   const [quantity, setQuantity] = useState(1);
+  // Coin Recharge: what the customer is typing in the coin field (digits only,
+  // may be empty mid-edit). `quantity` holds the parsed coin count.
+  const [coinInput, setCoinInput] = useState('');
 
   // Some variations are sold one at a time — the supplier's purchase endpoint has
   // no quantity parameter (usharez allocates exactly one quota bundle), so an order
   // for 2 is accepted and charged here, rejected upstream, then auto-refunded. Reset
   // to 1 whenever such a variation is selected; the stepper is hidden for it below.
+  // Variations with a minimum (Jawaker sells from 10,000 coins) start at it, so the
+  // first price shown is one the backend will accept.
   // Kept above the early returns so the hook order never changes.
+  const selectedId = selectedAmount?.id;
+  const selectedMaxQty = selectedAmount?.maxQty;
+  const selectedMinQty = selectedAmount?.minQty ?? 1;
   useEffect(() => {
-    if (selectedAmount?.maxQty === 1) {
-      setQuantity(1);
-    }
-  }, [selectedAmount?.id, selectedAmount?.maxQty]);
+    if (selectedId === undefined) return;
+    const start = selectedMaxQty === 1 ? 1 : selectedMinQty;
+    setQuantity(start);
+    setCoinInput(String(start));
+  }, [selectedId, selectedMaxQty, selectedMinQty]);
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -349,13 +382,45 @@ const ProductPage: React.FC = () => {
     );
   }
 
-  // Coin Recharge products: the counter selects blocks (quantity); price-per-block
-  // (selectedAmount.price) × blocks gives the total, exactly like quantity pricing.
-  const isCoin = product?.product_type_id === PRODUCT_TYPE_COIN && !!selectedAmount.unitAmount;
+  // Coin Recharge products: the customer types the real number of coins
+  // (`quantity`). `price` is the price of `unitAmount` coins (e.g. $0.13 per 1,000),
+  // so the total is prorated and rounded UP to the cent — the exact formula
+  // ProductsVariation::coinTotal() charges server-side.
+  const isCoin = product?.product_type_id === PRODUCT_TYPE_COIN;
+  // Social Media Services (1xpanel) use the same engine: `price` is per
+  // `unitAmount` (1,000) followers/views/…, the customer types the real quantity,
+  // and the link they want it delivered to — like the panel's own order form.
+  const isSocial = product?.product_type_id === PRODUCT_TYPE_SOCIAL;
+  const isProrated = isCoin || isSocial;
+  const pricingUnit = selectedAmount.unitAmount && selectedAmount.unitAmount > 0 ? selectedAmount.unitAmount : 1;
   // Supplier sells this one unit at a time — no stepper, and the order is pinned
   // to 1 regardless of any stale quantity state.
-  const qtyLocked = selectedAmount.maxQty === 1;
-  const total = selectedAmount.price * quantity;
+  const qtyLocked = !isProrated && selectedAmount.maxQty === 1;
+  const total = isProrated
+    ? Math.ceil(Number(((selectedAmount.price * quantity) / pricingUnit * 100).toFixed(6))) / 100
+    : selectedAmount.price * quantity;
+  const coinUnitLabel = isSocial ? '' : selectedAmount.unitLabel || (locale === 'ar' ? 'كوينز' : 'Coins');
+  const withUnit = (n: number) => `${fmt(n)} ${coinUnitLabel}`.trim();
+  const fmt = (n: number) => n.toLocaleString('en-US');
+  // Shown live under the coin field and blocks Buy — nothing is silently clamped.
+  const coinError = !isProrated
+    ? undefined
+    : coinInput === '' || quantity < 1
+      ? (isSocial
+          ? (locale === 'ar' ? 'أدخل الكمية' : 'Enter a quantity')
+          : (locale === 'ar' ? 'أدخل عدد الكوينز' : 'Enter an amount'))
+      : quantity < selectedAmount.minQty
+        ? `${locale === 'ar' ? 'الحد الأدنى' : 'Minimum'} ${withUnit(selectedAmount.minQty)}`
+        : selectedAmount.maxQty != null && quantity > selectedAmount.maxQty
+          ? `${locale === 'ar' ? 'الحد الأقصى' : 'Maximum'} ${withUnit(selectedAmount.maxQty)}`
+          : undefined;
+  // "$2.90 per 1,000" — how the panel itself quotes these services.
+  const socialRate = `$${selectedAmount.price.toFixed(2)} ${locale === 'ar' ? 'لكل' : 'per'} ${fmt(pricingUnit)}`;
+  const details = isSocial ? selectedAmount.details : null;
+  // "Username Link", "Post Link", … from the supplier's description; the field
+  // the order is delivered to (recipient_user).
+  const linkLabel = locale === 'ar' ? 'الرابط' : 'Link';
+  const linkHint = details?.link && !/check description/i.test(details.link) ? details.link : null;
 
   // Live balance from the credits store, so the check reflects any top-up approved
   // while this page was open.
@@ -370,7 +435,7 @@ const ProductPage: React.FC = () => {
   // retry: 1 gives up, and nothing ever set the balance after that).
   const cannotAfford = Boolean(user) && balanceStatus === 'known' && currentBalance < total;
   const balanceCheckFailed = Boolean(user) && balanceStatus === 'error';
-  const coinAmount = isCoin && selectedAmount.unitAmount ? selectedAmount.unitAmount * quantity : 0;
+  const coinAmount = isProrated ? quantity : 0;
 
   const selectedProductVariation = productVariations.find((variation) => variation.id === selectedAmount?.id);
 
@@ -413,9 +478,13 @@ const ProductPage: React.FC = () => {
     // Validate required fields based on product type. Used to be a toast on
     // submit with no indication of which field was wrong until it fired;
     // these are now inline errors on the field itself.
+    if (coinError) return;
+
     const errors: { user?: string; phone?: string } = {};
-    if ((product?.product_type_id === PRODUCT_TYPE_USER_ID || isCoin) && !recipientUser.trim()) {
-      errors.user = locale === 'en' ? 'Please enter a User ID' : 'الرجاء إدخال رقم المستخدم';
+    if ((product?.product_type_id === PRODUCT_TYPE_USER_ID || isProrated) && !recipientUser.trim()) {
+      errors.user = isSocial
+        ? (locale === 'en' ? 'Please enter a link' : 'الرجاء إدخال الرابط')
+        : (locale === 'en' ? 'Please enter a User ID' : 'الرجاء إدخال رقم المستخدم');
     }
     if (product?.product_type_id === PRODUCT_TYPE_PHONE && !recipientPhoneNumber.trim()) {
       errors.phone = locale === 'en' ? 'Please enter a Phone Number' : 'الرجاء إدخال رقم الهاتف';
@@ -439,8 +508,8 @@ const ProductPage: React.FC = () => {
       showSuccess(locale === 'en' ? 'Order placed successfully!' : 'تم وضع الطلب بنجاح!');
       // Deduct amount from credits store for immediate UI feedback
       const productName = selectedProductVariation?.name || product?.name || 'Product';
-      const orderDetail = isCoin
-        ? `${coinAmount.toLocaleString(locale)} ${selectedAmount.unitLabel || ''}`.trim()
+      const orderDetail = isProrated
+        ? `${coinAmount.toLocaleString(locale)} ${isCoin ? selectedAmount.unitLabel || '' : ''}`.trim()
         : `Qty: ${quantity}`;
       deductFromBalance(total, `Purchase of ${productName} (${orderDetail}) for $${total}`);
       // Refresh orders after successful placement
@@ -448,7 +517,8 @@ const ProductPage: React.FC = () => {
       // Reset form fields after successful submission
       setRecipientPhoneNumber('');
       setRecipientUser('');
-      setQuantity(1);
+      setQuantity(selectedAmount.minQty);
+      setCoinInput(String(selectedAmount.minQty));
       setSubmitLoading(false);
       setShowConfirmModal(false);
 
@@ -550,7 +620,7 @@ const ProductPage: React.FC = () => {
               {/* Amount Select — hidden for Coin Recharge (single per-block rate) */}
               {!isCoin && (
               <div>
-                <label htmlFor="amount-trigger" className="block text-gray-800 dark:text-white font-semibold mb-1">{generalData?.settings.amount}</label>
+                <label htmlFor="amount-trigger" className="block text-gray-800 dark:text-white font-semibold mb-1">{isSocial ? (locale === 'ar' ? 'الخدمة' : 'Service') : generalData?.settings.amount}</label>
                 <div ref={dropdownRef} className="relative w-full">
                   <button
                     id="amount-trigger"
@@ -601,45 +671,140 @@ const ProductPage: React.FC = () => {
               </div>
               )}
 
-              {/* Coin counter — Coin Recharge products step by one block (e.g. +10,000 coins) */}
-              {isCoin && selectedAmount.unitAmount && (
-                <div>
-                  <span className="block text-gray-800 dark:text-white font-semibold mb-1">{selectedAmount.unitLabel || generalData?.settings.amount}</span>
-                  <div role="group" aria-label={selectedAmount.unitLabel || generalData?.settings.amount} className="flex items-center border border-app-red rounded-full px-2 py-1 w-full bg-white dark:bg-background-dark justify-between min-w-[160px]">
-                    <button
-                      aria-label={locale === 'ar' ? 'إنقاص' : 'Decrease'}
-                      className="w-9 h-9 flex items-center justify-center rounded-full border-none text-2xl text-black dark:text-white font-normal cursor-pointer transition-colors duration-150 hover:bg-app-red/10 p-0 shrink-0"
-                      onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                      type="button"
-                    >-</button>
-                    <span aria-live="polite" className="text-lg font-semibold px-3 text-center text-black dark:text-white select-none">{coinAmount.toLocaleString(locale)}</span>
-                    <button
-                      aria-label={locale === 'ar' ? 'زيادة' : 'Increase'}
-                      className="w-9 h-9 flex items-center justify-center rounded-full border-none text-2xl text-black dark:text-white font-normal cursor-pointer transition-colors duration-150 hover:bg-app-red/10 p-0 shrink-0"
-                      // Was `q => q + 1` with no ceiling even when the variation
-                      // has a maxQty — this is the same clamp the plain
-                      // quantity stepper below needed.
-                      onClick={() => setQuantity(q => Math.min(selectedAmount.maxQty ?? Infinity, q + 1))}
-                      disabled={selectedAmount.maxQty != null && quantity >= selectedAmount.maxQty}
-                      type="button"
-                    >+</button>
-                  </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    {`${selectedAmount.unitAmount.toLocaleString(locale)} ${selectedAmount.unitLabel || ''} = $${selectedAmount.price.toFixed(2)}`}
-                  </p>
+              {/* Social Media Service details — what the supplier publishes for the
+                  selected service (Quality, Speed, Refill, …), like the description
+                  box on the panel's own order form. An admin-written variation
+                  description replaces the supplier's notes. */}
+              {details && (
+                <div className="rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3 text-sm">
+                  <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5">
+                    {([
+                      [locale === 'ar' ? 'الجودة' : 'Quality', details.quality],
+                      [locale === 'ar' ? 'السرعة' : 'Speed', details.speed],
+                      [locale === 'ar' ? 'الضمان' : 'Guarantee', details.refill],
+                      [locale === 'ar' ? 'وقت البدء' : 'Start time', details.start_time],
+                      [locale === 'ar' ? 'الثبات' : 'Drop', details.drop],
+                      [linkLabel, linkHint],
+                    ] as const)
+                      .filter(([, value]) => Boolean(value))
+                      .map(([label, value]) => (
+                        <React.Fragment key={label}>
+                          <dt className="text-gray-500 dark:text-gray-400">{label}</dt>
+                          <dd className="text-gray-800 dark:text-white font-medium">{value}</dd>
+                        </React.Fragment>
+                      ))}
+                  </dl>
+                  {!hasVariationDescription && (details.notes?.length ?? 0) > 0 && (
+                    <ul className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 flex flex-col gap-1 text-gray-600 dark:text-gray-300">
+                      {details.notes!.map((note, i) => <li key={i}>{note}</li>)}
+                    </ul>
+                  )}
                 </div>
               )}
 
-              {/* Quantity Selector — not shown for User ID or Coin Recharge products,
-                  nor for variations the supplier only sells one of */}
-              {product?.product_type_id !== PRODUCT_TYPE_USER_ID && !isCoin && !qtyLocked && (
+              {/* Link — Social Media Services are delivered to a post/profile link,
+                  asked for before the quantity as on the panel's order form. */}
+              {isSocial && (
+                <FormField
+                  label={linkHint ? `${linkLabel} (${linkHint})` : linkLabel}
+                  error={fieldErrors.user}
+                >
+                  <Input
+                    id="recipient_user"
+                    name="recipient_user"
+                    type="text"
+                    inputMode="url"
+                    autoComplete="off"
+                    dir="ltr"
+                    value={recipientUser}
+                    onChange={(e) => {
+                      setRecipientUser(e.target.value);
+                      if (fieldErrors.user) setFieldErrors((prev) => ({ ...prev, user: undefined }));
+                    }}
+                    placeholder="https://"
+                  />
+                </FormField>
+              )}
+
+              {/* Typed amount — Coin Recharge (coins) and Social Media Services
+                  (followers, views, …): the customer types the real number (no
+                  blocks, no multiples), within the min/max. */}
+              {isProrated && (
+                <FormField
+                  label={
+                    isSocial
+                      ? generalData?.settings.quantity
+                      : `${locale === 'ar' ? 'مبلغ مخصص' : 'Custom Amount'} (${coinUnitLabel})`
+                  }
+                  error={coinError}
+                  hint={[
+                    isSocial ? socialRate : `${fmt(pricingUnit)} ${coinUnitLabel} = $${selectedAmount.price.toFixed(2)}`,
+                    selectedAmount.minQty > 1 ? `${locale === 'ar' ? 'الحد الأدنى' : 'Min'} ${fmt(selectedAmount.minQty)}` : null,
+                    selectedAmount.maxQty != null ? `${locale === 'ar' ? 'الحد الأقصى' : 'Max'} ${fmt(selectedAmount.maxQty)}` : null,
+                  ].filter(Boolean).join(' · ')}
+                >
+                  <Input
+                    id="coin_amount"
+                    name="coin_amount"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    invalid={Boolean(coinError)}
+                    // Always grouped (10,000). Swapping to raw digits on focus changed the
+                    // value under the cursor and dropped a select-all, so retyping the
+                    // amount appended to it instead of replacing it.
+                    value={coinInput === '' ? '' : fmt(Number(coinInput))}
+                    placeholder={[
+                      selectedAmount.minQty > 1 ? `${locale === 'ar' ? 'الحد الأدنى' : 'Min'} ${fmt(selectedAmount.minQty)}` : null,
+                      isSocial && selectedAmount.maxQty != null ? `${locale === 'ar' ? 'الحد الأقصى' : 'Max'} ${fmt(selectedAmount.maxQty)}` : null,
+                    ].filter(Boolean).join(' – ') || undefined}
+                    onChange={(e) => {
+                      // Accept Arabic-Indic digits too; drop separators and anything else.
+                      const digits = e.target.value
+                        .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+                        .replace(/\D/g, '')
+                        .replace(/^0+(?=\d)/, '')
+                        .slice(0, 9);
+                      setCoinInput(digits);
+                      setQuantity(digits === '' ? 0 : parseInt(digits, 10));
+                    }}
+                  />
+                </FormField>
+              )}
+
+              {/* Average time — the supplier's average completion time over its
+                  latest orders, read-only as on the panel's order form. */}
+              {isSocial && (
+                <FormField
+                  label={locale === 'ar' ? 'متوسط وقت التنفيذ' : 'Average time'}
+                  hint={locale === 'ar'
+                    ? 'يُحسب من أوقات إتمام آخر الطلبات.'
+                    : 'Calculated from the completion times of the latest orders.'}
+                >
+                  <Input
+                    id="average_time"
+                    type="text"
+                    // The supplier's text is English ("2 hours 24 minutes"); laid
+                    // out RTL its numbers jump to the wrong end.
+                    dir={details?.average_time ? 'ltr' : undefined}
+                    readOnly
+                    tabIndex={-1}
+                    value={details?.average_time || (locale === 'ar' ? 'غير متوفر بعد' : 'Not enough data yet')}
+                  />
+                </FormField>
+              )}
+
+              {/* Quantity Selector — not shown for User ID or prorated (Coin Recharge /
+                  Social Media) products, nor for variations the supplier only sells one of */}
+              {product?.product_type_id !== PRODUCT_TYPE_USER_ID && !isProrated && !qtyLocked && (
                 <div>
                   <span className="block text-gray-800 dark:text-white font-semibold mb-1">{generalData?.settings.quantity}</span>
                   <div role="group" aria-label={generalData?.settings.quantity} className="flex items-center border border-app-red rounded-full px-2 py-1 w-full bg-white dark:bg-background-dark justify-between min-w-[160px]">
                     <button
                       aria-label={locale === 'ar' ? 'إنقاص الكمية' : 'Decrease quantity'}
-                      className="w-9 h-9 flex items-center justify-center rounded-full border-none text-2xl text-black dark:text-white font-normal cursor-pointer transition-colors duration-150 hover:bg-app-red/10 p-0"
-                      onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                      className="w-9 h-9 flex items-center justify-center rounded-full border-none text-2xl text-black dark:text-white font-normal cursor-pointer transition-colors duration-150 hover:bg-app-red/10 p-0 disabled:opacity-40 disabled:cursor-not-allowed"
+                      onClick={() => setQuantity(q => Math.max(selectedAmount.minQty, q - 1))}
+                      disabled={quantity <= selectedAmount.minQty}
                       type="button"
                     >-</button>
                     {/* A read-only span used to sit here — reaching quantity 50
@@ -649,13 +814,13 @@ const ProductPage: React.FC = () => {
                     <input
                       type="number"
                       inputMode="numeric"
-                      min={1}
+                      min={selectedAmount.minQty}
                       max={selectedAmount.maxQty ?? undefined}
                       value={quantity}
                       onChange={(e) => {
                         const parsed = parseInt(e.target.value, 10);
                         if (!Number.isFinite(parsed)) return;
-                        setQuantity(Math.min(selectedAmount.maxQty ?? Infinity, Math.max(1, parsed)));
+                        setQuantity(Math.min(selectedAmount.maxQty ?? Infinity, Math.max(selectedAmount.minQty, parsed)));
                       }}
                       aria-label={generalData?.settings.quantity}
                       className="text-lg font-semibold w-12 text-center bg-transparent text-black dark:text-white select-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -669,6 +834,14 @@ const ProductPage: React.FC = () => {
                     >+</button>
                   </div>
                 </div>
+              )}
+
+              {/* Minimum hint for non-coin variations — shown even where the stepper is
+                  hidden (User ID products), since the order is then placed at the minimum. */}
+              {!isProrated && !qtyLocked && selectedAmount.minQty > 1 && (
+                <p className="text-sm text-gray-500 dark:text-gray-400 -mt-2">
+                  {`${locale === 'ar' ? 'الحد الأدنى للكمية:' : 'Minimum quantity:'} ${selectedAmount.minQty.toLocaleString(locale)}`}
+                </p>
               )}
 
               {/* Product Type */}
@@ -809,7 +982,7 @@ const ProductPage: React.FC = () => {
                   and reflow the page on submit. */}
               <Button
                 type="submit"
-                disabled={isApproved && cannotAfford}
+                disabled={(isApproved && cannotAfford) || Boolean(coinError)}
                 loading={submitLoading}
                 size="lg"
                 fullWidth
@@ -870,17 +1043,21 @@ const ProductPage: React.FC = () => {
           recipientLabel={
             product?.product_type_id === PRODUCT_TYPE_PHONE
               ? generalData?.settings.phone_number_label
-              : generalData?.settings.user_id_label
+              : isSocial
+                ? linkLabel
+                : generalData?.settings.user_id_label
           }
           recipientValue={
             product?.product_type_id === PRODUCT_TYPE_PHONE
               ? recipientPhoneNumber
-              : (product?.product_type_id === PRODUCT_TYPE_USER_ID || isCoin)
+              : (product?.product_type_id === PRODUCT_TYPE_USER_ID || isProrated)
                 ? recipientUser
                 : undefined
           }
           quantity={qtyLocked ? 1 : quantity}
           unitPrice={selectedAmount.price}
+          coinLabel={isProrated ? withUnit(quantity) : undefined}
+          coinRate={isSocial ? socialRate : isCoin ? `${fmt(pricingUnit)} ${coinUnitLabel} = $${selectedAmount.price.toFixed(2)}` : undefined}
           total={total}
           currentBalance={currentBalance}
         />
@@ -901,7 +1078,7 @@ const ProductPage: React.FC = () => {
           <Button
             type="submit"
             form="purchase-form"
-            disabled={isApproved && cannotAfford}
+            disabled={(isApproved && cannotAfford) || Boolean(coinError)}
             loading={submitLoading}
           >
             {generalData?.settings.buy_now_button}

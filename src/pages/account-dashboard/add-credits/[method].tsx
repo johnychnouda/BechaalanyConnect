@@ -13,9 +13,9 @@ import { useLanguage } from "@/hooks/use-language";
 
 export default function AddCreditMethod() {
   const router = useRouter();
-  const { user, isApproved, refreshUserData } = useAuth();
+  const { user, isApproved } = useAuth();
   const { addPendingRequest } = useCreditOperations();
-  const { generalData, dashboardSettings } = useGlobalContext();
+  const { dashboardSettings } = useGlobalContext();
   const { locale } = useLanguage();
 
   const getSingleCreditType = async () => {
@@ -41,7 +41,6 @@ export default function AddCreditMethod() {
       .finally(() => setIsLoadingType(false));
   }, [router.locale, router.query.method]);
 
-  const { method } = router.query;
   // const config = methodConfigs[method as string];
   const [sendValueInput, setSendValueInput] = useState('');
   const sendValue = Number(sendValueInput) || 0;
@@ -94,8 +93,6 @@ export default function AddCreditMethod() {
       setSelectedFile(file);
       setScreenshot(file.name);
 
-      // Create a preview URL for the file
-      const fileUrl = URL.createObjectURL(file);
 
       // You can also store the file URL if needed for preview
       // setScreenshot(fileUrl);
@@ -160,7 +157,7 @@ export default function AddCreditMethod() {
         fileInputRef.current.value = '';
       }
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error submitting credit request:', error);
       toast.error(toMessage(error, locale));
     } finally {

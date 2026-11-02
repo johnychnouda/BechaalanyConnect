@@ -1,14 +1,12 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { useLanguage } from "@/hooks/use-language";
 
 type Props = {
   title?: string;
   className?: string;
 };
 
-export default function ComingSoon({ title, className }: Props) {
-  const { isRTL } = useLanguage();
+export default function ComingSoon({ className }: Props) {
 
   return (
     <div className={`relative min-h-[35vh] flex items-center justify-center ${className}`}>
