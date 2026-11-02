@@ -48,7 +48,7 @@ export async function middleware(req: NextRequest) {
       
       // Users who haven't submitted (or were rejected on) their identity
       // documents can only browse — dashboard pages require verification
-      const verificationStatus = (token as any)?.laravelUser?.verification_status;
+      const verificationStatus = (token as { laravelUser?: { verification_status?: string } })?.laravelUser?.verification_status;
       if (
         pathname.startsWith('/account-dashboard') &&
         (verificationStatus === 'unsubmitted' || verificationStatus === 'rejected')
@@ -58,7 +58,7 @@ export async function middleware(req: NextRequest) {
 
       // Check admin routes - ensure token has role property
       if (isAdminPath) {
-        const userRole = (token as any)?.role || (token as any)?.laravelUser?.role;
+        const userRole = (token as { role?: string; laravelUser?: { role?: string } })?.role || (token as { laravelUser?: { role?: string } })?.laravelUser?.role;
         if (userRole !== 'admin') {
           return NextResponse.redirect(new URL('/', req.url));
         }

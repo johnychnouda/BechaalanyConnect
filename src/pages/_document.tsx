@@ -1,4 +1,3 @@
-import PageLoader from '@/components/ui/PageLoader'
 import Document, { DocumentContext, Html, Head, Main, NextScript } from 'next/document'
 import { ServerStyleSheet } from 'styled-components'
 
@@ -47,7 +46,7 @@ export default class MyDocument extends Document {
      *
      * `this.props.locale` is populated by Next from the active i18n locale.
      */
-    const locale = (this.props as any).locale || 'en';
+    const locale = (this.props as { locale?: string }).locale || 'en';
     const isRtl = locale === 'ar';
 
     return (

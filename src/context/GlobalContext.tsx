@@ -6,7 +6,6 @@ import { fetchGeneralData, fetchDashboardSettings } from "@/services/api.service
 import { GeneralDataType } from "@/types/globalData.type";
 import { DashboardSettingsType } from "@/types/Dashboard.type";
 import { useAppSession } from '@/hooks/use-session';
-import { useLanguage } from '@/hooks/use-language';
 
 interface GlobalContextType {
   generalData: GeneralDataType | null;
@@ -32,8 +31,7 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
   const [refreshOrdersCallback, setRefreshOrdersCallback] = useState<(() => void) | null>(null);
   const [refreshCreditsCallback, setRefreshCreditsCallback] = useState<(() => void) | null>(null);
   const router = useRouter();
-  const { session, update } = useAppSession();
-  const { locale } = useLanguage();
+  const { session } = useAppSession();
 
   /**
    * Cache the last successful payload per locale.

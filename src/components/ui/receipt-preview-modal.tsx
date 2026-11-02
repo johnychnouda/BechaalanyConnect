@@ -19,6 +19,7 @@ export default function ReceiptPreviewModal({
   isDownloading,
   locale
 }: ReceiptPreviewModalProps) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- consumed by the parked customer-info preview block below
   const [customerInfo, setCustomerInfo] = useState<{ name: string; email: string; phone: string } | null>(null);
 
   useEffect(() => {

@@ -44,11 +44,11 @@ export default function ResetPasswordPage() {
         password: data.password,
         password_confirmation: data.confirmPassword,
         lang,
-      } as any;
+      };
 
       try {
         await api.post(`/${lang}/reset-password`, payload);
-      } catch (e) {
+      } catch {
         await api.post(`/reset-password`, payload);
       }
 

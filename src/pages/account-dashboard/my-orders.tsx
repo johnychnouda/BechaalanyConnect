@@ -1,12 +1,11 @@
 import DashboardLayout from "@/components/ui/dashboard-layout";
 import React, { useState, useMemo, useEffect } from "react";
 import BackButton from "@/components/ui/back-button";
-import { Order, useAuth } from "@/context/AuthContext";
+import { Order } from "@/context/AuthContext";
 import { ProcessedOrder } from "@/components/dashboard/orderRow";
 import OrderRow from "@/components/dashboard/orderRow";
 import { fetchUserOrders } from "@/services/api.service";
 import { useGlobalContext } from "@/context/GlobalContext";
-import { generateBulkOrderReceipts } from "@/utils/pdf-generator";
 import { useRouter } from "next/router";
 import { useLanguage } from "@/hooks/use-language";
 import { toMessage } from "@/utils/error-message";
@@ -17,7 +16,6 @@ import { EmptyState } from "@/components/ui/primitives/EmptyState";
 const ITEMS_PER_PAGE = 10; // Rows requested per page from the API
 
 export default function MyOrders() {
-  const { user } = useAuth();
   const router = useRouter();
   const { setRefreshOrdersCallback } = useGlobalContext();
   const [orders, setOrders] = useState<Order[]>([]);

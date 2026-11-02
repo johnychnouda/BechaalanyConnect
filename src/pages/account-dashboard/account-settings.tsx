@@ -6,7 +6,6 @@ import { useGlobalContext } from "@/context/GlobalContext";
 import { updateUserInfo, fetchCurrentUser, updateUserPassword } from "@/services/api.service";
 import { useLanguage } from "@/hooks/use-language";
 import { toast } from "react-toastify";
-import { useRouter } from "next/router";
 
 interface DropdownOption {
   value: string;
@@ -99,11 +98,10 @@ export default function AccountSettings() {
   const countries = generalData?.countries || [];
   const userTypes = generalData?.user_types || [];
   const { locale } = useLanguage();
-  const router = useRouter();
   const [changePasswordError, setChangePasswordError] = useState<string | null>(null);
 
   // Profile data state
-  const [profileData, setProfileData] = useState<any>(null);
+  const [, setProfileData] = useState<unknown>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [profileError, setProfileError] = useState<string | null>(null);
 
@@ -156,7 +154,7 @@ export default function AccountSettings() {
         setAccountInfo(formData);
         setOriginalAccountInfo(formData); // Set original values for change tracking
 
-      } catch (error) {
+      } catch {
         setProfileError(locale === 'en' ? 'Failed to load profile data. Please refresh the page.' : 'فشل تحميل بيانات الحساب. الرجاء تحديث الصفحة.');
         toast.error(locale === 'en' ? 'Failed to load profile data. Please refresh the page.' : 'فشل تحميل بيانات الحساب. الرجاء تحديث الصفحة.');
       } finally {
@@ -260,8 +258,8 @@ export default function AccountSettings() {
 
       setSecurity({ oldPassword: "", newPassword: "", confirmPassword: "" });
 
-    } catch (error: any) {
-      setChangePasswordError(error);
+    } catch (error) {
+      setChangePasswordError(error as string);
     }
 
   }

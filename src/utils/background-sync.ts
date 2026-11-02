@@ -91,7 +91,7 @@ export const useBackgroundSync = () => {
   useEffect(() => {
     backgroundSyncManager.initialize();
 
-    const unsubscribe = backgroundSyncManager.subscribe((balance) => {
+    const unsubscribe = backgroundSyncManager.subscribe(() => {
       setLastSyncTime(Date.now());
     });
 

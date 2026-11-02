@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
       const lang = locale || 'en';
       try {
         await api.post(`/${lang}/forgot-password`, { email: data.email, lang });
-      } catch (e) {
+      } catch {
         // fallback if API does not use locale prefix
         await api.post(`/forgot-password`, { email: data.email, lang });
       }

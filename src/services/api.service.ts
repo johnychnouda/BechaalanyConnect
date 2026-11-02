@@ -234,7 +234,7 @@ export const fetchDashboardSettings = async (locale: string) => {
     }
 };
 
-export const updateUserInfo = async (locale: string, userData: any) => {
+export const updateUserInfo = async (locale: string, userData: Record<string, unknown>) => {
     try {
         const { data } = await api.put(`/${locale}/user/update`, userData);
         return data;
@@ -244,7 +244,7 @@ export const updateUserInfo = async (locale: string, userData: any) => {
     }
 };
 
-export const updateUserPassword = async (locale: string, passwordData: any) => {
+export const updateUserPassword = async (locale: string, passwordData: Record<string, unknown>) => {
     try {
         const { data } = await api.put(`/${locale}/change-password`, passwordData);
         return data;

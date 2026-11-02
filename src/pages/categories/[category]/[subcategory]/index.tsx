@@ -267,7 +267,7 @@ export const getServerSideProps: GetServerSideProps = async context => {
     }
 
     return { props: {} };
-  } catch (_err) {
+  } catch {
     return { props: {} };
   }
 };

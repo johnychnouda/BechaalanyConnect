@@ -11,7 +11,7 @@ import { useGlobalContext } from "@/context/GlobalContext";
 import PageLoader from "@/components/ui/PageLoader";
 import ContactForm from "@/components/contact-form/ContactForm";
 
-interface ContactFormData {
+export interface ContactFormData {
   name: string;
   email: string;
   phone: string;
@@ -24,7 +24,7 @@ export default function ContactUs() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [contactUsData, setContactUsData] = useState<ContactUsDataType | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -97,12 +97,13 @@ export default function ContactUs() {
       setTimeout(() => {
         setSubmitSuccess(false);
       }, 5000);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Contact form submission error:', error);
-      if (error.response?.data?.message) {
-        setSubmitError(error.response.data.message);
-      } else if (error.response?.data?.error) {
-        setSubmitError(error.response.data.error);
+      const apiError = error as { response?: { data?: { message?: string; error?: string } } };
+      if (apiError.response?.data?.message) {
+        setSubmitError(apiError.response.data.message);
+      } else if (apiError.response?.data?.error) {
+        setSubmitError(apiError.response.data.error);
       } else {
         setSubmitError("An error occurred while submitting the form. Please try again.");
       }

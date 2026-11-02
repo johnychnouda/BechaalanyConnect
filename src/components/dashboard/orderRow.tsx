@@ -42,7 +42,7 @@ const statusMeta = {
   },
 };
 
-function orderRow({ order }: { order: ProcessedOrder }) {
+function OrderRow({ order }: { order: ProcessedOrder }) {
   const meta = statusMeta[order.status];
   const router = useRouter();
   const { locale } = router;
@@ -193,4 +193,4 @@ function orderRow({ order }: { order: ProcessedOrder }) {
   );
 }
 
-export default orderRow
+export default OrderRow

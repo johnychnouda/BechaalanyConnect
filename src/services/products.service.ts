@@ -1,5 +1,4 @@
 import { Product } from "@/types/product.type";
-import { getCategories } from "./categories.service";
 
 export async function getProducts(): Promise<Product[]> {
   return [

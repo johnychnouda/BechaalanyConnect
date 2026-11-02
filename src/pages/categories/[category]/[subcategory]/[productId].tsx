@@ -102,7 +102,7 @@ const ProductPage: React.FC = () => {
   const router = useRouter();
   const { deductFromBalance } = useCreditOperations();
   const creditsBalance = useCreditsStore((state) => state.balance);
-  const { user, isApproved, refreshUserData, balanceStatus } = useAuth();
+  const { user, isApproved, balanceStatus } = useAuth();
   const [showPendingModal, setShowPendingModal] = useState(false);
   const { refreshOrders, generalData } = useGlobalContext();
   const { locale } = useRouter();

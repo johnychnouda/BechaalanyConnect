@@ -1,8 +1,7 @@
 import DashboardLayout from "@/components/ui/dashboard-layout";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import BackButton from "@/components/ui/back-button";
 import { fetchUserPayments } from "@/services/api.service";
-import { useAuth } from "@/context/AuthContext";
 import PaymentRow from "@/components/dashboard/paymentRow";
 import { useRouter } from "next/router";
 import { useGlobalContext } from "@/context/GlobalContext";
@@ -15,7 +14,6 @@ import { SkeletonRow } from "@/components/ui/primitives/Skeleton";
 const ITEMS_PER_PAGE = 5; // Number of items to show initially and per load more
 
 export default function MyPayments() {
-  const { user } = useAuth();
   const router = useRouter();
   const { dashboardSettings, generalData } = useGlobalContext();
   const { locale } = useLanguage();
@@ -50,7 +48,7 @@ export default function MyPayments() {
     try {
       const response = await fetchUserPayments(router.locale, requestedPage, ITEMS_PER_PAGE);
 
-      const mappedPayments = (response.credits || []).map((item: any) => {
+      const mappedPayments = (response.credits || []).map((item: { id: number | string; statuses_id: number; credits_types?: { title?: string } | null; amount: string | number; created_at: string; full_path?: { receipt_image?: string } | null; rejected_reason?: string | null }) => {
         let status: 'accepted' | 'rejected' | 'pending' = 'pending';
         if (item.statuses_id === 1) status = 'accepted';
         else if (item.statuses_id === 2) status = 'rejected';

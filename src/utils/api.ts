@@ -1,6 +1,7 @@
 import axios from 'axios';
 import Router from 'next/router';
 import { getSession } from 'next-auth/react';
+import type { Session } from 'next-auth';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -12,15 +13,10 @@ const api = axios.create({
 });
 
 // Cache for session to avoid multiple calls
-let sessionCache: any = null;
+let sessionCache: Session | null = null;
 let sessionCacheTime = 0;
 const SESSION_CACHE_DURATION = 10 * 60 * 1000; // Increased to 10 minutes
 
-// Enable debugging in development
-const DEBUG_SESSION = process.env.NODE_ENV === 'development';
-
-// Track session fetch calls to prevent excessive requests
-let sessionFetchCount = 0;
 let lastSessionFetch = 0;
 const MIN_SESSION_FETCH_INTERVAL = 1000; // Minimum 1 second between session fetches
 
@@ -40,7 +36,6 @@ const getCachedSession = async () => {
 
     // Fetch fresh session
     try {
-        sessionFetchCount++;
         lastSessionFetch = now;
 
         const session = await getSession();

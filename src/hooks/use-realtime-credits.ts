@@ -26,6 +26,7 @@ export const useRealtimeCredits = () => {
     }
 
     // Option 1: WebSocket Implementation
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- parked alternative transport, not yet wired
     const initWebSocket = () => {
       const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL}/credits?token=${token}`;
       const ws = new WebSocket(wsUrl);
@@ -63,6 +64,7 @@ export const useRealtimeCredits = () => {
     };
 
     // Option 2: Server-Sent Events Implementation
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- parked alternative transport, not yet wired
     const initSSE = () => {
       const sseUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/stream/credits?token=${token}`;
       const eventSource = new EventSource(sseUrl);
@@ -143,7 +145,7 @@ export const useRealtimeCredits = () => {
 
   return {
     isConnected: connectionRef.current !== null,
-    sendMessage: (data: any) => {
+    sendMessage: (data: unknown) => {
       if (connectionRef.current instanceof WebSocket && connectionRef.current.readyState === WebSocket.OPEN) {
         connectionRef.current.send(JSON.stringify(data));
       }

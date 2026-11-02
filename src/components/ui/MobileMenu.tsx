@@ -11,14 +11,15 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/router";
 import { SearchIcon } from "@/assets/icons/search.icon";
 import { useCreditsBalance } from "@/store/credits.store";
+import { GeneralDataType } from "@/types/globalData.type";
 
 interface MobileMenuProps {
     isMobileMenuOpen: boolean;
     setIsMobileMenuOpen: (open: boolean) => void;
     isRTL: boolean;
-    generalData: any;
+    generalData: GeneralDataType | null;
     isAuthenticated: boolean;
-    user: any;
+    user: { credits_balance?: number } | null;
     count: number;
 }
 

@@ -31,11 +31,11 @@ export default function SeoHead({ seo }: { seo?: SeoData | null }) {
   const canonicalUrl = seo?.canonical_url || derivedAbsoluteUrl;
   const robots = seo?.meta_robots || 'index,follow';
   const og = seo?.og || {};
-  const siteUrl = (og as any)?.url || derivedAbsoluteUrl || siteUrlEnv || '';
-  const imageFromSeo = (seo as any)?.full_path?.image || (seo as any)?.image || undefined;
-  const ogImage = (og as any)?.image || imageFromSeo;
-  const ogTitle = (og as any)?.title || title;
-  const ogDescription = (og as any)?.description || description;
+  const siteUrl = (og as { url?: string })?.url || derivedAbsoluteUrl || siteUrlEnv || '';
+  const imageFromSeo = (seo as { full_path?: { image?: string }; image?: string })?.full_path?.image || (seo as { image?: string })?.image || undefined;
+  const ogImage = (og as { image?: string })?.image || imageFromSeo;
+  const ogTitle = (og as { title?: string })?.title || title;
+  const ogDescription = (og as { description?: string })?.description || description;
 
   return (
     <Head>
@@ -47,7 +47,7 @@ export default function SeoHead({ seo }: { seo?: SeoData | null }) {
       {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
 
       {/* Open Graph */}
-      <meta property="og:type" content={(og as any)?.type || 'website'} />
+      <meta property="og:type" content={(og as { type?: string })?.type || 'website'} />
       {siteUrl && <meta property="og:url" content={siteUrl} />}
       {ogTitle && <meta property="og:title" content={ogTitle} />}
       {ogDescription && <meta property="og:description" content={ogDescription} />}

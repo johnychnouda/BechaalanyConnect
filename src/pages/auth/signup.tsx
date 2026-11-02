@@ -4,7 +4,7 @@ import GoogleButton from "@/components/ui/google-button";
 import VerifyEmailModal from "@/components/ui/verify-email-modal";
 import { useRouter } from "next/router";
 import { useAuth } from "@/context/AuthContext";
-import { useForm } from "react-hook-form";
+import { useForm, FieldValues } from "react-hook-form";
 import { authService } from "@/services/auth.service";
 import { useGlobalContext } from "@/context/GlobalContext";
 import { getErrorMessage } from "@/utils/getErrorMessage";
@@ -67,7 +67,7 @@ function PasswordToggle({ shown, onClick }: { shown: boolean; onClick: () => voi
 
 export default function SignupPage() {
   const router = useRouter();
-  const { login, loginWithGoogle, loading } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const [error, setError] = useState("");
   const [showVerify, setShowVerify] = useState(false);
   const [verifyEmail, setVerifyEmail] = useState("");
@@ -112,7 +112,7 @@ export default function SignupPage() {
     return /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/.test(password);
   };
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: FieldValues) => {
     setError("");
     setSuccess("");
     setSubmitLoading(true);
@@ -132,7 +132,7 @@ export default function SignupPage() {
       setVerifyToken(response.verification_token || "");
       setRegPassword(data.password);
       reset();
-    } catch (err: any) {
+    } catch (err) {
       setError(getErrorMessage(err, "Registration failed. Please try again."));
     } finally {
       setSubmitLoading(false);
@@ -151,15 +151,15 @@ export default function SignupPage() {
           setSuccess(locale === "ar" ? "تم التحقق من البريد الإلكتروني وتم تسجيل الدخول بنجاح!" : "Account verified and logged in successfully!");
           // New users must complete identity verification before using the platform
           router.push("/account-verification");
-        } catch (loginErr: any) {
+        } catch (loginErr) {
           console.error("Auto-login failed:", loginErr);
           setSuccess(locale === "ar" ? "تم التحقق من البريد الإلكتروني بنجاح! يرجى تسجيل الدخول." : "Account verified successfully! Please log in.");
           router.push("/auth/signin");
         }
       }
-    } catch (err: any) {
+    } catch (err) {
       setVerifyLoading(false);
-      setVerifyError(err.message || "Invalid verification code. Please try again.");
+      setVerifyError((err as Error)?.message || "Invalid verification code. Please try again.");
       return;
     }
     setVerifyLoading(false);
@@ -169,8 +169,8 @@ export default function SignupPage() {
     setError("");
     try {
       await loginWithGoogle();
-    } catch (err: any) {
-      setError(err.message || "Google signup failed. Please try again.");
+    } catch (err) {
+      setError((err as Error)?.message || "Google signup failed. Please try again.");
     }
   };
 
@@ -180,8 +180,8 @@ export default function SignupPage() {
       setVerifyError("");
       setSuccess(locale === "ar" ? "تم إعادة إرسال رمز التحقق بنجاح." : "Verification code resent successfully.");
       setTimeout(() => setSuccess(""), 4000);
-    } catch (err: any) {
-      setVerifyError(err.message || "Network error. Please try again.");
+    } catch (err) {
+      setVerifyError((err as Error)?.message || "Network error. Please try again.");
       setSuccess("");
     }
   };

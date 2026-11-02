@@ -10,7 +10,7 @@ import { DashboardMenuItem } from "@/types/Dashboard.type";
 import Image from "next/image";
 import { useLanguage } from "@/hooks/use-language";
 
-export default function AccountSidebar({ onClose, menuItems, logoutButton }: { onClose?: () => void, menuItems: DashboardMenuItem[] | null, logoutButton: string | null }) {
+export default function AccountSidebar({ menuItems, logoutButton }: { onClose?: () => void, menuItems: DashboardMenuItem[] | null, logoutButton: string | null }) {
   const currentPath = usePathname();
   const { logout, user } = useAuth();
   const { locale } = useLanguage();

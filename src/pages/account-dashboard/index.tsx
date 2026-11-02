@@ -34,11 +34,15 @@ export default function AccountDashboard() {
   const profileData = profilePayload?.user;
   const profileError = isProfileError ? 'Failed to load profile data. Please refresh the page.' : null;
 
+  type RawOrder = { statuses_id: number; product_variation?: { name?: string; product?: { name?: string } } | null; created_at: string; total_price: string };
+  type RawPayment = { statuses_id: number; credits_types?: { title?: string } | null; amount: string | number; created_at: string };
+  type ActivityItem = { direction: 'up' | 'down'; title: string; date: string; status: string; value: string; originalStatus: string };
+
   const [activeFilter, setActiveFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const [hasInitialized, setHasInitialized] = useState(false);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [payments, setPayments] = useState<any[]>([]);
+  const [orders, setOrders] = useState<ActivityItem[]>([]);
+  const [payments, setPayments] = useState<ActivityItem[]>([]);
   const [displayedItemsCount, setDisplayedItemsCount] = useState(ITEMS_PER_PAGE);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [dateFilter, setDateFilter] = useState<{ from: string; to: string } | null>(null);
@@ -80,8 +84,8 @@ export default function AccountDashboard() {
       ]);
 
       const processedOrders = (ordersResponse.orders || [])
-        .filter((order: any) => order.statuses_id === 1)
-        .map((order: any) => {
+        .filter((order: RawOrder) => order.statuses_id === 1)
+        .map((order: RawOrder) => {
           let status: 'accepted' | 'rejected' | 'pending' = 'pending';
           if (order.statuses_id === 1) status = 'accepted';
           else if (order.statuses_id === 2) status = 'rejected';
@@ -98,8 +102,8 @@ export default function AccountDashboard() {
         });
 
       const processedPayments = (paymentsResponse.credits || [])
-        .filter((payment: any) => payment.statuses_id === 1)
-        .map((payment: any) => {
+        .filter((payment: RawPayment) => payment.statuses_id === 1)
+        .map((payment: RawPayment) => {
           let status: 'accepted' | 'rejected' | 'pending' = 'pending';
           if (payment.statuses_id === 1) status = 'accepted';
           else if (payment.statuses_id === 2) status = 'rejected';
@@ -125,7 +129,7 @@ export default function AccountDashboard() {
 
       // Check if it's a rate limiting error
       if (error && typeof error === 'object' && 'message' in error) {
-        const errorMessage = (error as any).message;
+        const errorMessage = (error as { message: string }).message;
         if (errorMessage.includes('Too Many Attempts') || errorMessage.includes('429')) {
           console.warn('Rate limit exceeded, will retry later');
           // Set a longer delay before allowing retry
@@ -139,8 +143,8 @@ export default function AccountDashboard() {
       // Fallback to user session data if available
       if (profileData?.orders) {
         const processedOrders = profileData.orders
-          .filter((order: any) => order.statuses_id === 1)
-          .map((order: any) => ({
+          .filter((order: RawOrder) => order.statuses_id === 1)
+          .map((order: RawOrder) => ({
             direction: 'up' as const,
             title: `${order.product_variation?.product?.name || 'Product'} | ${order.product_variation?.name || 'Variation'}`,
             date: order.created_at,
@@ -198,7 +202,7 @@ export default function AccountDashboard() {
   };
 
   const filteredItems = useMemo(() => {
-    let items = [];
+    let items: ActivityItem[] = [];
     if (activeFilter === 'all') {
       items = [...orders, ...payments];
     } else if (activeFilter === 'purchased') {
