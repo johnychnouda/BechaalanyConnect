@@ -10,6 +10,7 @@ const protectedPaths = [
   '/account-dashboard/my-orders',
   '/account-dashboard/my-payments',
   '/account-dashboard/add-credits',
+  '/account-dashboard/api-keys',
   // Add other protected routes here
 ];
 

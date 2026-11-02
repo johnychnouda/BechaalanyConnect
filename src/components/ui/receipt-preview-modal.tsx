@@ -98,13 +98,17 @@ export default function ReceiptPreviewModal({
           <div className="mb-6">
             <h3 className="font-semibold text-gray-900 dark:text-white mb-3">{ locale === 'ar' ? 'تفاصيل السعر' : 'Pricing Details' }</h3>
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-600 dark:text-gray-400">{ locale === 'ar' ? 'السعر الوحدة' : 'Unit Price' }:</span>
-                <span className="font-medium">${unitPrice.toFixed(2)}</span>
-              </div>
+              {/* A coin order's quantity is the coin count, so its unit price is
+                  sub-cent and would read $0.00 — leave the row out. */}
+              {unitPrice >= 0.01 && (
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-gray-600 dark:text-gray-400">{ locale === 'ar' ? 'السعر الوحدة' : 'Unit Price' }:</span>
+                  <span className="font-medium">${unitPrice.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between items-center mb-2">
                 <span className="text-gray-600 dark:text-gray-400">{ locale === 'ar' ? 'الكمية' : 'Quantity' }:</span>
-                <span className="font-medium">{order.quantity}</span>
+                <span className="font-medium">{Number(order.quantity).toLocaleString('en-US')}</span>
               </div>
               <div className="border-t border-gray-200 dark:border-gray-600 pt-2">
                 <div className="flex justify-between items-center">

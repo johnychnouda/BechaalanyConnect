@@ -6,15 +6,27 @@ interface OrderCodesProps {
     locale: string;
 }
 
+// Marker written by the backend (UsharezConnector::NOTE_TEXT_1323) after the
+// admin number a usharez quota customer must text to 1323. The backend does not
+// know the customer's language, so the instruction itself lives here.
+const NOTE_TEXT_1323 = 'usharez-text-1323';
+
 const OrderCodes: React.FC<OrderCodesProps> = ({ htmlContent, className = "" ,locale = 'en'}) => {
     const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
-    // Parse HTML content to extract codes
-    const extractCodes = (html: string): string[] => {
+    // Parse HTML content: <li> items are copyable codes, <p> items are notes.
+    const parse = (html: string): { codes: string[]; notes: string[] } => {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
-        const listItems = doc.querySelectorAll('li');
-        return Array.from(listItems).map(li => li.textContent?.trim() || '');
+        const codes = Array.from(doc.querySelectorAll('li')).map(li => li.textContent?.trim() || '');
+        const notes = Array.from(doc.querySelectorAll('p'))
+            .map(p => p.getAttribute('data-note') === NOTE_TEXT_1323
+                ? (locale === 'en'
+                    ? 'Send this number by SMS to 1323 to receive your bundle.'
+                    : 'أرسل هذا الرقم برسالة نصية إلى 1323 لاستلام باقتك.')
+                : p.textContent?.trim() || '')
+            .filter(Boolean);
+        return { codes, notes };
     };
 
     const copyToClipboard = async (code: string) => {
@@ -37,7 +49,7 @@ const OrderCodes: React.FC<OrderCodesProps> = ({ htmlContent, className = "" ,lo
         }
     };
 
-    const codes = extractCodes(htmlContent);
+    const { codes, notes } = parse(htmlContent);
 
     if (codes.length === 0) {
         return null;
@@ -78,6 +90,11 @@ const OrderCodes: React.FC<OrderCodesProps> = ({ htmlContent, className = "" ,lo
                     </li>
                 ))}
             </ul>
+            {notes.map((note, index) => (
+                <p key={index} className="mt-2 text-sm">
+                    {note}
+                </p>
+            ))}
         </div>
     );
 };

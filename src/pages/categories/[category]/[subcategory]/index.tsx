@@ -11,6 +11,11 @@ import CardSkeleton from '@/components/ui/card-skeleton';
 import SeoHead from '@/components/ui/SeoHead';
 import { useLanguage } from '@/hooks/use-language';
 import { ErrorState } from '@/components/ui/primitives/ErrorState';
+import { EmptyState } from '@/components/ui/primitives/EmptyState';
+import { Input } from '@/components/ui/primitives/Input';
+import Pagination from '@/components/ui/pagination';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { useListSearchPagination } from '@/hooks/use-list-search-pagination';
 
 interface Product {
   id: string;
@@ -18,11 +23,10 @@ interface Product {
   slug: string;
   full_path: {
     image: string | null;
-  }
+  };
   price: number;
   description: string;
 }
-
 
 const SubCategoryPage: React.FC = () => {
   const router = useRouter();
@@ -35,14 +39,13 @@ const SubCategoryPage: React.FC = () => {
   const { generalData } = useGlobalContext();
   const { locale } = useLanguage();
 
-
   useEffect(() => {
     if (!router.locale || !categorySlug) return;
     setIsLoading(true);
     setError(null);
 
     fetchProductsData(router.locale, categorySlug as string, subcategorySlug as string)
-      .then((data) => {
+      .then(data => {
         if (data && typeof data === 'object') {
           // Hidden level (see getServerSideProps): mirror its redirect for a
           // client-side navigation that skipped it.
@@ -53,16 +56,17 @@ const SubCategoryPage: React.FC = () => {
           setProducts(data.products || []);
           setCurrentCategory(data.category || '');
           setCurrentSubcategory(data.subcategory || '');
-        }
-        else {
+        } else {
           console.error('Products data is invalid:', data);
           setProducts([]);
           setCurrentCategory('');
           setCurrentSubcategory('');
-          setError(locale === 'ar' ? 'تم استلام بيانات بتنسيق غير صالح' : 'Invalid data format received');
+          setError(
+            locale === 'ar' ? 'تم استلام بيانات بتنسيق غير صالح' : 'Invalid data format received'
+          );
         }
       })
-      .catch((error) => {
+      .catch(error => {
         console.error('Error fetching Products:', error);
         setProducts([]);
         setCurrentCategory('');
@@ -89,6 +93,20 @@ const SubCategoryPage: React.FC = () => {
     }
   }, [shouldRedirectToSingleProduct, products, router, categorySlug, subcategorySlug]);
 
+  // Same search + ?page= pagination as the category page.
+  const {
+    searchQuery,
+    setSearchQuery,
+    filteredItems,
+    paginatedItems,
+    currentPage,
+    totalPages,
+    goToPage,
+  } = useListSearchPagination(products, product => product.name, {
+    isLoading,
+    resetKey: subcategorySlug,
+  });
+
   // Early return check AFTER all hooks
   if (!categorySlug || !subcategorySlug) {
     return null;
@@ -98,33 +116,41 @@ const SubCategoryPage: React.FC = () => {
     { label: generalData?.settings?.homepage_label || '', href: '/' },
     { label: generalData?.settings?.categories_label || '', href: '/categories' },
     { label: currentCategory, href: `/categories/${categorySlug}` },
-    { label: currentSubcategory }
+    { label: currentSubcategory },
   ];
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
-      <SeoHead seo={{
-        title: `${currentSubcategory || subcategorySlug} - Bechaalany Connect`,
-        description: `Browse subcategory ${currentSubcategory || subcategorySlug}`,
-        og: {
+      <SeoHead
+        seo={{
           title: `${currentSubcategory || subcategorySlug} - Bechaalany Connect`,
           description: `Browse subcategory ${currentSubcategory || subcategorySlug}`,
-          image: generalData?.settings?.full_path?.logo || undefined,
-          url: `${process.env.NEXT_PUBLIC_SITE_URL}/categories/${categorySlug}/${subcategorySlug}`,
-          type: 'website',
-        },
-        canonical_url: `${process.env.NEXT_PUBLIC_SITE_URL}/categories/${categorySlug}/${subcategorySlug}`,
-        meta_robots: 'index, follow',
-        keywords: `${currentSubcategory || subcategorySlug} - ${currentCategory || categorySlug} - Bechaalany Connect`,
-      }} />
+          og: {
+            title: `${currentSubcategory || subcategorySlug} - Bechaalany Connect`,
+            description: `Browse subcategory ${currentSubcategory || subcategorySlug}`,
+            image: generalData?.settings?.full_path?.logo || undefined,
+            url: `${process.env.NEXT_PUBLIC_SITE_URL}/categories/${categorySlug}/${subcategorySlug}`,
+            type: 'website',
+          },
+          canonical_url: `${process.env.NEXT_PUBLIC_SITE_URL}/categories/${categorySlug}/${subcategorySlug}`,
+          meta_robots: 'index, follow',
+          keywords: `${currentSubcategory || subcategorySlug} - ${currentCategory || categorySlug} - Bechaalany Connect`,
+        }}
+      />
       <div className="px-2 sm:px-0">
         <Breadcrumb items={breadcrumbItems} />
-        <BackButton href={`/categories/${categorySlug}`} className="mb-2 sm:mb-4" label={generalData?.settings.back_button_label || ''} />
+        <BackButton
+          href={`/categories/${categorySlug}`}
+          className="mb-2 sm:mb-4"
+          label={generalData?.settings.back_button_label || ''}
+        />
       </div>
 
-      {
-        !isLoading && !error && <h1 className="text-[clamp(20px,5vw,32px)] font-bold text-gray-900 dark:text-white mt-4 sm:mt-8 mb-4 px-2 sm:px-0">{currentSubcategory}</h1>
-      }
+      {!isLoading && !error && (
+        <h1 className="text-[clamp(20px,5vw,32px)] font-bold text-gray-900 dark:text-white mt-4 sm:mt-8 mb-4 px-2 sm:px-0">
+          {currentSubcategory}
+        </h1>
+      )}
       {isLoading ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-8">
           {[...Array(4)].map((_, i) => (
@@ -140,33 +166,73 @@ const SubCategoryPage: React.FC = () => {
           onRetry={() => router.reload()}
           retryLabel={locale === 'ar' ? 'إعادة المحاولة' : 'Try again'}
         />
-      ) : shouldRedirectToSingleProduct ? null : (
-        products.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 mt-4 sm:mt-8">
-            {products.map((product) => (
-              <Card
-                key={product.id}
-                id={product.id}
-                title={product.name}
-                image={product.full_path.image}
-                type="product"
-                href={`/categories/${categorySlug}/${subcategorySlug}/${product.slug}`}
-              />
-            ))}
+      ) : shouldRedirectToSingleProduct ? null : products.length > 0 ? (
+        <div className="mt-4 sm:mt-8 px-2 sm:px-0">
+          <div className="relative mb-6 max-w-md">
+            <MagnifyingGlassIcon
+              className="w-5 h-5 absolute top-1/2 -translate-y-1/2 start-4 text-neutral-400 pointer-events-none"
+              aria-hidden="true"
+            />
+            <Input
+              type="search"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder={
+                locale === 'ar'
+                  ? `ابحث في ${currentSubcategory}...`
+                  : `Search in ${currentSubcategory}...`
+              }
+              aria-label={locale === 'ar' ? 'بحث' : 'Search'}
+              className="ps-11"
+            />
           </div>
-        ) : (
-          <ComingSoon />
-        )
+          {filteredItems.length === 0 ? (
+            <EmptyState
+              icon={<MagnifyingGlassIcon className="w-10 h-10" />}
+              title={
+                locale === 'ar'
+                  ? `لا توجد نتائج لـ "${searchQuery}"`
+                  : `No results for "${searchQuery}"`
+              }
+              action={{
+                label: locale === 'ar' ? 'مسح البحث' : 'Clear search',
+                onClick: () => setSearchQuery(''),
+                variant: 'outline',
+              }}
+            />
+          ) : (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
+                {paginatedItems.map(product => (
+                  <Card
+                    key={product.id}
+                    id={product.id}
+                    title={product.name}
+                    image={product.full_path.image}
+                    type="product"
+                    href={`/categories/${categorySlug}/${subcategorySlug}/${product.slug}`}
+                  />
+                ))}
+              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={goToPage}
+                locale={locale}
+              />
+            </>
+          )}
+        </div>
+      ) : (
+        <ComingSoon />
       )}
-
-
     </div>
   );
 };
 
-export default SubCategoryPage; 
+export default SubCategoryPage;
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getServerSideProps: GetServerSideProps = async context => {
   try {
     const locale = context.locale || 'en';
     const { category, subcategory } = context.params as { category: string; subcategory: string };
@@ -181,8 +247,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       return {
         redirect: {
           destination: `${prefix}/categories/${category}`,
-          permanent: false
-        }
+          permanent: false,
+        },
       };
     }
 
@@ -194,8 +260,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         return {
           redirect: {
             destination: `${prefix}/categories/${category}/${subcategory}/${productSlug}?single=1`,
-            permanent: false
-          }
+            permanent: false,
+          },
         };
       }
     }

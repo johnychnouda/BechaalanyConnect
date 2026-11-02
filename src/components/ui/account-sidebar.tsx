@@ -3,7 +3,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from '@/context/AuthContext';
 import {
-  ArrowRightOnRectangleIcon
+  ArrowRightOnRectangleIcon,
+  KeyIcon
 } from '@heroicons/react/24/outline';
 import { DashboardMenuItem } from "@/types/Dashboard.type";
 import Image from "next/image";
@@ -11,7 +12,7 @@ import { useLanguage } from "@/hooks/use-language";
 
 export default function AccountSidebar({ onClose, menuItems, logoutButton }: { onClose?: () => void, menuItems: DashboardMenuItem[] | null, logoutButton: string | null }) {
   const currentPath = usePathname();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const { locale } = useLanguage();
 
   const links = menuItems?.map((item) => ({
@@ -40,6 +41,20 @@ export default function AccountSidebar({ onClose, menuItems, logoutButton }: { o
             </div>
           </Link>
         ))}
+        {/* Not a CMS menu item: only shown to customers the admin gave reseller API access. */}
+        {user?.api_enabled && (
+          <Link href="/account-dashboard/api-keys">
+            <div className={`flex items-center justify-center gap-1 px-2 py-2 rounded-lg transition-all duration-200 ${currentPath === '/account-dashboard/api-keys'
+              ? 'bg-app-red/10 text-app-red dark:text-white'
+              : 'text-[#070707] hover:bg-app-red/5 hover:text-app-red dark:text-white'
+              }`}>
+              <KeyIcon className="w-4 h-4" />
+              <span className="text-[13px] leading-[16px] font-semibold">
+                {locale === 'ar' ? 'مفاتيح API' : 'API keys'}
+              </span>
+            </div>
+          </Link>
+        )}
       </div>
       {/* Logout Section */}
       <div className="hidden lg:flex mt-4 pt-3 border-t border-[#070707]/20 w-full pb-8 mb-0 flex-col items-center">
