@@ -94,13 +94,23 @@ export default function SigninPage() {
         return;
       }
 
-      // Redirect back to the originally requested page, otherwise the homepage
+      // Redirect back to the originally requested page, otherwise the homepage.
+      // startsWith("/") alone let "/\t/evil.example" through: the URL parser strips
+      // the TAB, turning it into "//evil.example", and Next hard-navigates off-site.
+      // Resolving it and comparing origins catches every such form.
       const callbackUrl = router.query.callbackUrl as string | undefined;
+      let target = "/";
       if (callbackUrl && callbackUrl.startsWith("/")) {
-        router.push(callbackUrl);
-      } else {
-        router.push("/");
+        try {
+          const resolved = new URL(callbackUrl, window.location.origin);
+          if (resolved.origin === window.location.origin) {
+            target = resolved.pathname + resolved.search + resolved.hash;
+          }
+        } catch {
+          // Unparseable: fall back to the homepage
+        }
       }
+      router.push(target);
     } catch (err: Error | unknown) {
       setError(getErrorMessage(err, locale === "ar" ? "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى." : "Login failed. Please try again."));
     }
