@@ -398,7 +398,9 @@ const ProductPage: React.FC = () => {
   const qtyLocked = !isProrated && selectedAmount.maxQty === 1;
   const total = isProrated
     ? Math.ceil(Number(((selectedAmount.price * quantity) / pricingUnit * 100).toFixed(6))) / 100
-    : selectedAmount.price * quantity;
+    // Rounded to the cent like the server's total: 0.07 * 3 is 0.21000000000000002, which
+    // told a customer holding exactly $0.21 they could not afford it.
+    : Math.round(selectedAmount.price * quantity * 100) / 100;
   const coinUnitLabel = isSocial ? '' : selectedAmount.unitLabel || (locale === 'ar' ? 'كوينز' : 'Coins');
   const withUnit = (n: number) => `${fmt(n)} ${coinUnitLabel}`.trim();
   const fmt = (n: number) => n.toLocaleString('en-US');
