@@ -1,5 +1,6 @@
 // pages/api/auth/[...nextauth].ts
-import NextAuth from "next-auth";
+import type { NextApiRequest, NextApiResponse } from "next";
+import NextAuth, { type NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 
@@ -30,7 +31,26 @@ declare module "next-auth/jwt" {
 }
 
 
-export default NextAuth({
+/**
+ * Logins are made from this server, so Laravel would see this server's IP for every
+ * customer and they would all share one rate limit. These headers carry the real client IP;
+ * Laravel believes it only with the shared secret (App\Support\ClientIp). The secret has
+ * no NEXT_PUBLIC_ prefix on purpose: it must never reach the browser. Unset, nothing is sent.
+ */
+const proxyHeaders = (request: NextApiRequest): Record<string, string> => {
+    const secret = process.env.INTERNAL_PROXY_SECRET;
+    if (!secret) return {};
+
+    const forwarded = request.headers['x-vercel-forwarded-for'] || request.headers['x-forwarded-for'];
+    const first = Array.isArray(forwarded) ? forwarded[0] : forwarded;
+    const clientIp = first?.split(',')[0]?.trim() || request.socket?.remoteAddress;
+
+    return clientIp
+        ? { 'X-Internal-Proxy-Secret': secret, 'X-Proxied-Client-Ip': clientIp }
+        : {};
+};
+
+const buildOptions = (request: NextApiRequest): NextAuthOptions => ({
     providers: [
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -58,6 +78,7 @@ export default NextAuth({
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept-Language': lang,
+                            ...proxyHeaders(request),
                         },
                         body: JSON.stringify({
                             email: credentials.email,
@@ -133,6 +154,7 @@ export default NextAuth({
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
+                        ...proxyHeaders(request),
                     },
                     body: JSON.stringify({ id_token: account.id_token }),
                 });
@@ -215,3 +237,7 @@ export default NextAuth({
     secret: process.env.NEXTAUTH_SECRET,
     debug: process.env.NODE_ENV === 'development',
 });
+
+export default function auth(req: NextApiRequest, res: NextApiResponse) {
+    return NextAuth(req, res, buildOptions(req));
+}
