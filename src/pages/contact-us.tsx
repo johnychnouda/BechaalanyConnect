@@ -1,3 +1,5 @@
+import SafeHtml from '@/components/ui/safe-html';
+import { safeUrl } from '@/utils/safe-url';
 import React, { useEffect, useState } from "react";
 import SeoHead from "@/components/ui/SeoHead";
 import Image from "next/image";
@@ -131,10 +133,7 @@ export default function ContactUs() {
                   <h2 className="text-3xl font-bold text-[#E93323] mb-4">
                     {contactUsData?.contact_page_setting.title}
                   </h2>
-                  <div className="text-gray-700 dark:text-white mb-6" dangerouslySetInnerHTML={{
-                    __html: contactUsData?.contact_page_setting.description || ''
-                  }}>
-                  </div>
+                  <SafeHtml className="text-gray-700 dark:text-white mb-6" html={contactUsData?.contact_page_setting.description} />
 
                  <ContactForm 
                    contactUsData={contactUsData} 
@@ -193,7 +192,7 @@ export default function ContactUs() {
                   <h2 className="text-3xl font-bold text-[#E93323] mb-4">{contactUsData?.contact_page_setting.follow_us_title || 'Follow Us'}</h2>
                   <div className="flex gap-4 mb-8">
                     {generalData?.social_links.map((social, index) => (
-                      <Link href={social.url} target="_blank" key={index} className="text-[#E93323] hover:opacity-80">
+                      <Link href={safeUrl(social.url)} target="_blank" key={index} className="text-[#E93323] hover:opacity-80">
                         <Image src={social.full_path.about_icons} alt={social.title} width={25} height={25} />
                       </Link>
                     ))}

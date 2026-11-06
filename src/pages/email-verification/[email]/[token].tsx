@@ -9,6 +9,8 @@ import Link from "next/link";
 
 type VerifyForm = {
   code: string;
+  password: string;
+  passwordConfirmation: string;
 };
 
 export default function EmailVerificationPage() {
@@ -21,8 +23,8 @@ export default function EmailVerificationPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const { register, handleSubmit, formState: { errors } } = useForm<VerifyForm>({
-    defaultValues: { code: "" },
+  const { register, handleSubmit, getValues, formState: { errors } } = useForm<VerifyForm>({
+    defaultValues: { code: "", password: "", passwordConfirmation: "" },
   });
 
   const decodedEmail = decodeURIComponent(email || "");
@@ -32,7 +34,7 @@ export default function EmailVerificationPage() {
     setSuccess("");
     setLoading(true);
     try {
-      await authService.verifyEmail(data.code, decodedEmail, token || "");
+      await authService.verifyEmail(data.code, decodedEmail, token || "", data.password);
       setSuccess(locale === "ar" ? "تم التحقق من البريد الإلكتروني بنجاح! يرجى تسجيل الدخول." : "Email verified successfully! Please sign in.");
       // Next.js i18n adds the locale prefix itself. Hardcoding it produced
       // "/en/auth/signin", which 404s because `en` is the defaultLocale and so never
@@ -94,6 +96,33 @@ export default function EmailVerificationPage() {
               />
               {errors.code && (
                 <div className="w-full mb-2 text-center text-red-600 text-xs sm:text-sm font-semibold">{errors.code.message}</div>
+              )}
+
+              {/* The link proves the inbox, not who filled in the sign-up form, so the password is set here. */}
+              <input
+                type="password"
+                autoComplete="new-password"
+                {...register("password", {
+                  required: locale === "ar" ? "كلمة المرور مطلوبة" : "Password is required",
+                  minLength: { value: 8, message: locale === "ar" ? "ثمانية أحرف على الأقل، مع أحرف وأرقام" : "At least 8 characters, with letters and numbers" },
+                })}
+                placeholder={locale === "ar" ? "اختر كلمة مرور" : "Choose a password"}
+                className="w-full border border-app-red rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-app-red text-black bg-transparent placeholder:text-black text-center"
+              />
+              {errors.password && (
+                <div className="w-full mb-2 text-center text-red-600 text-xs sm:text-sm font-semibold">{errors.password.message}</div>
+              )}
+              <input
+                type="password"
+                autoComplete="new-password"
+                {...register("passwordConfirmation", {
+                  validate: (value) => value === getValues("password") || (locale === "ar" ? "كلمتا المرور غير متطابقتين" : "Passwords do not match"),
+                })}
+                placeholder={locale === "ar" ? "تأكيد كلمة المرور" : "Confirm password"}
+                className="w-full border border-app-red rounded-full px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-app-red text-black bg-transparent placeholder:text-black text-center"
+              />
+              {errors.passwordConfirmation && (
+                <div className="w-full mb-2 text-center text-red-600 text-xs sm:text-sm font-semibold">{errors.passwordConfirmation.message}</div>
               )}
 
               <button

@@ -1,3 +1,5 @@
+import SafeHtml from '@/components/ui/safe-html';
+import { safeUrl } from '@/utils/safe-url';
 import React, { useEffect, useState } from "react";
 import SeoHead from "@/components/ui/SeoHead";
 import Image from "next/image";
@@ -71,10 +73,7 @@ export default function AboutUs() {
                       <h1 className="text-4xl font-bold text-[#E93323] mb-4">
                         {aboutUsData?.about_page_setting.title}
                       </h1>
-                      <div className="text-gray-700 dark:text-white" dangerouslySetInnerHTML={{
-                        __html: aboutUsData?.about_page_setting.description || ''
-                      }}>
-                      </div>
+                      <SafeHtml className="text-gray-700 dark:text-white" html={aboutUsData?.about_page_setting.description} />
                     </div>
 
                     {/* Contact Us Section */}
@@ -129,7 +128,7 @@ export default function AboutUs() {
 
                               (contact.location_url && contact.address) && (
                                 <div key={index}>
-                                  <Link href={contact.location_url} target="_blank" className="flex items-center text-[12px] sm:text-[16px] md:text-[18px] font-medium break-all hover:text-[#E93323]">
+                                  <Link href={safeUrl(contact.location_url)} target="_blank" className="flex items-center text-[12px] sm:text-[16px] md:text-[18px] font-medium break-all hover:text-[#E93323]">
                                     <svg fill="#E93323" className="h-5 w-5 mr-3 rtl:mr-0 rtl:ml-3 text-[#E93323] flex-shrink-0" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg">
                                       <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                                       <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
@@ -154,7 +153,7 @@ export default function AboutUs() {
                       <h2 className="text-4xl font-bold text-[#E93323] mb-4">{aboutUsData?.about_page_setting.social_section_title}</h2>
                       <div className="flex gap-4">
                         {generalData?.social_links.map((social, index) => (
-                          <ButtonLink target="_blank" href={social.url} key={index} className="hover:opacity-80 transition-opacity flex items-center p-0">
+                          <ButtonLink target="_blank" href={safeUrl(social.url)} key={index} className="hover:opacity-80 transition-opacity flex items-center p-0">
                             <div className="flex items-center w-[15px] h-[15px] sm:w-[17px] sm:h-[17px] md:w-[25px] md:h-[25px]">
                               <Image src={social.full_path.about_icons} alt={social.title} width={25} height={25} />
                             </div>

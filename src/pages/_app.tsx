@@ -2,7 +2,6 @@
 import "@/styles/globals.css";
 import { ThemeProvider } from "next-themes";
 import type { AppProps } from "next/app";
-import { NextIntlClientProvider } from "next-intl";
 import { useMemo, useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider } from "next-auth/react";
@@ -32,10 +31,9 @@ export default function App({
   Component,
   pageProps,
   router,
-  messages,
   generalData,
   locale,
-}: AppProps & { messages: any } & { generalData: any } & { locale: string }) {
+}: AppProps & { generalData: any } & { locale: string }) {
   // Memoize QueryClient to prevent unnecessary re-renders
   const queryClient = useMemo(() => new QueryClient({
     defaultOptions: {
@@ -126,16 +124,6 @@ export default function App({
           <AuthProvider>
             <CreditNotificationProvider>
               <GlobalState.Provider value={globalStateValue}>
-                <NextIntlClientProvider
-                                locale={router.locale}
-                                timeZone="Asia/Beirut"
-                                messages={messages || {}}
-                                onError={(error) => {
-                                  if (error.code !== 'MISSING_MESSAGE') {
-                                    console.error(error);
-                                  }
-                                }}
-                              >
                                 {/*
                                   * next/font hands back CSS variables, and they were
                                   * declared ONLY on the <main> className below. But
@@ -224,7 +212,7 @@ export default function App({
                                 />
                                 <SpeedInsights />
 
-                              </NextIntlClientProvider>
+                              
             </GlobalState.Provider>
             </CreditNotificationProvider>
           </AuthProvider>

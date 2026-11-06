@@ -41,9 +41,14 @@ const proxyHeaders = (request: NextApiRequest): Record<string, string> => {
     const secret = process.env.INTERNAL_PROXY_SECRET;
     if (!secret) return {};
 
-    const forwarded = request.headers['x-vercel-forwarded-for'] || request.headers['x-forwarded-for'];
-    const first = Array.isArray(forwarded) ? forwarded[0] : forwarded;
-    const clientIp = first?.split(',')[0]?.trim() || request.socket?.remoteAddress;
+    // Only what this deployment's own edge wrote. The leftmost x-forwarded-for hop is
+    // whatever the client typed, and x-vercel-forwarded-for means nothing off Vercel. The
+    // rightmost hop is the one added by the proxy directly in front of this server.
+    const vercel = process.env.VERCEL ? request.headers['x-vercel-forwarded-for'] : undefined;
+    const forwarded = vercel || request.headers['x-forwarded-for'];
+    const list = Array.isArray(forwarded) ? forwarded.join(',') : forwarded;
+    const hops = list?.split(',').map((hop) => hop.trim()).filter(Boolean) ?? [];
+    const clientIp = (vercel ? hops[0] : hops[hops.length - 1]) || request.socket?.remoteAddress;
 
     return clientIp
         ? { 'X-Internal-Proxy-Secret': secret, 'X-Proxied-Client-Ip': clientIp }
@@ -70,7 +75,9 @@ const buildOptions = (request: NextApiRequest): NextAuthOptions => ({
 
                 try {
                     // Get language from credentials or fallback to Accept-Language header or default to 'en'
-                    const lang = credentials.lang || req?.headers?.['accept-language']?.split(',')[0]?.split('-')[0] || 'en';
+                    const requested = credentials.lang || req?.headers?.['accept-language']?.split(',')[0]?.split('-')[0];
+                    // It becomes part of the URL of a request carrying the internal proxy secret.
+                    const lang = requested === 'ar' ? 'ar' : 'en';
                     
                     // Use locale-aware login endpoint
                     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/${lang}/login`, {
@@ -85,6 +92,8 @@ const buildOptions = (request: NextApiRequest): NextAuthOptions => ({
                             password: credentials.password,
                             lang: lang,
                         }),
+                        // Password and proxy secret go to this URL and nowhere else.
+                        redirect: 'error',
                     });
 
                     if (response.ok) {

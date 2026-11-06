@@ -33,13 +33,34 @@ const nextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "admin.bechaalanyconnect.com" },
-      { protocol: "http", hostname: "localhost" },
-      { protocol: "https", hostname: "bechaalany-connect-backend.test" },
-      { protocol: "http", hostname: "127.0.0.1" },
+      // Local backends, in development only: in production these would let anyone ask
+      // the image optimizer to fetch any port on the server's own loopback.
+      ...(process.env.NODE_ENV === "development"
+        ? [
+            { protocol: "http", hostname: "localhost" },
+            { protocol: "https", hostname: "bechaalany-connect-backend.test" },
+            { protocol: "http", hostname: "127.0.0.1" },
+          ]
+        : []),
       // Supplier-hosted category artwork (Yassen serves absolute image URLs).
       { protocol: "https", hostname: "yassen-card.com" },
       { protocol: "https", hostname: "**.yassen-card.com" },
     ],
+  },
+
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'none'; base-uri 'self'; object-src 'none'" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          // Reset and verification links carry a secret in the path.
+          { key: "Referrer-Policy", value: "same-origin" },
+        ],
+      },
+    ];
   },
 
   env: {
