@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import BackButton from '@/components/ui/back-button';
+import SafeHtml from '@/components/ui/safe-html';
 import Breadcrumb from '@/components/ui/breadcrumb';
 import PageLayout from '@/components/ui/page-layout';
 import Card from '@/components/ui/card';
@@ -1000,9 +1001,9 @@ const ProductPage: React.FC = () => {
               <h2 className="text-app-red text-[20px] font-bold mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
                 {locale === 'ar' ? 'الوصف' : 'Description'}
               </h2>
-              <div
+              <SafeHtml
                 className="text-gray-700 dark:text-white leading-relaxed [&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_a]:text-app-red [&_a]:underline [&_h1]:font-bold [&_h2]:font-bold rtl:[&_ul]:pr-6 rtl:[&_ul]:pl-0 rtl:[&_ol]:pr-6 rtl:[&_ol]:pl-0"
-                dangerouslySetInnerHTML={{ __html: variationDescriptionHtml }}
+                html={variationDescriptionHtml}
               />
             </section>
           )}

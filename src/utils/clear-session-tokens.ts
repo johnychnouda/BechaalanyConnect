@@ -54,8 +54,6 @@ export const logSessionTokens = () => {
     cookie.trim().startsWith('next-auth.session-token')
   );
 
+  // The count only: these cookies are credentials and do not belong in a console.
   console.log('Session tokens found:', sessionTokens.length);
-  sessionTokens.forEach((token, index) => {
-    console.log(`Token ${index}:`, token.trim());
-  });
 }; 

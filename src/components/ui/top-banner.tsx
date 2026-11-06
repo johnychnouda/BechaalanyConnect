@@ -1,3 +1,4 @@
+import { safeUrl } from '@/utils/safe-url';
 import { WhatsappWhiteIcon } from "@/assets/icons/whatsapp-white.icon";
 import React, { PropsWithChildren } from "react";
 import ButtonLink from "./button-link";
@@ -51,7 +52,7 @@ export default function TopBanner({ children }: PropsWithChildren) {
           {/* Social icons and language switcher */}
           <div className="flex rtl:flex-row-reverse items-center gap-2 sm:gap-1.5 md:gap-2 py-0.5">
             {generalData?.social_links.map((social, index) => (
-              <ButtonLink target="_blank" href={social.url} key={index} className="hover:opacity-80 transition-opacity flex items-center p-0">
+              <ButtonLink target="_blank" href={safeUrl(social.url)} key={index} className="hover:opacity-80 transition-opacity flex items-center p-0">
                 <div className="flex items-center w-[15px] h-[15px] sm:w-[17px] sm:h-[17px] md:w-[18px] md:h-[18px]">
                   <Image src={social.full_path.icon} alt={social.title} width={20} height={20} />
                 </div>

@@ -106,9 +106,14 @@ class AuthService {
     }
   }
 
-  public async verifyEmail(code: string, email: string, token: string): Promise<void> {
+  public async verifyEmail(code: string, email: string, token: string, password?: string): Promise<void> {
     try {
-      await api.post('/verify-email', { code, email, token });
+      await api.post('/verify-email', {
+        code,
+        email,
+        token,
+        ...(password ? { password, password_confirmation: password } : {}),
+      });
     } catch (error) {
       throw this.handleError(error);
     }

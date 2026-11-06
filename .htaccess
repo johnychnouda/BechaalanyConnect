@@ -1,0 +1,11 @@
+# The storefront is a Node app and is never served by Apache. If this directory sits under
+# a web root, refuse everything: .env.local, .git, source.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^ - [F,L]
+</IfModule>
+
+# Without mod_rewrite the rule above does nothing, so deny outright rather than serve files.
+<IfModule !mod_rewrite.c>
+    Require all denied
+</IfModule>

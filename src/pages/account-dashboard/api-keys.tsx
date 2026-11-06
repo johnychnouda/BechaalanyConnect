@@ -117,6 +117,8 @@ export default function ApiKeysPage() {
 
   const [name, setName] = useState('');
   const [ips, setIps] = useState('');
+  const [keyPassword, setKeyPassword] = useState('');
+  const [webhookPassword, setWebhookPassword] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
   const [newKey, setNewKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -139,7 +141,13 @@ export default function ApiKeysPage() {
         .split(/[\s,]+/)
         .map(ip => ip.trim())
         .filter(Boolean);
-      return (await api.post('/user/api-keys', { name: name.trim(), allowed_ips })).data as {
+      return (
+        await api.post('/user/api-keys', {
+          name: name.trim(),
+          allowed_ips,
+          current_password: keyPassword,
+        })
+      ).data as {
         key: string;
       };
     },
@@ -148,6 +156,7 @@ export default function ApiKeysPage() {
       setCopied(false);
       setName('');
       setIps('');
+      setKeyPassword('');
       setFormError(null);
       queryClient.invalidateQueries({ queryKey: ['api-keys'] });
     },
@@ -166,20 +175,24 @@ export default function ApiKeysPage() {
   const onWebhookDone = (res: { secret?: string | null; message?: string }) => {
     if (res.secret) setNewSecret(res.secret);
     setWebhookUrl(null);
+    setWebhookPassword('');
     setWebhookError(null);
     setWebhookNotice(res.message ?? null);
     queryClient.invalidateQueries({ queryKey: ['api-keys'] });
   };
 
   const saveWebhook = useMutation({
-    mutationFn: async () => (await api.put('/user/api-webhook', { url: urlValue.trim() })).data,
+    mutationFn: async () =>
+      (await api.put('/user/api-webhook', { url: urlValue.trim(), current_password: webhookPassword }))
+        .data,
     onSuccess: onWebhookDone,
     onError: err =>
       setWebhookError(errorMessage(err, ar ? 'تعذّر حفظ الرابط.' : 'Could not save the webhook.')),
   });
 
   const rotateSecret = useMutation({
-    mutationFn: async () => (await api.post('/user/api-webhook/rotate-secret')).data,
+    mutationFn: async () =>
+      (await api.post('/user/api-webhook/rotate-secret', { current_password: webhookPassword })).data,
     onSuccess: onWebhookDone,
     onError: err =>
       setWebhookError(
@@ -363,6 +376,21 @@ export default function ApiKeysPage() {
                     placeholder="203.0.113.10"
                   />
                 </FormField>
+                <FormField
+                  label={ar ? 'كلمة المرور الحالية' : 'Current password'}
+                  hint={
+                    ar
+                      ? 'إذا كنت تسجّل الدخول عبر Google، فعيّن كلمة مرور أولاً من خلال "نسيت كلمة المرور".'
+                      : 'If you sign in with Google, set a password first with "Forgot password".'
+                  }
+                >
+                  <Input
+                    type="password"
+                    autoComplete="current-password"
+                    value={keyPassword}
+                    onChange={e => setKeyPassword(e.target.value)}
+                  />
+                </FormField>
               </div>
               <Button type="submit" loading={create.isPending} className="w-fit">
                 {ar ? 'إنشاء المفتاح' : 'Create key'}
@@ -480,6 +508,22 @@ export default function ApiKeysPage() {
                   {data.webhook.last_delivery_error ? ` · ${data.webhook.last_delivery_error}` : ''}
                 </p>
               )}
+
+              <FormField
+                label={ar ? 'كلمة المرور الحالية' : 'Current password'}
+                hint={
+                  ar
+                    ? 'مطلوبة لحفظ الرابط أو تغيير المفتاح السري.'
+                    : 'Needed to save the URL or rotate the secret.'
+                }
+              >
+                <Input
+                  type="password"
+                  autoComplete="current-password"
+                  value={webhookPassword}
+                  onChange={e => setWebhookPassword(e.target.value)}
+                />
+              </FormField>
 
               <div className="flex flex-wrap gap-2">
                 <Button type="submit" loading={saveWebhook.isPending} className="w-fit">
