@@ -398,10 +398,10 @@ const ProductPage: React.FC = () => {
   // to 1 regardless of any stale quantity state.
   const qtyLocked = !isProrated && selectedAmount.maxQty === 1;
   const total = isProrated
-    ? Math.ceil(Number(((selectedAmount.price * quantity) / pricingUnit * 100).toFixed(6))) / 100
+    ? Math.ceil(Number(((selectedAmount.price * quantity) / pricingUnit * 1000).toFixed(6))) / 1000
     // Rounded to the cent like the server's total: 0.07 * 3 is 0.21000000000000002, which
     // told a customer holding exactly $0.21 they could not afford it.
-    : Math.round(selectedAmount.price * quantity * 100) / 100;
+    : Math.round(selectedAmount.price * quantity * 1000) / 1000;
   const coinUnitLabel = isSocial ? '' : selectedAmount.unitLabel || (locale === 'ar' ? 'كوينز' : 'Coins');
   const withUnit = (n: number) => `${fmt(n)} ${coinUnitLabel}`.trim();
   const fmt = (n: number) => n.toLocaleString('en-US');
@@ -418,7 +418,7 @@ const ProductPage: React.FC = () => {
           ? `${locale === 'ar' ? 'الحد الأقصى' : 'Maximum'} ${withUnit(selectedAmount.maxQty)}`
           : undefined;
   // "$2.90 per 1,000" — how the panel itself quotes these services.
-  const socialRate = `$${selectedAmount.price.toFixed(2)} ${locale === 'ar' ? 'لكل' : 'per'} ${fmt(pricingUnit)}`;
+  const socialRate = `$${selectedAmount.price.toFixed(3)} ${locale === 'ar' ? 'لكل' : 'per'} ${fmt(pricingUnit)}`;
   const details = isSocial ? selectedAmount.details : null;
   // "Username Link", "Post Link", … from the supplier's description; the field
   // the order is delivered to (recipient_user).
@@ -741,7 +741,7 @@ const ProductPage: React.FC = () => {
                   }
                   error={coinError}
                   hint={[
-                    isSocial ? socialRate : `${fmt(pricingUnit)} ${coinUnitLabel} = $${selectedAmount.price.toFixed(2)}`,
+                    isSocial ? socialRate : `${fmt(pricingUnit)} ${coinUnitLabel} = $${selectedAmount.price.toFixed(3)}`,
                     selectedAmount.minQty > 1 ? `${locale === 'ar' ? 'الحد الأدنى' : 'Min'} ${fmt(selectedAmount.minQty)}` : null,
                     selectedAmount.maxQty != null ? `${locale === 'ar' ? 'الحد الأقصى' : 'Max'} ${fmt(selectedAmount.maxQty)}` : null,
                   ].filter(Boolean).join(' · ')}
@@ -889,7 +889,7 @@ const ProductPage: React.FC = () => {
               {/* Total — blurred until the account's identity is verified */}
               <div className="flex justify-between items-center bg-app-red/5 rounded-xl px-4 py-3 mt-1">
                 <span className="text-black dark:text-white text-base font-semibold">{generalData?.settings.total}</span>
-                <span className={`text-2xl font-extrabold text-app-red ${user && !isApproved ? 'filter blur-[6px] select-none' : ''}`}>${total.toFixed(2)}</span>
+                <span className={`text-2xl font-extrabold text-app-red ${user && !isApproved ? 'filter blur-[6px] select-none' : ''}`}>${total.toFixed(3)}</span>
               </div>
 
               {/*
@@ -904,13 +904,13 @@ const ProductPage: React.FC = () => {
                 <div className="rounded-xl border border-app-red/40 bg-app-red/5 px-4 py-3 text-sm">
                   <p className="text-app-red font-semibold mb-1">
                     {locale === 'en'
-                      ? `Not enough credits — you need $${(total - currentBalance).toFixed(2)} more.`
-                      : `رصيدك غير كافٍ — تحتاج إلى ${(total - currentBalance).toFixed(2)}$ إضافية.`}
+                      ? `Not enough credits — you need $${(total - currentBalance).toFixed(3)} more.`
+                      : `رصيدك غير كافٍ — تحتاج إلى ${(total - currentBalance).toFixed(3)}$ إضافية.`}
                   </p>
                   <p className="text-gray-600 dark:text-gray-300 mb-2">
                     {locale === 'en'
-                      ? `Your balance: $${currentBalance.toFixed(2)}`
-                      : `رصيدك: ${currentBalance.toFixed(2)}$`}
+                      ? `Your balance: $${currentBalance.toFixed(3)}`
+                      : `رصيدك: ${currentBalance.toFixed(3)}$`}
                   </p>
                   <button
                     type="button"
@@ -1060,7 +1060,7 @@ const ProductPage: React.FC = () => {
           quantity={qtyLocked ? 1 : quantity}
           unitPrice={selectedAmount.price}
           coinLabel={isProrated ? withUnit(quantity) : undefined}
-          coinRate={isSocial ? socialRate : isCoin ? `${fmt(pricingUnit)} ${coinUnitLabel} = $${selectedAmount.price.toFixed(2)}` : undefined}
+          coinRate={isSocial ? socialRate : isCoin ? `${fmt(pricingUnit)} ${coinUnitLabel} = $${selectedAmount.price.toFixed(3)}` : undefined}
           total={total}
           currentBalance={currentBalance}
         />
@@ -1076,7 +1076,7 @@ const ProductPage: React.FC = () => {
         >
           <div className="flex flex-col leading-tight">
             <span className="text-xs text-gray-500 dark:text-gray-400">{generalData?.settings.total}</span>
-            <span className={`text-lg font-extrabold text-app-red ${user && !isApproved ? 'filter blur-[6px] select-none' : ''}`}>${total.toFixed(2)}</span>
+            <span className={`text-lg font-extrabold text-app-red ${user && !isApproved ? 'filter blur-[6px] select-none' : ''}`}>${total.toFixed(3)}</span>
           </div>
           <Button
             type="submit"

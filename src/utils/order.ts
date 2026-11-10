@@ -15,7 +15,7 @@ export function toProcessedOrder(order: Order): ProcessedOrder {
   else if (order.statuses_id === 3) status = 'pending';
 
   const title = `${order.product_variation.product.name} | ${order.product_variation.name}`;
-  const value = `$${parseFloat(order.total_price).toFixed(2)}`;
+  const value = `$${parseFloat(order.total_price).toFixed(3)}`;
 
   let recipient_info = '';
   if (order.recipient_user) {

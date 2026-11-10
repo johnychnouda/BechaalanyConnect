@@ -25,7 +25,7 @@ const BlurredPrice: React.FC<BlurredPriceProps> = ({ price, className = '', onCl
       aria-label={isBlurred ? 'Show balance' : 'Hide balance'}
     >
       <span className={isBlurred ? 'filter blur-[4px]' : ''}>
-        {price.toFixed(2)}
+        {price.toFixed(3)}
       </span>
       <span className="ms-1">$</span>
     </button>

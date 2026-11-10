@@ -207,7 +207,7 @@ export default function OrderDetailPage() {
               {unitPrice >= 0.01 && (
                 <div>
                   <div className="text-[#8E8E8E] text-xs">{locale === 'en' ? 'Unit price' : 'سعر الوحدة'}</div>
-                  <div className="text-[#070707] dark:text-white font-medium">${unitPrice.toFixed(2)}</div>
+                  <div className="text-[#070707] dark:text-white font-medium">${unitPrice.toFixed(3)}</div>
                 </div>
               )}
               {processed.recipient_info && (

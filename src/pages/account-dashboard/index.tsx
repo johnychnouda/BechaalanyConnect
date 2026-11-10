@@ -96,7 +96,7 @@ export default function AccountDashboard() {
             title: `${order.product_variation?.product?.name || 'Product'} | ${order.product_variation?.name || 'Variation'}`,
             date: order.created_at,
             status: 'Purchased',
-            value: `$${parseFloat(order.total_price).toFixed(2)}`,
+            value: `$${parseFloat(order.total_price).toFixed(3)}`,
             originalStatus: status
           };
         });
@@ -149,7 +149,7 @@ export default function AccountDashboard() {
             title: `${order.product_variation?.product?.name || 'Product'} | ${order.product_variation?.name || 'Variation'}`,
             date: order.created_at,
             status: 'Purchased',
-            value: `$${parseFloat(order.total_price).toFixed(2)}`,
+            value: `$${parseFloat(order.total_price).toFixed(3)}`,
             originalStatus: 'accepted'
           }));
         setOrders(processedOrders);

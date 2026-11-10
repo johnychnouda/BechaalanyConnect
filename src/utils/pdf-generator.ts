@@ -155,8 +155,8 @@ export const generateOrderReceipt = async (orderData: OrderReceiptData, locale?:
             [`${isArabic ? 'النوع' : 'Variation'}`, orderData.productVariation],
             [`${isArabic ? 'الكمية' : 'Quantity'}`, orderData.quantity.toString()],
             [`${isArabic ? 'معلومات المستلم' : 'Recipient Information'}`, orderData.recipientInfo],
-            [`${isArabic ? 'سعر الوحدة' : 'Unit Price'}`, `$${orderData.unitPrice.toFixed(2)}`],
-            [`${isArabic ? 'السعر الإجمالي' : 'Total Price'}`, `$${orderData.totalPrice.toFixed(2)}`]
+            [`${isArabic ? 'سعر الوحدة' : 'Unit Price'}`, `$${orderData.unitPrice.toFixed(3)}`],
+            [`${isArabic ? 'السعر الإجمالي' : 'Total Price'}`, `$${orderData.totalPrice.toFixed(3)}`]
         ];
         const tableData = isArabic
             ? rawRows.map(([label, value]) => [value, label]) // reverse columns for RTL: Details | Item

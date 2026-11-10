@@ -78,7 +78,7 @@ export default function ConfirmPurchaseModal({
         ) : (
           <>
             <Row label={isArabic ? 'الكمية' : 'Quantity'} value={String(quantity)} />
-            <Row label={isArabic ? 'سعر الوحدة' : 'Unit price'} value={`$${unitPrice.toFixed(2)}`} />
+            <Row label={isArabic ? 'سعر الوحدة' : 'Unit price'} value={`$${unitPrice.toFixed(3)}`} />
           </>
         )}
 
@@ -86,12 +86,12 @@ export default function ConfirmPurchaseModal({
 
         <Row
           label={isArabic ? 'الإجمالي' : 'Total'}
-          value={`$${total.toFixed(2)}`}
+          value={`$${total.toFixed(3)}`}
           bold
         />
         <Row
           label={isArabic ? 'الرصيد بعد الشراء' : 'Balance after purchase'}
-          value={`$${resultingBalance.toFixed(2)}`}
+          value={`$${resultingBalance.toFixed(3)}`}
         />
       </div>
 

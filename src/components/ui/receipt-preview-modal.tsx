@@ -104,7 +104,7 @@ export default function ReceiptPreviewModal({
               {unitPrice >= 0.01 && (
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-gray-600 dark:text-gray-400">{ locale === 'ar' ? 'السعر الوحدة' : 'Unit Price' }:</span>
-                  <span className="font-medium">${unitPrice.toFixed(2)}</span>
+                  <span className="font-medium">${unitPrice.toFixed(3)}</span>
                 </div>
               )}
               <div className="flex justify-between items-center mb-2">

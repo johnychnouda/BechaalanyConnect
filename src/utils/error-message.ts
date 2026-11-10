@@ -110,7 +110,7 @@ export function insufficientCreditsMessage(error: unknown, locale?: Locale): str
         return ar ? 'رصيدك غير كافٍ لإتمام هذا الطلب.' : 'You do not have enough credits for this order.';
     }
 
-    const amount = `$${missing.toFixed(2)}`;
+    const amount = `$${missing.toFixed(3)}`;
 
     return ar
         ? `رصيدك غير كافٍ. تحتاج إلى ${amount} إضافية.`
